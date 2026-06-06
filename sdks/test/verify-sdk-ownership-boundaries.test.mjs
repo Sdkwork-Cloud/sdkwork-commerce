@@ -64,13 +64,28 @@ function operationEntries(openapi) {
 test("commerce SDK family assemblies declare owner-only authority metadata", () => {
   for (const family of families) {
     const assembly = readJson(path.join("sdks", family.root, ".sdkwork-assembly.json"));
+    const manifest = readJson(path.join("sdks", family.root, "sdk-manifest.json"));
+    const componentSpec = readJson(path.join("sdks", family.root, "specs/component.spec.json"));
 
     assert.equal(assembly.sdkOwner, family.owner, `${family.root} must declare sdkOwner`);
     assert.equal(assembly.apiAuthority, family.authority, `${family.root} must declare apiAuthority`);
+    assert.equal(assembly.sdkFamily, family.root, `${family.root} must declare sdkFamily`);
+    assert.equal(manifest.sdkName, family.root, `${family.root} manifest sdkName must match family`);
+    assert.equal(manifest.sdkFamily, family.root, `${family.root} manifest sdkFamily must match family`);
     assert.equal(
       assembly.generationInputSpec,
       `../../${family.input.replaceAll("\\", "/")}`,
       `${family.root} must generate from its owner-only input`,
+    );
+    assert.deepEqual(
+      assembly.sdkDependencies ?? [],
+      manifest.sdkDependencies ?? [],
+      `${family.root} assembly and manifest sdkDependencies must match`,
+    );
+    assert.deepEqual(
+      componentSpec.contracts?.sdkDependencies ?? [],
+      manifest.sdkDependencies ?? [],
+      `${family.root} component spec and manifest sdkDependencies must match`,
     );
 
     if (family.dependencyWorkspace) {

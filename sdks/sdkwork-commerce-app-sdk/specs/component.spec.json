@@ -56,7 +56,14 @@
         "dependencyMode": "consumer-sdk",
         "apiPrefix": "/app/v3/api",
         "apiAuthority": "sdkwork-appbase.app",
-        "generatedTransportImportPolicy": "forbidden"
+        "generatedTransportImportPolicy": "forbidden",
+        "packageByLanguage": {
+          "typescript": "@sdkwork/appbase-app-sdk",
+          "rust": "sdkwork-appbase-app-sdk",
+          "java": "com.sdkwork:sdkwork-appbase-app-sdk",
+          "python": "sdkwork-appbase-app-sdk",
+          "go": "github.com/sdkwork/sdkwork-appbase-app-sdk"
+        }
       }
     ]
   },
@@ -66,4 +73,3 @@
     ]
   }
 }
-

@@ -300,6 +300,7 @@ function syncCommerceAssemblyMetadata(family, openapiPath) {
 
   const relativeOpenapiPath = toPosixPath(path.relative(family.sdkRoot, openapiPath));
   assembly.workspace = assembly.workspace || family.sdkName;
+  assembly.sdkFamily = family.sdkName;
   assembly.sdkOwner = family.sdkOwner;
   assembly.apiAuthority = family.apiAuthority;
   assembly.authoritySpec = relativeOpenapiPath;
@@ -315,11 +316,7 @@ function syncCommerceAssemblyMetadata(family, openapiPath) {
     generatedProtocols: ["http-openapi"],
     manualTransports: [],
   };
-  if (family.sdkDependencies && family.sdkDependencies.length > 0) {
-    assembly.sdkDependencies = family.sdkDependencies;
-  } else {
-    delete assembly.sdkDependencies;
-  }
+  assembly.sdkDependencies = family.sdkDependencies || [];
 
   writeFileSync(assemblyPath, `${JSON.stringify(assembly, null, 2)}\n`, "utf8");
 }
@@ -418,4 +415,3 @@ export function resolveFamilySdkRoot(importMetaUrl) {
 }
 
 export { STANDARD_PROFILE };
-

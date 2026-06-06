@@ -1,5 +1,6 @@
 {
   "workspace": "sdkwork-commerce-app-sdk",
+  "sdkFamily": "sdkwork-commerce-app-sdk",
   "title": "SDKWork Commerce App API SDK",
   "apiVersion": "0.1.0",
   "openapiVersion": "3.1.2",
@@ -38,4 +39,3 @@
     }
   ]
 }
-
