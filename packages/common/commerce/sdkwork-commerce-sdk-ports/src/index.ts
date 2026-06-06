@@ -451,7 +451,7 @@ export function assertCommerceAppSdkClient(client: unknown): asserts client is C
   assertNoRetiredCommerceShape(client, "app", APP_RETIRED_TOP_LEVEL_ROOTS, APP_RETIRED_COMMERCE_NAMESPACES);
   const missingMethods = findMissingMethods(getCommerceSdkSurface(client), SDKWORK_COMMERCE_APP_SDK_REQUIRED_METHODS);
   if (missingMethods.length > 0) {
-    throw new Error(`Generated app commerce SDK client is missing appbase commerce methods: ${missingMethods.join(", ")}`);
+    throw new Error(`Generated app commerce SDK client is missing commerce methods: ${missingMethods.join(", ")}`);
   }
 }
 
@@ -465,7 +465,7 @@ export function assertCommerceBackendSdkClient(client: unknown): asserts client 
   const missingMethods = findMissingMethods(getCommerceSdkSurface(client), SDKWORK_COMMERCE_BACKEND_SDK_REQUIRED_METHODS);
   if (missingMethods.length > 0) {
     throw new Error(
-      `Generated backend commerce SDK client is missing appbase commerce methods: ${missingMethods.join(", ")}`,
+      `Generated backend commerce SDK client is missing commerce methods: ${missingMethods.join(", ")}`,
     );
   }
 }
@@ -501,7 +501,7 @@ function assertNoRetiredCommerceShape(
   const retiredRoots = findRetiredCommerceRoots(client, retiredTopLevelRootNames, retiredCommerceNamespaceNames);
   if (retiredRoots.length > 0) {
     throw new Error(
-      `Generated ${surface} commerce SDK client exposes retired roots: ${retiredRoots.join(", ")}. Mount appbase commerce through commerce.`,
+      `Generated ${surface} commerce SDK client exposes retired roots: ${retiredRoots.join(", ")}. Mount commerce APIs through the commerce namespace.`,
     );
   }
 }

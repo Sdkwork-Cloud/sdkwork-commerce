@@ -9,7 +9,7 @@ use sqlx::SqlitePool;
 use tower::ServiceExt;
 
 #[tokio::test]
-async fn appbase_commerce_app_routers_compose_without_overlapping_method_routes() {
+async fn commerce_app_routers_compose_without_overlapping_method_routes() {
     let pool = SqlitePool::connect("sqlite::memory:")
         .await
         .expect("sqlite pool");
@@ -23,7 +23,7 @@ async fn appbase_commerce_app_routers_compose_without_overlapping_method_routes(
 }
 
 #[tokio::test]
-async fn appbase_commerce_app_routers_generate_request_id_for_every_registered_module() {
+async fn commerce_app_routers_generate_request_id_for_every_registered_module() {
     let pool = SqlitePool::connect("sqlite::memory:")
         .await
         .expect("sqlite pool");
@@ -63,7 +63,7 @@ async fn appbase_commerce_app_routers_generate_request_id_for_every_registered_m
 }
 
 #[tokio::test]
-async fn appbase_commerce_app_routers_overwrite_malformed_upstream_request_id() {
+async fn commerce_app_routers_overwrite_malformed_upstream_request_id() {
     let pool = SqlitePool::connect("sqlite::memory:")
         .await
         .expect("sqlite pool");
@@ -94,7 +94,7 @@ async fn appbase_commerce_app_routers_overwrite_malformed_upstream_request_id() 
 }
 
 #[tokio::test]
-async fn appbase_commerce_app_routers_overwrite_trusted_canonical_upstream_request_id() {
+async fn commerce_app_routers_overwrite_trusted_canonical_upstream_request_id() {
     let pool = SqlitePool::connect("sqlite::memory:")
         .await
         .expect("sqlite pool");

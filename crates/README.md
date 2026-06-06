@@ -2,7 +2,7 @@
 
 Rust commerce foundation for local/private deployments.
 
-These crates mirror the Java SaaS app contract and expose the same domain-oriented `/app/v3/api/**` and `/backend/v3/api/**` commerce paths, operationIds, token semantics, context model, and `commerce_*` database table catalog. New appbase commerce routes are organized by bounded context such as catalog, cart, checkout, orders, payments, refunds, fulfillments, shipments, memberships, recharges, wallet, coupons, invoices, inventory, commerce reports, and audit.
+These crates mirror the Java SaaS app contract and expose the same domain-oriented `/app/v3/api/**` and `/backend/v3/api/**` commerce paths, operationIds, token semantics, context model, and `commerce_*` database table catalog. Commerce routes are organized by bounded context such as catalog, cart, checkout, orders, payments, refunds, fulfillments, shipments, memberships, recharges, wallet, coupons, invoices, inventory, commerce reports, and audit.
 
 ## Crates
 
