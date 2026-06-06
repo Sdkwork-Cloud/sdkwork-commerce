@@ -15,7 +15,7 @@ Coupon discovery, redemption, points exchange, and checkout-ready discount inven
 
 - `@sdkwork/ui-pc-react` for shared UI primitives and patterns
 - `@sdkwork/commerce-service` for generated app/backend SDK boundaries, session checks, and response normalization
-- Lower-level appbase packages only
+- Lower-level foundation host packages only
 
 ## Ownership
 

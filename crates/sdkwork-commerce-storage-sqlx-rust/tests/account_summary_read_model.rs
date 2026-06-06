@@ -14,7 +14,7 @@ async fn migrated_pool() -> SqlitePool {
 }
 
 #[tokio::test]
-async fn sqlite_account_summary_reads_safe_profile_balance_and_invoice_from_appbase_tables() {
+async fn sqlite_account_summary_reads_safe_profile_balance_and_invoice_from_commerce_tables() {
     let pool = migrated_pool().await;
     create_optional_account_summary_tables(&pool).await;
     seed_account_summary(&pool).await;

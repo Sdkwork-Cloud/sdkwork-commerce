@@ -6,7 +6,7 @@ import {
 } from "../src";
 
 describe("sdkwork-invoice-pc-react headless helpers", () => {
-  it("creates invoice workspace manifests and route intents that align to the shared appbase contract", () => {
+  it("creates invoice workspace manifests and route intents that align to the shared commerce contract", () => {
     const manifest = createInvoiceWorkspaceManifest();
     const zhManifest = createInvoiceWorkspaceManifest({
       locale: "zh-CN",

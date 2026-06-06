@@ -24,34 +24,34 @@ const IDEMPOTENCY_KEY_HEADER: &str = "Idempotency-Key";
 const REQUEST_NO_HEADER: &str = "Sdkwork-Request-No";
 const MAX_PROMOTION_CODE_LEN: usize = 128;
 
-pub type AppbasePromotionFuture<'a, T> =
+pub type CommercePromotionFuture<'a, T> =
     Pin<Box<dyn Future<Output = Result<T, CommerceServiceError>> + Send + 'a>>;
 
-pub trait AppbasePromotionStore: Send + Sync {
+pub trait CommercePromotionStore: Send + Sync {
     fn list_promotion_user_coupons<'a>(
         &'a self,
         query: PromotionUserCouponListQuery,
-    ) -> AppbasePromotionFuture<'a, Vec<PromotionUserCouponItem>>;
+    ) -> CommercePromotionFuture<'a, Vec<PromotionUserCouponItem>>;
 
     fn retrieve_points_balance<'a>(
         &'a self,
         query: PointsBalanceQuery,
-    ) -> AppbasePromotionFuture<'a, PointsBalance>;
+    ) -> CommercePromotionFuture<'a, PointsBalance>;
 
     fn list_points_history<'a>(
         &'a self,
         query: PointsHistoryQuery,
-    ) -> AppbasePromotionFuture<'a, Vec<PointsHistoryItem>>;
+    ) -> CommercePromotionFuture<'a, Vec<PointsHistoryItem>>;
 
     fn redeem_promotion_code<'a>(
         &'a self,
         command: PromotionCodeRedemptionCommand,
-    ) -> AppbasePromotionFuture<'a, PromotionCodeRedemptionOutcome>;
+    ) -> CommercePromotionFuture<'a, PromotionCodeRedemptionOutcome>;
 }
 
 #[derive(Clone)]
 struct AppPromotionState {
-    store: Arc<dyn AppbasePromotionStore>,
+    store: Arc<dyn CommercePromotionStore>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -111,62 +111,62 @@ struct PromotionCodeRedemptionOutcomeResponse {
     balance: i64,
 }
 
-impl AppbasePromotionStore for SqliteCommercePromotionStore {
+impl CommercePromotionStore for SqliteCommercePromotionStore {
     fn list_promotion_user_coupons<'a>(
         &'a self,
         query: PromotionUserCouponListQuery,
-    ) -> AppbasePromotionFuture<'a, Vec<PromotionUserCouponItem>> {
+    ) -> CommercePromotionFuture<'a, Vec<PromotionUserCouponItem>> {
         Box::pin(async move { self.list_promotion_user_coupons(query).await })
     }
 
     fn retrieve_points_balance<'a>(
         &'a self,
         query: PointsBalanceQuery,
-    ) -> AppbasePromotionFuture<'a, PointsBalance> {
+    ) -> CommercePromotionFuture<'a, PointsBalance> {
         Box::pin(async move { self.retrieve_points_balance(query).await })
     }
 
     fn list_points_history<'a>(
         &'a self,
         query: PointsHistoryQuery,
-    ) -> AppbasePromotionFuture<'a, Vec<PointsHistoryItem>> {
+    ) -> CommercePromotionFuture<'a, Vec<PointsHistoryItem>> {
         Box::pin(async move { self.list_points_history(query).await })
     }
 
     fn redeem_promotion_code<'a>(
         &'a self,
         command: PromotionCodeRedemptionCommand,
-    ) -> AppbasePromotionFuture<'a, PromotionCodeRedemptionOutcome> {
+    ) -> CommercePromotionFuture<'a, PromotionCodeRedemptionOutcome> {
         Box::pin(async move { self.redeem_promotion_code(command).await })
     }
 }
 
-impl AppbasePromotionStore for PostgresCommercePromotionStore {
+impl CommercePromotionStore for PostgresCommercePromotionStore {
     fn list_promotion_user_coupons<'a>(
         &'a self,
         query: PromotionUserCouponListQuery,
-    ) -> AppbasePromotionFuture<'a, Vec<PromotionUserCouponItem>> {
+    ) -> CommercePromotionFuture<'a, Vec<PromotionUserCouponItem>> {
         Box::pin(async move { self.list_promotion_user_coupons(query).await })
     }
 
     fn retrieve_points_balance<'a>(
         &'a self,
         query: PointsBalanceQuery,
-    ) -> AppbasePromotionFuture<'a, PointsBalance> {
+    ) -> CommercePromotionFuture<'a, PointsBalance> {
         Box::pin(async move { self.retrieve_points_balance(query).await })
     }
 
     fn list_points_history<'a>(
         &'a self,
         query: PointsHistoryQuery,
-    ) -> AppbasePromotionFuture<'a, Vec<PointsHistoryItem>> {
+    ) -> CommercePromotionFuture<'a, Vec<PointsHistoryItem>> {
         Box::pin(async move { self.list_points_history(query).await })
     }
 
     fn redeem_promotion_code<'a>(
         &'a self,
         command: PromotionCodeRedemptionCommand,
-    ) -> AppbasePromotionFuture<'a, PromotionCodeRedemptionOutcome> {
+    ) -> CommercePromotionFuture<'a, PromotionCodeRedemptionOutcome> {
         Box::pin(async move { self.redeem_promotion_code(command).await })
     }
 }
@@ -199,7 +199,7 @@ pub fn app_promotion_router_with_postgres_pool(pool: PgPool) -> Router {
     app_promotion_router_with_store(Arc::new(PostgresCommercePromotionStore::new(pool)))
 }
 
-pub fn app_promotion_router_with_store(store: Arc<dyn AppbasePromotionStore>) -> Router {
+pub fn app_promotion_router_with_store(store: Arc<dyn CommercePromotionStore>) -> Router {
     with_request_identity(
         Router::new()
             .route(

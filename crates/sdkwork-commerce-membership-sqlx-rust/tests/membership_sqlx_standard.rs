@@ -14,7 +14,7 @@ use std::collections::BTreeSet;
 use tower::ServiceExt;
 
 #[test]
-fn appbase_membership_sqlx_exposes_standard_store_names_without_legacy_membership_aliases() {
+fn commerce_membership_sqlx_exposes_standard_store_names_without_legacy_membership_aliases() {
     let sqlite_source = include_str!("../src/sqlite.rs");
     let postgres_source = include_str!("../src/postgres.rs");
     let lib_source = include_str!("../src/lib.rs");
@@ -105,7 +105,7 @@ fn appbase_membership_sqlx_exposes_standard_store_names_without_legacy_membershi
 }
 
 #[test]
-fn appbase_membership_routers_follow_api_spec_without_compat_query_aliases() {
+fn commerce_membership_routers_follow_api_spec_without_compat_query_aliases() {
     let app_router_source = include_str!("../src/router.rs");
     let backend_router_source = include_str!("../src/admin_router.rs");
 

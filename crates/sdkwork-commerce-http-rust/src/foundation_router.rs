@@ -26,29 +26,29 @@ const MAX_ASSET_TYPE_LEN: usize = 32;
 const POINTS_ASSET_TYPE: &str = "POINTS";
 const CASH_ASSET_TYPE: &str = "CASH";
 
-pub type AppbaseCommerceFoundationFuture<'a, T> =
+pub type CommerceFoundationFuture<'a, T> =
     Pin<Box<dyn Future<Output = Result<T, CommerceServiceError>> + Send + 'a>>;
 
-pub trait AppbaseCommerceFoundationStore: Send + Sync {
+pub trait CommerceFoundationStore: Send + Sync {
     fn list_exchange_rules<'a>(
         &'a self,
         query: AppCommerceExchangeRuleQuery,
-    ) -> AppbaseCommerceFoundationFuture<'a, Vec<AppCommerceExchangeRuleItem>>;
+    ) -> CommerceFoundationFuture<'a, Vec<AppCommerceExchangeRuleItem>>;
 
     fn load_points_exchange_rate<'a>(
         &'a self,
         query: AppCommerceExchangeRuleQuery,
-    ) -> AppbaseCommerceFoundationFuture<'a, Option<AppCommerceExchangeRuleItem>>;
+    ) -> CommerceFoundationFuture<'a, Option<AppCommerceExchangeRuleItem>>;
 
     fn retrieve_payment_record<'a>(
         &'a self,
         query: PaymentRecordDetailQuery,
-    ) -> AppbaseCommerceFoundationFuture<'a, PaymentRecordItem>;
+    ) -> CommerceFoundationFuture<'a, PaymentRecordItem>;
 }
 
 #[derive(Clone)]
 struct AppCommerceFoundationState {
-    store: Option<Arc<dyn AppbaseCommerceFoundationStore>>,
+    store: Option<Arc<dyn CommerceFoundationStore>>,
     require_subject: bool,
 }
 
@@ -88,13 +88,13 @@ struct AppCommercePointsExchangeRateResponse {
 }
 
 #[derive(Clone)]
-struct SqliteAppbaseCommerceFoundationStore {
+struct SqliteCommerceFoundationStore {
     exchange_store: SqliteCommerceExchangeStore,
     payment_record_store: SqliteCommercePaymentRecordStore,
 }
 
 #[derive(Clone)]
-struct PostgresAppbaseCommerceFoundationStore {
+struct PostgresCommerceFoundationStore {
     exchange_store: PostgresCommerceExchangeStore,
     payment_record_store: PostgresCommercePaymentRecordStore,
 }
@@ -110,7 +110,7 @@ struct AppCommercePaymentRecordResponse {
     status: String,
 }
 
-impl SqliteAppbaseCommerceFoundationStore {
+impl SqliteCommerceFoundationStore {
     fn new(pool: SqlitePool) -> Self {
         Self {
             exchange_store: SqliteCommerceExchangeStore::new(pool.clone()),
@@ -119,7 +119,7 @@ impl SqliteAppbaseCommerceFoundationStore {
     }
 }
 
-impl PostgresAppbaseCommerceFoundationStore {
+impl PostgresCommerceFoundationStore {
     fn new(pool: PgPool) -> Self {
         Self {
             exchange_store: PostgresCommerceExchangeStore::new(pool.clone()),
@@ -128,25 +128,25 @@ impl PostgresAppbaseCommerceFoundationStore {
     }
 }
 
-impl AppbaseCommerceFoundationStore for SqliteAppbaseCommerceFoundationStore {
+impl CommerceFoundationStore for SqliteCommerceFoundationStore {
     fn list_exchange_rules<'a>(
         &'a self,
         query: AppCommerceExchangeRuleQuery,
-    ) -> AppbaseCommerceFoundationFuture<'a, Vec<AppCommerceExchangeRuleItem>> {
+    ) -> CommerceFoundationFuture<'a, Vec<AppCommerceExchangeRuleItem>> {
         Box::pin(async move { self.exchange_store.list_exchange_rules(query).await })
     }
 
     fn load_points_exchange_rate<'a>(
         &'a self,
         query: AppCommerceExchangeRuleQuery,
-    ) -> AppbaseCommerceFoundationFuture<'a, Option<AppCommerceExchangeRuleItem>> {
+    ) -> CommerceFoundationFuture<'a, Option<AppCommerceExchangeRuleItem>> {
         Box::pin(async move { self.exchange_store.load_points_exchange_rate(query).await })
     }
 
     fn retrieve_payment_record<'a>(
         &'a self,
         query: PaymentRecordDetailQuery,
-    ) -> AppbaseCommerceFoundationFuture<'a, PaymentRecordItem> {
+    ) -> CommerceFoundationFuture<'a, PaymentRecordItem> {
         Box::pin(async move {
             self.payment_record_store
                 .retrieve_payment_record(query)
@@ -155,25 +155,25 @@ impl AppbaseCommerceFoundationStore for SqliteAppbaseCommerceFoundationStore {
     }
 }
 
-impl AppbaseCommerceFoundationStore for PostgresAppbaseCommerceFoundationStore {
+impl CommerceFoundationStore for PostgresCommerceFoundationStore {
     fn list_exchange_rules<'a>(
         &'a self,
         query: AppCommerceExchangeRuleQuery,
-    ) -> AppbaseCommerceFoundationFuture<'a, Vec<AppCommerceExchangeRuleItem>> {
+    ) -> CommerceFoundationFuture<'a, Vec<AppCommerceExchangeRuleItem>> {
         Box::pin(async move { self.exchange_store.list_exchange_rules(query).await })
     }
 
     fn load_points_exchange_rate<'a>(
         &'a self,
         query: AppCommerceExchangeRuleQuery,
-    ) -> AppbaseCommerceFoundationFuture<'a, Option<AppCommerceExchangeRuleItem>> {
+    ) -> CommerceFoundationFuture<'a, Option<AppCommerceExchangeRuleItem>> {
         Box::pin(async move { self.exchange_store.load_points_exchange_rate(query).await })
     }
 
     fn retrieve_payment_record<'a>(
         &'a self,
         query: PaymentRecordDetailQuery,
-    ) -> AppbaseCommerceFoundationFuture<'a, PaymentRecordItem> {
+    ) -> CommerceFoundationFuture<'a, PaymentRecordItem> {
         Box::pin(async move {
             self.payment_record_store
                 .retrieve_payment_record(query)
@@ -210,19 +210,15 @@ pub fn app_commerce_foundation_router() -> Router {
 }
 
 pub fn app_commerce_foundation_router_with_sqlite_pool(pool: SqlitePool) -> Router {
-    app_commerce_foundation_router_with_store(Arc::new(SqliteAppbaseCommerceFoundationStore::new(
-        pool,
-    )))
+    app_commerce_foundation_router_with_store(Arc::new(SqliteCommerceFoundationStore::new(pool)))
 }
 
 pub fn app_commerce_foundation_router_with_postgres_pool(pool: PgPool) -> Router {
-    app_commerce_foundation_router_with_store(Arc::new(
-        PostgresAppbaseCommerceFoundationStore::new(pool),
-    ))
+    app_commerce_foundation_router_with_store(Arc::new(PostgresCommerceFoundationStore::new(pool)))
 }
 
 pub fn app_commerce_foundation_router_with_store(
-    store: Arc<dyn AppbaseCommerceFoundationStore>,
+    store: Arc<dyn CommerceFoundationStore>,
 ) -> Router {
     app_commerce_foundation_router_with_state(AppCommerceFoundationState {
         store: Some(store),

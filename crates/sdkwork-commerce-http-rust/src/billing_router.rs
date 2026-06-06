@@ -19,19 +19,19 @@ use sqlx::{PgPool, SqlitePool};
 use crate::subject::app_runtime_subject_from_extension;
 use crate::with_request_identity;
 
-pub type AppbaseBillingHistoryFuture<'a, T> =
+pub type CommerceBillingHistoryFuture<'a, T> =
     Pin<Box<dyn Future<Output = Result<T, CommerceServiceError>> + Send + 'a>>;
 
-pub trait AppbaseBillingHistoryStore: Send + Sync {
+pub trait CommerceBillingHistoryStore: Send + Sync {
     fn list_billing_history<'a>(
         &'a self,
         query: BillingHistoryListQuery,
-    ) -> AppbaseBillingHistoryFuture<'a, Vec<BillingHistoryItem>>;
+    ) -> CommerceBillingHistoryFuture<'a, Vec<BillingHistoryItem>>;
 }
 
 #[derive(Clone)]
 struct AppBillingHistoryState {
-    store: Arc<dyn AppbaseBillingHistoryStore>,
+    store: Arc<dyn CommerceBillingHistoryStore>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -82,20 +82,20 @@ struct BillingHistoryItemResponse {
     occurred_at: String,
 }
 
-impl AppbaseBillingHistoryStore for SqliteCommerceBillingHistoryStore {
+impl CommerceBillingHistoryStore for SqliteCommerceBillingHistoryStore {
     fn list_billing_history<'a>(
         &'a self,
         query: BillingHistoryListQuery,
-    ) -> AppbaseBillingHistoryFuture<'a, Vec<BillingHistoryItem>> {
+    ) -> CommerceBillingHistoryFuture<'a, Vec<BillingHistoryItem>> {
         Box::pin(async move { self.list_billing_history(query).await })
     }
 }
 
-impl AppbaseBillingHistoryStore for PostgresCommerceBillingHistoryStore {
+impl CommerceBillingHistoryStore for PostgresCommerceBillingHistoryStore {
     fn list_billing_history<'a>(
         &'a self,
         query: BillingHistoryListQuery,
-    ) -> AppbaseBillingHistoryFuture<'a, Vec<BillingHistoryItem>> {
+    ) -> CommerceBillingHistoryFuture<'a, Vec<BillingHistoryItem>> {
         Box::pin(async move { self.list_billing_history(query).await })
     }
 }
@@ -128,7 +128,9 @@ pub fn app_billing_history_router_with_postgres_pool(pool: PgPool) -> Router {
     app_billing_history_router_with_store(Arc::new(PostgresCommerceBillingHistoryStore::new(pool)))
 }
 
-pub fn app_billing_history_router_with_store(store: Arc<dyn AppbaseBillingHistoryStore>) -> Router {
+pub fn app_billing_history_router_with_store(
+    store: Arc<dyn CommerceBillingHistoryStore>,
+) -> Router {
     with_request_identity(
         Router::new()
             .route("/app/v3/api/billing/history", get(fetch_billing_history))

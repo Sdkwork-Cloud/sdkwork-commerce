@@ -22,44 +22,44 @@ use sqlx::{PgPool, SqlitePool};
 use crate::subject::app_runtime_subject_from_extension;
 use crate::with_request_identity;
 
-pub type AppbaseWalletFuture<'a, T> =
+pub type CommerceWalletFuture<'a, T> =
     Pin<Box<dyn Future<Output = Result<T, CommerceServiceError>> + Send + 'a>>;
 
-pub trait AppbaseAccountWalletStore: Send + Sync {
+pub trait CommerceAccountWalletStore: Send + Sync {
     fn retrieve_account_summary<'a>(
         &'a self,
         query: AccountSummaryQuery,
-    ) -> AppbaseWalletFuture<'a, AccountSummarySnapshot>;
+    ) -> CommerceWalletFuture<'a, AccountSummarySnapshot>;
 
     fn retrieve_wallet_overview<'a>(
         &'a self,
         query: WalletAccountListQuery,
-    ) -> AppbaseWalletFuture<'a, WalletOverview>;
+    ) -> CommerceWalletFuture<'a, WalletOverview>;
 
     fn list_wallet_accounts<'a>(
         &'a self,
         query: WalletAccountListQuery,
-    ) -> AppbaseWalletFuture<'a, Vec<WalletAccountItem>>;
+    ) -> CommerceWalletFuture<'a, Vec<WalletAccountItem>>;
 
     fn list_wallet_transactions<'a>(
         &'a self,
         query: WalletTransactionListQuery,
-    ) -> AppbaseWalletFuture<'a, Vec<WalletTransactionItem>>;
+    ) -> CommerceWalletFuture<'a, Vec<WalletTransactionItem>>;
 
     fn retrieve_wallet_transaction<'a>(
         &'a self,
         query: WalletTransactionDetailQuery,
-    ) -> AppbaseWalletFuture<'a, Option<WalletTransactionItem>>;
+    ) -> CommerceWalletFuture<'a, Option<WalletTransactionItem>>;
 
     fn retrieve_wallet_operation<'a>(
         &'a self,
         query: WalletOperationQuery,
-    ) -> AppbaseWalletFuture<'a, Option<WalletOperation>>;
+    ) -> CommerceWalletFuture<'a, Option<WalletOperation>>;
 }
 
 #[derive(Clone)]
 struct AppAccountWalletState {
-    store: Arc<dyn AppbaseAccountWalletStore>,
+    store: Arc<dyn CommerceAccountWalletStore>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -190,90 +190,90 @@ struct AccountLoginLogResponse {
     status: String,
 }
 
-impl AppbaseAccountWalletStore for SqliteCommerceAccountStore {
+impl CommerceAccountWalletStore for SqliteCommerceAccountStore {
     fn retrieve_account_summary<'a>(
         &'a self,
         query: AccountSummaryQuery,
-    ) -> AppbaseWalletFuture<'a, AccountSummarySnapshot> {
+    ) -> CommerceWalletFuture<'a, AccountSummarySnapshot> {
         Box::pin(async move { self.retrieve_account_summary_snapshot(query).await })
     }
 
     fn retrieve_wallet_overview<'a>(
         &'a self,
         query: WalletAccountListQuery,
-    ) -> AppbaseWalletFuture<'a, WalletOverview> {
+    ) -> CommerceWalletFuture<'a, WalletOverview> {
         Box::pin(async move { self.retrieve_wallet_overview(query).await })
     }
 
     fn list_wallet_accounts<'a>(
         &'a self,
         query: WalletAccountListQuery,
-    ) -> AppbaseWalletFuture<'a, Vec<WalletAccountItem>> {
+    ) -> CommerceWalletFuture<'a, Vec<WalletAccountItem>> {
         Box::pin(async move { self.list_wallet_accounts(query).await })
     }
 
     fn list_wallet_transactions<'a>(
         &'a self,
         query: WalletTransactionListQuery,
-    ) -> AppbaseWalletFuture<'a, Vec<WalletTransactionItem>> {
+    ) -> CommerceWalletFuture<'a, Vec<WalletTransactionItem>> {
         Box::pin(async move { self.list_wallet_transactions(query).await })
     }
 
     fn retrieve_wallet_transaction<'a>(
         &'a self,
         query: WalletTransactionDetailQuery,
-    ) -> AppbaseWalletFuture<'a, Option<WalletTransactionItem>> {
+    ) -> CommerceWalletFuture<'a, Option<WalletTransactionItem>> {
         Box::pin(async move { self.retrieve_wallet_transaction(query).await })
     }
 
     fn retrieve_wallet_operation<'a>(
         &'a self,
         query: WalletOperationQuery,
-    ) -> AppbaseWalletFuture<'a, Option<WalletOperation>> {
+    ) -> CommerceWalletFuture<'a, Option<WalletOperation>> {
         Box::pin(async move { self.retrieve_wallet_operation(query).await })
     }
 }
 
-impl AppbaseAccountWalletStore for PostgresCommerceAccountStore {
+impl CommerceAccountWalletStore for PostgresCommerceAccountStore {
     fn retrieve_account_summary<'a>(
         &'a self,
         query: AccountSummaryQuery,
-    ) -> AppbaseWalletFuture<'a, AccountSummarySnapshot> {
+    ) -> CommerceWalletFuture<'a, AccountSummarySnapshot> {
         Box::pin(async move { self.retrieve_account_summary_snapshot(query).await })
     }
 
     fn retrieve_wallet_overview<'a>(
         &'a self,
         query: WalletAccountListQuery,
-    ) -> AppbaseWalletFuture<'a, WalletOverview> {
+    ) -> CommerceWalletFuture<'a, WalletOverview> {
         Box::pin(async move { self.retrieve_wallet_overview(query).await })
     }
 
     fn list_wallet_accounts<'a>(
         &'a self,
         query: WalletAccountListQuery,
-    ) -> AppbaseWalletFuture<'a, Vec<WalletAccountItem>> {
+    ) -> CommerceWalletFuture<'a, Vec<WalletAccountItem>> {
         Box::pin(async move { self.list_wallet_accounts(query).await })
     }
 
     fn list_wallet_transactions<'a>(
         &'a self,
         query: WalletTransactionListQuery,
-    ) -> AppbaseWalletFuture<'a, Vec<WalletTransactionItem>> {
+    ) -> CommerceWalletFuture<'a, Vec<WalletTransactionItem>> {
         Box::pin(async move { self.list_wallet_transactions(query).await })
     }
 
     fn retrieve_wallet_transaction<'a>(
         &'a self,
         query: WalletTransactionDetailQuery,
-    ) -> AppbaseWalletFuture<'a, Option<WalletTransactionItem>> {
+    ) -> CommerceWalletFuture<'a, Option<WalletTransactionItem>> {
         Box::pin(async move { self.retrieve_wallet_transaction(query).await })
     }
 
     fn retrieve_wallet_operation<'a>(
         &'a self,
         query: WalletOperationQuery,
-    ) -> AppbaseWalletFuture<'a, Option<WalletOperation>> {
+    ) -> CommerceWalletFuture<'a, Option<WalletOperation>> {
         Box::pin(async move { self.retrieve_wallet_operation(query).await })
     }
 }
@@ -306,7 +306,7 @@ pub fn app_account_wallet_router_with_postgres_pool(pool: PgPool) -> Router {
     app_account_wallet_router_with_store(Arc::new(PostgresCommerceAccountStore::new(pool)))
 }
 
-pub fn app_account_wallet_router_with_store(store: Arc<dyn AppbaseAccountWalletStore>) -> Router {
+pub fn app_account_wallet_router_with_store(store: Arc<dyn CommerceAccountWalletStore>) -> Router {
     with_request_identity(
         Router::new()
             .route(

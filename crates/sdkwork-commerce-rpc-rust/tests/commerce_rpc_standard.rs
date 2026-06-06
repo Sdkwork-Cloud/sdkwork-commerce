@@ -1,4 +1,6 @@
-use sdkwork_commerce_rpc::{all_commerce_rpc_service_manifests, commerce_app_rpc_service_manifests};
+use sdkwork_commerce_rpc::{
+    all_commerce_rpc_service_manifests, commerce_app_rpc_service_manifests,
+};
 use sdkwork_rpc_core::validate_manifest;
 
 #[test]

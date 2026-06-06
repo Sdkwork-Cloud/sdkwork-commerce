@@ -19,33 +19,6 @@ const SDK_AUTHORITIES = {
   app: "sdkwork-commerce.app",
   backend: "sdkwork-commerce.backend",
 };
-const DEFAULT_APPBASE_ROOT =
-  "D:\\javasource\\spring-ai-plus\\spring-ai-plus-business\\apps\\sdkwork-appbase";
-const COMMERCE_SCHEMA_RENAMES = new Map([
-  ["AppbaseApiResult", "CommerceApiResult"],
-  ["AppbaseOperationCommand", "CommerceOperationCommand"],
-]);
-const COMMERCE_TAGS = new Set([
-  "audit",
-  "billing",
-  "cart",
-  "catalog",
-  "checkout",
-  "commerce",
-  "commerceReports",
-  "fulfillments",
-  "inventory",
-  "invoices",
-  "memberships",
-  "orders",
-  "payments",
-  "promotions",
-  "recharges",
-  "refunds",
-  "reports",
-  "shipments",
-  "wallet",
-]);
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = path.resolve(scriptDir, "..");
@@ -61,20 +34,6 @@ const defaultAppOpenapiPath = path.join(
 const defaultBackendOpenapiPath = path.join(
   generatedOpenapiDir,
   "commerce-backend-api.openapi.json",
-);
-const defaultAppbaseAppOpenapiPath = path.join(
-  DEFAULT_APPBASE_ROOT,
-  "sdks",
-  "sdkwork-appbase-app-sdk",
-  "openapi",
-  "sdkwork-appbase-app-api.openapi.yaml",
-);
-const defaultAppbaseBackendOpenapiPath = path.join(
-  DEFAULT_APPBASE_ROOT,
-  "sdks",
-  "sdkwork-appbase-backend-sdk",
-  "openapi",
-  "sdkwork-appbase-backend-api.openapi.yaml",
 );
 
 function fail(message) {
@@ -121,54 +80,6 @@ function operationEntries(document) {
     }
   }
   return entries;
-}
-
-function isCommerceOperation(operation) {
-  if (!operation || typeof operation !== "object") {
-    return false;
-  }
-  if (operation["x-sdkwork-domain"] === "commerce") {
-    return true;
-  }
-  return Array.isArray(operation.tags)
-    && operation.tags.some((tag) => COMMERCE_TAGS.has(String(tag || "")));
-}
-
-function renameSchemaRefs(value) {
-  if (Array.isArray(value)) {
-    return value.map(renameSchemaRefs);
-  }
-  if (!value || typeof value !== "object") {
-    if (typeof value === "string") {
-      return value
-        .replaceAll("AppbaseApiResult", "CommerceApiResult")
-        .replaceAll("AppbaseOperationCommand", "CommerceOperationCommand")
-        .replaceAll("appbase Rust module", "commerce Rust module")
-        .replaceAll("Appbase", "Commerce")
-        .replaceAll("appbase", "commerce");
-    }
-    return value;
-  }
-
-  const next = {};
-  for (const [key, child] of Object.entries(value)) {
-    let nextKey = key;
-    if (key === "$ref" && typeof child === "string") {
-      next[nextKey] = child.replace(
-        /#\/components\/schemas\/([^/]+)/g,
-        (full, schemaName) => {
-          const replacement = COMMERCE_SCHEMA_RENAMES.get(schemaName);
-          return replacement ? `#/components/schemas/${replacement}` : full;
-        },
-      );
-      continue;
-    }
-    if (COMMERCE_SCHEMA_RENAMES.has(key)) {
-      nextKey = COMMERCE_SCHEMA_RENAMES.get(key);
-    }
-    next[nextKey] = renameSchemaRefs(child);
-  }
-  return next;
 }
 
 function normalizeErrorResponseContent(document) {
@@ -223,55 +134,8 @@ function normalizeTagName(tagName) {
     .replace(/^./, (char) => char.toLowerCase());
 }
 
-function extractCommerceOnlyDocument(sourceDocument, options) {
-  const source = cloneJson(sourceDocument);
-  const paths = {};
-  for (const [pathKey, pathItem] of Object.entries(source.paths || {})) {
-    if (!pathItem || typeof pathItem !== "object") {
-      continue;
-    }
-    const nextPathItem = {};
-    for (const [methodName, operation] of Object.entries(pathItem)) {
-      if (!HTTP_METHODS.has(methodName.toLowerCase())) {
-        continue;
-      }
-      if (!isCommerceOperation(operation)) {
-        continue;
-      }
-      nextPathItem[methodName.toLowerCase()] = operation;
-    }
-    if (Object.keys(nextPathItem).length > 0) {
-      paths[pathKey] = nextPathItem;
-    }
-  }
-
-  const document = {
-    ...source,
-    info: {
-      ...(source.info || {}),
-      title: options.title,
-      version: options.version,
-      description: options.description,
-      "x-sdkwork-owner": SDK_OWNER,
-      "x-sdkwork-api-authority": options.authority,
-      "x-sdkwork-sdk-family": options.sdkFamily,
-      "x-sdkwork-audience": options.audience,
-    },
-    servers: [
-      {
-        url: options.serverUrl,
-        description: "Local sdkwork-commerce runtime",
-      },
-    ],
-    paths,
-  };
-
-  delete document["x-sdkwork-materialized-from"];
-  return normalizeOwnerOnlyDocument(document, options);
-}
-
 function normalizeOwnerOnlyDocument(inputDocument, options) {
-  const document = renameSchemaRefs(cloneJson(inputDocument));
+  const document = cloneJson(inputDocument);
   if (!document.openapi || !String(document.openapi).startsWith("3.1")) {
     document.openapi = "3.1.2";
   }
@@ -311,65 +175,6 @@ function normalizeOwnerOnlyDocument(inputDocument, options) {
   return document;
 }
 
-function emptyOpenDocument() {
-  return normalizeOwnerOnlyDocument(
-    {
-      openapi: "3.1.2",
-      paths: {},
-      components: {
-        securitySchemes: {},
-        schemas: {
-          CommerceApiResult: {
-            type: "object",
-            additionalProperties: false,
-            required: ["code", "message", "requestId", "data"],
-            properties: {
-              code: { type: "string" },
-              message: { type: "string" },
-              requestId: { type: "string", format: "uuid" },
-              data: { type: "object", additionalProperties: true },
-            },
-          },
-          CommerceOperationCommand: {
-            type: "object",
-            additionalProperties: true,
-          },
-          ProblemDetail: {
-            type: "object",
-            additionalProperties: true,
-            required: ["type", "title", "status"],
-            properties: {
-              type: { type: "string", format: "uri-reference" },
-              title: { type: "string" },
-              status: { type: "integer", minimum: 100, maximum: 599 },
-              detail: { type: "string" },
-              instance: { type: "string" },
-              code: { type: "string" },
-              traceId: { type: "string" },
-              requestId: { type: "string", format: "uuid" },
-              errors: {
-                type: "array",
-                items: { $ref: "#/components/schemas/FieldError" },
-              },
-            },
-          },
-          FieldError: {
-            type: "object",
-            additionalProperties: false,
-            required: ["field", "message"],
-            properties: {
-              field: { type: "string" },
-              message: { type: "string" },
-              code: { type: "string" },
-            },
-          },
-        },
-      },
-    },
-    surfaceOptions.open,
-  );
-}
-
 function toTitle(value) {
   return String(value || "")
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
@@ -381,7 +186,6 @@ function toTitle(value) {
 function parseArgs(argv) {
   const parsed = {
     check: false,
-    fromAppbase: false,
     outputDir: generatedOpenapiDir,
     openInput: defaultOpenOpenapiPath,
     appInput: defaultAppOpenapiPath,
@@ -391,12 +195,6 @@ function parseArgs(argv) {
     const current = argv[index];
     if (current === "--check") {
       parsed.check = true;
-      continue;
-    }
-    if (current === "--from-appbase") {
-      parsed.fromAppbase = true;
-      parsed.appInput = defaultAppbaseAppOpenapiPath;
-      parsed.backendInput = defaultAppbaseBackendOpenapiPath;
       continue;
     }
     if (current === "--open-input") {
@@ -458,15 +256,12 @@ const surfaceOptions = {
 };
 
 const args = parseArgs(process.argv.slice(2));
-const openOpenapi = args.fromAppbase
-  ? emptyOpenDocument()
-  : normalizeOwnerOnlyDocument(readJson(args.openInput), surfaceOptions.open);
-const appOpenapi = args.fromAppbase
-  ? extractCommerceOnlyDocument(readJson(args.appInput), surfaceOptions.app)
-  : normalizeOwnerOnlyDocument(readJson(args.appInput), surfaceOptions.app);
-const backendOpenapi = args.fromAppbase
-  ? extractCommerceOnlyDocument(readJson(args.backendInput), surfaceOptions.backend)
-  : normalizeOwnerOnlyDocument(readJson(args.backendInput), surfaceOptions.backend);
+const openOpenapi = normalizeOwnerOnlyDocument(readJson(args.openInput), surfaceOptions.open);
+const appOpenapi = normalizeOwnerOnlyDocument(readJson(args.appInput), surfaceOptions.app);
+const backendOpenapi = normalizeOwnerOnlyDocument(
+  readJson(args.backendInput),
+  surfaceOptions.backend,
+);
 
 if (!args.check) {
   mkdirSync(args.outputDir, { recursive: true });
@@ -490,4 +285,3 @@ if (!args.check) {
 process.stdout.write(
   `[commerce_openapi_export] ok app=${operationEntries(appOpenapi).length} backend=${operationEntries(backendOpenapi).length}\n`,
 );
-

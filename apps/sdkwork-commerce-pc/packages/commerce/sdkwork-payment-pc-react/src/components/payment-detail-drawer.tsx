@@ -5,7 +5,7 @@ import {
 import * as QRCode from "qrcode";
 import {
   getSdkworkMediaDeliveryUrl,
-} from "@sdkwork/appbase-pc-react";
+} from "@sdkwork/commerce-service";
 import {
   Button,
   DetailDrawer,

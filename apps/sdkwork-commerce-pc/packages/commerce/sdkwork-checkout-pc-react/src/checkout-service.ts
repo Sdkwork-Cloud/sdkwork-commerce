@@ -48,9 +48,7 @@ import {
   createSdkworkWalletService,
   type SdkworkWalletService,
 } from "@sdkwork/wallet-pc-react";
-import type {
-  SdkworkMediaResource,
-} from "@sdkwork/appbase-pc-react";
+import type { SdkworkMediaResource } from "@sdkwork/commerce-service";
 import {
   buildSdkworkCheckoutSession,
   createEmptySdkworkCheckoutCatalog,

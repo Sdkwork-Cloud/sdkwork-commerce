@@ -6,12 +6,10 @@ import {
   toSdkworkCommerceNumber,
   toSdkworkCommerceOptionalString,
   unwrapSdkworkCommerceResponse,
-  type SdkworkCommerceService,
-} from "@sdkwork/commerce-service";
-import {
   readSdkworkMediaResource,
   toExternalSdkworkMediaResource,
-} from "@sdkwork/appbase-pc-react";
+  type SdkworkCommerceService,
+} from "@sdkwork/commerce-service";
 import {
   createSdkworkPaymentMessages,
   type SdkworkPaymentMessages,

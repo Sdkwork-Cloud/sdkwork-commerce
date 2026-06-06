@@ -224,7 +224,7 @@ async fn response_json(response: axum::response::Response) -> serde_json::Value 
 }
 
 #[tokio::test]
-async fn app_account_wallet_router_exposes_account_summary_from_appbase_store() {
+async fn app_account_wallet_router_exposes_account_summary_from_commerce_store() {
     let pool = migrated_pool().await;
     seed_account_summary(&pool).await;
     let app = app_account_wallet_router_with_sqlite_pool(pool);

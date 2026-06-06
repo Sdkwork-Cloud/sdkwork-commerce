@@ -59,7 +59,6 @@ function parseLanguages(raw) {
 function parseArgs(argv) {
   const parsed = {
     check: false,
-    fromAppbase: false,
     openInput: "generated/openapi/commerce-open-api.openapi.json",
     appInput: "generated/openapi/commerce-app-api.openapi.json",
     backendInput: "generated/openapi/commerce-backend-api.openapi.json",
@@ -74,10 +73,6 @@ function parseArgs(argv) {
     const arg = argv[index];
     if (arg === "--check") {
       parsed.check = true;
-      continue;
-    }
-    if (arg === "--from-appbase") {
-      parsed.fromAppbase = true;
       continue;
     }
     if (arg === "--open-input") {
@@ -131,9 +126,9 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = path.resolve(scriptDir, "..");
 const args = parseArgs(process.argv.slice(2));
 const outputDir = resolveWorkspacePath(args.outputDir);
-const openInput = args.fromAppbase ? args.openInput : resolveWorkspacePath(args.openInput);
-const appInput = args.fromAppbase ? args.appInput : resolveWorkspacePath(args.appInput);
-const backendInput = args.fromAppbase ? args.backendInput : resolveWorkspacePath(args.backendInput);
+const openInput = resolveWorkspacePath(args.openInput);
+const appInput = resolveWorkspacePath(args.appInput);
+const backendInput = resolveWorkspacePath(args.backendInput);
 const languages = args.allLanguages
   ? OFFICIAL_LANGUAGE_ORDER
   : parseLanguages(args.languages.length > 0 ? args.languages : [DEFAULT_LANGUAGE]);
@@ -157,9 +152,6 @@ const openapiExportArgs = [
   "--backend-input",
   backendInput,
 ];
-if (args.fromAppbase) {
-  openapiExportArgs.push("--from-appbase");
-}
 const schemaGateArgs = [
   "--open-openapi",
   openExportedOpenapiPath,
@@ -224,4 +216,3 @@ if (!args.check) {
 process.stdout.write(
   `[commerce_sdk_generate] ${args.check ? "check passed" : "generation completed"}\n`,
 );
-

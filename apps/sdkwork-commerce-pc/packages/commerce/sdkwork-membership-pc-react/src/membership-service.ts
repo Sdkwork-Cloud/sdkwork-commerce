@@ -7,12 +7,10 @@ import {
   toSdkworkCommerceNumber,
   toSdkworkCommerceOptionalString,
   unwrapSdkworkCommerceResponse,
-  type SdkworkCommerceService,
-} from "@sdkwork/commerce-service";
-import {
   readSdkworkMediaResource,
+  type SdkworkCommerceService,
   type SdkworkMediaResource,
-} from "@sdkwork/appbase-pc-react";
+} from "@sdkwork/commerce-service";
 import {
   createSdkworkMembershipMessages,
   type SdkworkMembershipMessages,

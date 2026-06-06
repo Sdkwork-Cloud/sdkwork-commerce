@@ -31,34 +31,34 @@ const MAX_RECHARGE_CENTS: i64 = 1_000_000;
 const PAYMENT_EXPIRE_SECONDS: i64 = 1_800;
 const DEFAULT_RECHARGE_PAYMENT_METHOD: &str = "wechat";
 
-pub type AppbaseRechargeCheckoutFuture<'a, T> =
+pub type CommerceRechargeCheckoutFuture<'a, T> =
     Pin<Box<dyn Future<Output = Result<T, CommerceServiceError>> + Send + 'a>>;
 
-pub trait AppbaseRechargeCheckoutStore: Send + Sync {
+pub trait CommerceRechargeCheckoutStore: Send + Sync {
     fn list_recharge_packages<'a>(
         &'a self,
         query: RechargePackageListQuery,
-    ) -> AppbaseRechargeCheckoutFuture<'a, Vec<RechargePackageItem>>;
+    ) -> CommerceRechargeCheckoutFuture<'a, Vec<RechargePackageItem>>;
 
     fn load_recharge_settings<'a>(
         &'a self,
         query: RechargeSettingsQuery,
-    ) -> AppbaseRechargeCheckoutFuture<'a, RechargeSettingsSnapshot>;
+    ) -> CommerceRechargeCheckoutFuture<'a, RechargeSettingsSnapshot>;
 
     fn create_points_recharge_order<'a>(
         &'a self,
         command: CreatePointsRechargeOrderCommand,
-    ) -> AppbaseRechargeCheckoutFuture<'a, CreatePointsRechargeOrderOutcome>;
+    ) -> CommerceRechargeCheckoutFuture<'a, CreatePointsRechargeOrderOutcome>;
 
     fn retrieve_checkout_status<'a>(
         &'a self,
         query: CheckoutStatusQuery,
-    ) -> AppbaseRechargeCheckoutFuture<'a, Option<CheckoutStatusSnapshot>>;
+    ) -> CommerceRechargeCheckoutFuture<'a, Option<CheckoutStatusSnapshot>>;
 }
 
 #[derive(Clone)]
 struct AppRechargeCheckoutState {
-    store: Arc<dyn AppbaseRechargeCheckoutStore>,
+    store: Arc<dyn CommerceRechargeCheckoutStore>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -179,62 +179,62 @@ struct CheckoutStatusResponse {
     request_payment_payload: Option<String>,
 }
 
-impl AppbaseRechargeCheckoutStore for SqliteCommerceRechargeStore {
+impl CommerceRechargeCheckoutStore for SqliteCommerceRechargeStore {
     fn list_recharge_packages<'a>(
         &'a self,
         query: RechargePackageListQuery,
-    ) -> AppbaseRechargeCheckoutFuture<'a, Vec<RechargePackageItem>> {
+    ) -> CommerceRechargeCheckoutFuture<'a, Vec<RechargePackageItem>> {
         Box::pin(async move { self.list_recharge_packages(query).await })
     }
 
     fn create_points_recharge_order<'a>(
         &'a self,
         command: CreatePointsRechargeOrderCommand,
-    ) -> AppbaseRechargeCheckoutFuture<'a, CreatePointsRechargeOrderOutcome> {
+    ) -> CommerceRechargeCheckoutFuture<'a, CreatePointsRechargeOrderOutcome> {
         Box::pin(async move { self.create_points_recharge_order(command).await })
     }
 
     fn load_recharge_settings<'a>(
         &'a self,
         query: RechargeSettingsQuery,
-    ) -> AppbaseRechargeCheckoutFuture<'a, RechargeSettingsSnapshot> {
+    ) -> CommerceRechargeCheckoutFuture<'a, RechargeSettingsSnapshot> {
         Box::pin(async move { self.load_recharge_settings(query).await })
     }
 
     fn retrieve_checkout_status<'a>(
         &'a self,
         query: CheckoutStatusQuery,
-    ) -> AppbaseRechargeCheckoutFuture<'a, Option<CheckoutStatusSnapshot>> {
+    ) -> CommerceRechargeCheckoutFuture<'a, Option<CheckoutStatusSnapshot>> {
         Box::pin(async move { self.load_checkout_status(query).await })
     }
 }
 
-impl AppbaseRechargeCheckoutStore for PostgresCommerceRechargeStore {
+impl CommerceRechargeCheckoutStore for PostgresCommerceRechargeStore {
     fn list_recharge_packages<'a>(
         &'a self,
         query: RechargePackageListQuery,
-    ) -> AppbaseRechargeCheckoutFuture<'a, Vec<RechargePackageItem>> {
+    ) -> CommerceRechargeCheckoutFuture<'a, Vec<RechargePackageItem>> {
         Box::pin(async move { self.list_recharge_packages(query).await })
     }
 
     fn create_points_recharge_order<'a>(
         &'a self,
         command: CreatePointsRechargeOrderCommand,
-    ) -> AppbaseRechargeCheckoutFuture<'a, CreatePointsRechargeOrderOutcome> {
+    ) -> CommerceRechargeCheckoutFuture<'a, CreatePointsRechargeOrderOutcome> {
         Box::pin(async move { self.create_points_recharge_order(command).await })
     }
 
     fn load_recharge_settings<'a>(
         &'a self,
         query: RechargeSettingsQuery,
-    ) -> AppbaseRechargeCheckoutFuture<'a, RechargeSettingsSnapshot> {
+    ) -> CommerceRechargeCheckoutFuture<'a, RechargeSettingsSnapshot> {
         Box::pin(async move { self.load_recharge_settings(query).await })
     }
 
     fn retrieve_checkout_status<'a>(
         &'a self,
         query: CheckoutStatusQuery,
-    ) -> AppbaseRechargeCheckoutFuture<'a, Option<CheckoutStatusSnapshot>> {
+    ) -> CommerceRechargeCheckoutFuture<'a, Option<CheckoutStatusSnapshot>> {
         Box::pin(async move { self.load_checkout_status(query).await })
     }
 }
@@ -268,7 +268,7 @@ pub fn app_recharge_checkout_router_with_postgres_pool(pool: PgPool) -> Router {
 }
 
 pub fn app_recharge_checkout_router_with_store(
-    store: Arc<dyn AppbaseRechargeCheckoutStore>,
+    store: Arc<dyn CommerceRechargeCheckoutStore>,
 ) -> Router {
     with_request_identity(
         Router::new()

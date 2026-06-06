@@ -19,24 +19,24 @@ use sqlx::{PgPool, SqlitePool};
 use crate::subject::app_runtime_subject_from_extension;
 use crate::with_request_identity;
 
-pub type AppbaseInvoiceFuture<'a, T> =
+pub type CommerceInvoiceFuture<'a, T> =
     Pin<Box<dyn Future<Output = Result<T, CommerceServiceError>> + Send + 'a>>;
 
-pub trait AppbaseInvoiceStore: Send + Sync {
+pub trait CommerceInvoiceStore: Send + Sync {
     fn list_invoices<'a>(
         &'a self,
         query: InvoiceListQuery,
-    ) -> AppbaseInvoiceFuture<'a, InvoiceListPage>;
+    ) -> CommerceInvoiceFuture<'a, InvoiceListPage>;
 
     fn retrieve_invoice<'a>(
         &'a self,
         query: InvoiceDetailQuery,
-    ) -> AppbaseInvoiceFuture<'a, Option<InvoiceRecord>>;
+    ) -> CommerceInvoiceFuture<'a, Option<InvoiceRecord>>;
 }
 
 #[derive(Clone)]
 struct AppInvoiceState {
-    store: Arc<dyn AppbaseInvoiceStore>,
+    store: Arc<dyn CommerceInvoiceStore>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -111,34 +111,34 @@ struct InvoiceItemResponse {
     created_at: String,
 }
 
-impl AppbaseInvoiceStore for SqliteCommerceInvoiceStore {
+impl CommerceInvoiceStore for SqliteCommerceInvoiceStore {
     fn list_invoices<'a>(
         &'a self,
         query: InvoiceListQuery,
-    ) -> AppbaseInvoiceFuture<'a, InvoiceListPage> {
+    ) -> CommerceInvoiceFuture<'a, InvoiceListPage> {
         Box::pin(async move { self.list_invoices(query).await })
     }
 
     fn retrieve_invoice<'a>(
         &'a self,
         query: InvoiceDetailQuery,
-    ) -> AppbaseInvoiceFuture<'a, Option<InvoiceRecord>> {
+    ) -> CommerceInvoiceFuture<'a, Option<InvoiceRecord>> {
         Box::pin(async move { self.retrieve_invoice(query).await })
     }
 }
 
-impl AppbaseInvoiceStore for PostgresCommerceInvoiceStore {
+impl CommerceInvoiceStore for PostgresCommerceInvoiceStore {
     fn list_invoices<'a>(
         &'a self,
         query: InvoiceListQuery,
-    ) -> AppbaseInvoiceFuture<'a, InvoiceListPage> {
+    ) -> CommerceInvoiceFuture<'a, InvoiceListPage> {
         Box::pin(async move { self.list_invoices(query).await })
     }
 
     fn retrieve_invoice<'a>(
         &'a self,
         query: InvoiceDetailQuery,
-    ) -> AppbaseInvoiceFuture<'a, Option<InvoiceRecord>> {
+    ) -> CommerceInvoiceFuture<'a, Option<InvoiceRecord>> {
         Box::pin(async move { self.retrieve_invoice(query).await })
     }
 }
@@ -171,7 +171,7 @@ pub fn app_invoice_router_with_postgres_pool(pool: PgPool) -> Router {
     app_invoice_router_with_store(Arc::new(PostgresCommerceInvoiceStore::new(pool)))
 }
 
-pub fn app_invoice_router_with_store(store: Arc<dyn AppbaseInvoiceStore>) -> Router {
+pub fn app_invoice_router_with_store(store: Arc<dyn CommerceInvoiceStore>) -> Router {
     with_request_identity(
         Router::new()
             .route(

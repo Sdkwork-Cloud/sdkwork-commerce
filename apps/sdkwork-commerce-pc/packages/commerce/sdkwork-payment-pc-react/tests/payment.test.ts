@@ -8,7 +8,7 @@ import {
 } from "../src";
 
 describe("sdkwork-payment-pc-react headless helpers", () => {
-  it("creates payment workspace manifests and route intents aligned to the shared appbase contract", () => {
+  it("creates payment workspace manifests and route intents aligned to the shared commerce contract", () => {
     const manifest = createPaymentWorkspaceManifest();
     const routeIntent = createPaymentRouteIntent({
       filter: "pending",

@@ -16,7 +16,7 @@ membership package purchase entry points for top-header menus, package selection
 - `@sdkwork/ui-pc-react` for shared UI primitives and patterns
 - `@sdkwork/membership-pc-react` for membership dashboard types and membership mutation mapping
 - `@sdkwork/commerce-service` for generated app SDK boundaries, session checks, and response normalization
-- Lower-level appbase packages only
+- Lower-level foundation host packages only
 
 ## Ownership
 

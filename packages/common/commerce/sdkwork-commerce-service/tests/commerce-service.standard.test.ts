@@ -15,10 +15,13 @@ import {
   formatSdkworkCommercePoints,
   formatSdkworkCommercePointsDelta,
   formatSdkworkCommercePointsRate,
+  getSdkworkMediaDeliveryUrl,
   getSdkworkCommerceSessionTokens,
   hasSdkworkCommerceSession,
+  readSdkworkMediaResource,
   requireSdkworkCommerceSession,
   toNullableSdkworkCommerceNumber,
+  toExternalSdkworkMediaResource,
   toSdkworkCommerceMutationStatus,
   toSdkworkCommerceNumber,
   toSdkworkCommerceOptionalString,
@@ -28,7 +31,7 @@ import {
 } from "../src/index";
 
 describe("SDKWork commerce service", () => {
-  it("exposes appbase app services over generated SDK commerce clients", async () => {
+  it("exposes commerce app services over generated SDK clients", async () => {
     const appClient = createMockClient<CommerceAppSdkClient>(SDKWORK_COMMERCE_APP_SDK_REQUIRED_METHODS, {
       "commerce.accounts.current.summary.retrieve": { accountId: "acct-1" },
       "commerce.cart.current.retrieve": { cartId: "cart-1" },
@@ -96,7 +99,7 @@ describe("SDKWork commerce service", () => {
     expect(appClient.commerce.wallet.accounts.points.retrieve).toHaveBeenCalledWith();
   });
 
-  it("exposes appbase admin services over generated backend commerce clients", async () => {
+  it("exposes commerce admin services over generated backend SDK clients", async () => {
     const backendClient = createMockClient<CommerceBackendSdkClient>(SDKWORK_COMMERCE_BACKEND_SDK_REQUIRED_METHODS, {
       "commerce.catalog.products.create": { productId: "spu-1" },
       "commerce.inventory.stocks.update": { skuId: "sku-1", availableQuantity: 10 },
@@ -199,7 +202,7 @@ describe("SDKWork commerce service", () => {
     });
   });
 
-  it("keeps the service source centered on commerce-root SDK input and appbase output", () => {
+  it("keeps the service source centered on commerce-root SDK input and service output", () => {
     const source = readFileSync(
       resolve(process.cwd(), "packages/common/commerce/sdkwork-commerce-service/src/index.ts"),
       "utf8",
@@ -273,6 +276,32 @@ describe("SDKWork commerce service", () => {
     expect(formatSdkworkCommerceCurrencyCny(null)).toBe("--");
     expect(formatSdkworkCommercePointsRate(200, "en-US")).toBe("200 pts / CNY 1");
     expect(formatSdkworkCommercePointsDelta(1200)).toBe("+1,200");
+  });
+
+  it("owns media resource normalization for commerce PC payment and order surfaces", () => {
+    const resource = {
+      altText: "Payment QR code",
+      kind: "image",
+      publicUrl: "https://cdn.example.test/payment.png",
+      source: "external_url",
+      url: "https://cdn.example.test/payment.png",
+    };
+
+    expect(readSdkworkMediaResource(resource)).toEqual(resource);
+    expect(readSdkworkMediaResource("https://cdn.example.test/payment.png")).toBeUndefined();
+    expect(getSdkworkMediaDeliveryUrl(resource)).toBe("https://cdn.example.test/payment.png");
+    expect(toExternalSdkworkMediaResource(" data:image/png;base64,AAAA ", "image")).toEqual({
+      kind: "image",
+      publicUrl: "data:image/png;base64,AAAA",
+      source: "data_url",
+      url: "data:image/png;base64,AAAA",
+    });
+    expect(toExternalSdkworkMediaResource(" https://cdn.example.test/qr.png ", "image")).toEqual({
+      kind: "image",
+      publicUrl: "https://cdn.example.test/qr.png",
+      source: "external_url",
+      url: "https://cdn.example.test/qr.png",
+    });
   });
 
   it("owns commerce session token access without PC core session adapters", () => {

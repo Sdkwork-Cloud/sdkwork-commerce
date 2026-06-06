@@ -14,7 +14,7 @@ import {
 const RETIRED_TIER_ROOT = "v" + "ip";
 
 describe("SDKWork commerce SDK port contracts", () => {
-  it("defines app and backend SDK ports as commerce-root appbase capabilities", () => {
+  it("defines app and backend SDK ports as commerce-root generated capabilities", () => {
     const source = readFileSync(
       resolve(process.cwd(), "packages/common/commerce/sdkwork-commerce-sdk-ports/src/index.ts"),
       "utf8",

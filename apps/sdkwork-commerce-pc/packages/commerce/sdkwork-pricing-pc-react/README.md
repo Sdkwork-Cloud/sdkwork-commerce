@@ -15,7 +15,7 @@ Price books, plan comparison, bundle strategy, and reusable pricing-center surfa
 
 - `@sdkwork/ui-pc-react` for shared UI primitives and patterns
 - `@sdkwork/commerce-service` for generated app/backend SDK boundaries, session checks, and response normalization
-- Lower-level appbase packages only
+- Lower-level foundation host packages only
 
 ## Ownership
 

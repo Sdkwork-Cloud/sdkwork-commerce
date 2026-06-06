@@ -17,7 +17,7 @@ import {
 const RETIRED_TIER_ROOT = "v" + "ip";
 
 describe("SDKWork commerce runtime", () => {
-  it("bootstraps deployments through injected commerce-root appbase SDK clients", () => {
+  it("bootstraps deployments through injected commerce-root generated SDK clients", () => {
     const runtime = createCommerceRuntime({
       clients: {
         app: createClient<CommerceAppSdkClient>(SDKWORK_COMMERCE_APP_SDK_REQUIRED_METHODS),
