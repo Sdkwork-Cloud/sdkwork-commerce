@@ -1,9 +1,76 @@
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 
 const workspaceRoot = path.resolve(import.meta.dirname, "..", "..");
+
+const requiredCommerceRustCrates = [
+  "crates/sdkwork-commerce-catalog-rust/Cargo.toml",
+  "crates/sdkwork-commerce-inventory-rust/Cargo.toml",
+  "crates/sdkwork-commerce-order-rust/Cargo.toml",
+  "crates/sdkwork-commerce-payment-rust/Cargo.toml",
+  "crates/sdkwork-commerce-storage-sqlx-rust/Cargo.toml",
+  "crates/sdkwork-commerce-http-rust/Cargo.toml",
+  "crates/sdkwork-commerce-runtime-rust/Cargo.toml",
+  "crates/sdkwork-commerce-core-rust/Cargo.toml",
+];
+
+const requiredCommerceDatabaseTables = [
+  "commerce_product_category",
+  "commerce_product_spu",
+  "commerce_product_sku",
+  "commerce_inventory_stock",
+  "commerce_inventory_reservation",
+  "commerce_cart",
+  "commerce_cart_item",
+  "commerce_order",
+  "commerce_order_item",
+  "commerce_order_amount_breakdown",
+  "commerce_payment_intent",
+  "commerce_payment_attempt",
+  "commerce_payment_method",
+  "commerce_payment_provider",
+  "commerce_payment_channel",
+  "commerce_payment_webhook_event",
+  "commerce_refund",
+];
+
+const requiredAppCommerceOperations = [
+  "catalog.categories.list",
+  "catalog.products.list",
+  "catalog.products.retrieve",
+  "catalog.skus.retrieve",
+  "checkout.sessions.create",
+  "orders.create",
+  "orders.list",
+  "orders.retrieve",
+  "orders.pay",
+  "payments.create",
+  "payments.intents.create",
+  "payments.methods.list",
+  "refunds.create",
+];
+
+const requiredBackendCommerceOperations = [
+  "catalog.products.list",
+  "catalog.products.create",
+  "catalog.skus.list",
+  "catalog.skus.create",
+  "catalog.spus.publish",
+  "inventory.stocks.list",
+  "inventory.reservations.list",
+  "orders.management.list",
+  "orders.management.retrieve",
+  "payments.providerAccounts.list",
+  "payments.providerAccounts.create",
+  "payments.channels.list",
+  "payments.routeRules.list",
+  "payments.reconciliationRuns.list",
+  "payments.webhooks.replay",
+  "refunds.management.list",
+  "commerceReports.paymentReconciliation.retrieve",
+];
 
 function readWorkspaceFile(relativePath) {
   return readFileSync(path.join(workspaceRoot, relativePath), "utf8");
@@ -23,6 +90,20 @@ function collectFiles(root, predicate) {
     }
   }
   return files;
+}
+
+function openApiOperationIds(relativePath) {
+  const document = JSON.parse(readWorkspaceFile(relativePath));
+  const operationIds = [];
+  for (const pathItem of Object.values(document.paths ?? {})) {
+    for (const [method, operation] of Object.entries(pathItem ?? {})) {
+      if (!["get", "post", "put", "patch", "delete", "head", "options", "trace"].includes(method)) {
+        continue;
+      }
+      operationIds.push(String(operation.operationId));
+    }
+  }
+  return new Set(operationIds);
 }
 
 test("commerce OpenAPI and SDK tools no longer expose appbase extraction mode", () => {
@@ -116,4 +197,47 @@ test("commerce source text does not describe migrated commerce capabilities as a
   }
 
   assert.deepEqual(violations, []);
+});
+
+test("commerce owns the migrated product, order, and payment Rust persistence surface", () => {
+  const missingCrates = requiredCommerceRustCrates.filter(
+    (relativePath) => !existsSync(path.join(workspaceRoot, relativePath)),
+  );
+  assert.deepEqual(missingCrates, [], "commerce must keep product, order, payment, HTTP, runtime, and storage Rust crates");
+
+  const workspaceCargo = readWorkspaceFile("Cargo.toml");
+  for (const relativePath of requiredCommerceRustCrates) {
+    const memberPath = relativePath.replace(/\/Cargo\.toml$/u, "");
+    assert.match(
+      workspaceCargo,
+      new RegExp(memberPath.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")),
+      `workspace Cargo.toml must include ${memberPath}`,
+    );
+  }
+
+  const migrationSource = readWorkspaceFile(
+    "crates/sdkwork-commerce-storage-sqlx-rust/migrations/0001_commerce_foundation.sql",
+  );
+  const missingTables = requiredCommerceDatabaseTables.filter(
+    (tableName) => !migrationSource.includes(tableName),
+  );
+  assert.deepEqual(missingTables, [], "commerce SQL migration must own product, order, and payment tables");
+});
+
+test("commerce app and backend OpenAPI keep migrated product, order, and payment operations", () => {
+  const appOperationIds = openApiOperationIds("generated/openapi/commerce-app-api.openapi.json");
+  const backendOperationIds = openApiOperationIds(
+    "generated/openapi/commerce-backend-api.openapi.json",
+  );
+
+  assert.deepEqual(
+    requiredAppCommerceOperations.filter((operationId) => !appOperationIds.has(operationId)),
+    [],
+    "commerce app OpenAPI must keep product, checkout, order, payment, and refund operations",
+  );
+  assert.deepEqual(
+    requiredBackendCommerceOperations.filter((operationId) => !backendOperationIds.has(operationId)),
+    [],
+    "commerce backend OpenAPI must keep product, inventory, order, payment, refund, and reporting operations",
+  );
 });

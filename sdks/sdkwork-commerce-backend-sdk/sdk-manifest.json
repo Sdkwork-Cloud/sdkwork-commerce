@@ -7,7 +7,33 @@
   "sdkType": "backend",
   "apiPrefix": "/backend/v3/api",
   "generationInputSpec": "../../generated/openapi/commerce-backend-api.openapi.json",
-  "generatedPackages": {},
+  "generatedPackages": {
+    "typescript": {
+      "language": "typescript",
+      "packageName": "sdkwork-commerce-backend-sdk-generated-typescript",
+      "generatedOutput": "sdkwork-commerce-backend-sdk-typescript/generated/server-openapi"
+    },
+    "rust": {
+      "language": "rust",
+      "packageName": "sdkwork-commerce-backend-sdk-generated-rust",
+      "generatedOutput": "sdkwork-commerce-backend-sdk-rust/generated/server-openapi"
+    },
+    "java": {
+      "language": "java",
+      "packageName": "sdkwork-commerce-backend-sdk-generated-java",
+      "generatedOutput": "sdkwork-commerce-backend-sdk-java/generated/server-openapi"
+    },
+    "python": {
+      "language": "python",
+      "packageName": "sdkwork-commerce-backend-sdk-generated-python",
+      "generatedOutput": "sdkwork-commerce-backend-sdk-python/generated/server-openapi"
+    },
+    "go": {
+      "language": "go",
+      "packageName": "sdkwork-commerce-backend-sdk-generated-go",
+      "generatedOutput": "sdkwork-commerce-backend-sdk-go/generated/server-openapi"
+    }
+  },
   "sdkDependencies": [
     {
       "workspace": "sdkwork-appbase-backend-sdk",
@@ -26,9 +52,10 @@
       }
     }
   ],
+  "generatorName": "sdkwork-sdk-generator",
+  "baseUrl": "http://127.0.0.1:18080",
   "standardProfile": "sdkwork-v3",
   "fixedSdkVersion": "0.1.0",
-  "ownerOnlyOperationCount": 0,
+  "ownerOnlyOperationCount": 115,
   "managedBy": "tools/commerce_sdk_generator_runner.mjs"
 }
-

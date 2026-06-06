@@ -44,6 +44,8 @@ const appbaseOwnedPathPrefixes = [
   "/backend/v3/api/system/iam/",
 ];
 
+const officialLanguages = ["typescript", "rust", "java", "python", "go"];
+
 function readJson(relativePath) {
   return JSON.parse(readFileSync(path.join(workspaceRoot, relativePath), "utf8"));
 }
@@ -135,6 +137,52 @@ test("commerce generated OpenAPI inputs contain only sdkwork-commerce owned oper
       assert(
         !appbaseOwnedPathPrefixes.some((prefix) => pathKey.startsWith(prefix)),
         `${family.root} must not copy appbase-owned route ${method.toUpperCase()} ${pathKey}`,
+      );
+    }
+  }
+});
+
+test("commerce SDK manifests mirror owner-only OpenAPI inputs for SDK generation", () => {
+  for (const family of families) {
+    const openapi = readJson(family.input);
+    const manifest = readJson(path.join("sdks", family.root, "sdk-manifest.json"));
+    const operations = operationEntries(openapi);
+
+    assert.equal(
+      manifest.generationInputSpec,
+      `../../${family.input.replaceAll("\\", "/")}`,
+      `${family.root} manifest must point at its owner-only OpenAPI input`,
+    );
+    assert.equal(
+      manifest.ownerOnlyOperationCount,
+      operations.length,
+      `${family.root} manifest ownerOnlyOperationCount must match owner-only OpenAPI operations`,
+    );
+
+    if (operations.length === 0) {
+      assert.deepEqual(
+        manifest.generatedPackages ?? {},
+        {},
+        `${family.root} manifest may stay package-empty while its owner-only OpenAPI has no operations`,
+      );
+      continue;
+    }
+
+    assert.deepEqual(
+      Object.keys(manifest.generatedPackages ?? {}).sort(),
+      [...officialLanguages].sort(),
+      `${family.root} manifest must declare every official SDK language package`,
+    );
+
+    for (const language of officialLanguages) {
+      assert.deepEqual(
+        manifest.generatedPackages[language],
+        {
+          language,
+          packageName: `${family.root}-generated-${language}`,
+          generatedOutput: `${family.root}-${language}/generated/server-openapi`,
+        },
+        `${family.root} manifest must declare canonical ${language} generated output`,
       );
     }
   }
