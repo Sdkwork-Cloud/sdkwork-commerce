@@ -1,0 +1,1492 @@
+pub mod account_router;
+pub mod billing_router;
+pub mod foundation_router;
+pub mod invoice_router;
+pub mod promotion_router;
+pub mod recharge_router;
+mod request_identity;
+mod subject;
+
+pub(crate) use request_identity::with_request_identity;
+
+pub use account_router::{
+    app_account_wallet_router_with_postgres_pool, app_account_wallet_router_with_sqlite_pool,
+    app_account_wallet_router_with_store, AppbaseAccountWalletStore, AppbaseWalletFuture,
+};
+pub use billing_router::{
+    app_billing_history_router_with_postgres_pool, app_billing_history_router_with_sqlite_pool,
+    app_billing_history_router_with_store, AppbaseBillingHistoryFuture, AppbaseBillingHistoryStore,
+};
+pub use foundation_router::{
+    app_commerce_foundation_router, app_commerce_foundation_router_with_postgres_pool,
+    app_commerce_foundation_router_with_sqlite_pool, app_commerce_foundation_router_with_store,
+    AppbaseCommerceFoundationStore,
+};
+pub use invoice_router::{
+    app_invoice_router_with_postgres_pool, app_invoice_router_with_sqlite_pool,
+    app_invoice_router_with_store, AppbaseInvoiceFuture, AppbaseInvoiceStore,
+};
+pub use promotion_router::{
+    app_promotion_router_with_postgres_pool, app_promotion_router_with_sqlite_pool,
+    app_promotion_router_with_store, AppbasePromotionStore,
+};
+pub use recharge_router::{
+    app_recharge_checkout_router_with_postgres_pool, app_recharge_checkout_router_with_sqlite_pool,
+    app_recharge_checkout_router_with_store, AppbaseRechargeCheckoutStore,
+};
+
+use sdkwork_commerce_core::OperationExecutionPolicy;
+use sdkwork_commerce_runtime::resolve_operation_contract;
+
+pub const APP_API_PREFIX: &str = "/app/v3/api";
+pub const BACKEND_API_PREFIX: &str = "/backend/v3/api";
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum HttpMethod {
+    Delete,
+    Get,
+    Patch,
+    Post,
+    Put,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CommerceHttpRoute {
+    pub method: HttpMethod,
+    pub path: &'static str,
+    pub tag: &'static str,
+    pub operation_id: &'static str,
+    pub response_envelope_name: &'static str,
+    pub runtime_input_binding_name: &'static str,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CommerceHttpRouteExecutionMetadata {
+    pub operation_id: &'static str,
+    pub service_name: &'static str,
+    pub execution_policy: OperationExecutionPolicy,
+    pub capability_name: &'static str,
+    pub requires_idempotency: bool,
+    pub requires_transaction: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CommerceHttpResponseEnvelope {
+    pub name: &'static str,
+    pub fields: Vec<&'static str>,
+    pub error_fields: Vec<&'static str>,
+    pub applies_to_app_routes: bool,
+    pub applies_to_tauri_commands: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CommerceRuntimeInputBinding {
+    pub input_type: &'static str,
+    pub operation_id_source: &'static str,
+    pub body_json_source: &'static str,
+    pub context_source: &'static str,
+    pub capabilities_source: &'static str,
+    pub idempotency_key_header: &'static str,
+    pub request_hash_header: &'static str,
+    pub required_context_fields: Vec<&'static str>,
+    pub applies_to_app_routes: bool,
+    pub applies_to_backend_routes: bool,
+    pub applies_to_tauri_commands: bool,
+}
+
+impl CommerceHttpRoute {
+    pub const fn new(
+        method: HttpMethod,
+        path: &'static str,
+        tag: &'static str,
+        operation_id: &'static str,
+    ) -> Self {
+        Self {
+            method,
+            path,
+            tag,
+            operation_id,
+            response_envelope_name: COMMERCE_RUNTIME_OPERATION_ENVELOPE_NAME,
+            runtime_input_binding_name: COMMERCE_RUNTIME_OPERATION_INPUT_NAME,
+        }
+    }
+}
+
+fn route(
+    method: HttpMethod,
+    path: &'static str,
+    tag: &'static str,
+    operation_id: &'static str,
+) -> CommerceHttpRoute {
+    CommerceHttpRoute::new(method, path, tag, operation_id)
+}
+
+pub fn app_routes() -> Vec<CommerceHttpRoute> {
+    vec![
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/accounts/current/summary",
+            "commerce",
+            "accounts.current.summary.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/addresses",
+            "commerce",
+            "addresses.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/addresses",
+            "commerce",
+            "addresses.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Patch,
+            "/app/v3/api/addresses/{addressId}",
+            "commerce",
+            "addresses.update",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Delete,
+            "/app/v3/api/addresses/{addressId}",
+            "commerce",
+            "addresses.delete",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/addresses/{addressId}/default_selection",
+            "commerce",
+            "addresses.defaultSelection.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/cart/current",
+            "commerce",
+            "cart.current.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/cart/items",
+            "commerce",
+            "cart.items.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Patch,
+            "/app/v3/api/cart/items/{cartItemId}",
+            "commerce",
+            "cart.items.update",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Delete,
+            "/app/v3/api/cart/items/{cartItemId}",
+            "commerce",
+            "cart.items.delete",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/catalog/categories",
+            "commerce",
+            "catalog.categories.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/catalog/categories/{categoryId}",
+            "commerce",
+            "catalog.categories.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/catalog/attributes",
+            "commerce",
+            "catalog.attributes.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/catalog/products",
+            "commerce",
+            "catalog.products.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/catalog/products/{productId}",
+            "commerce",
+            "catalog.products.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/catalog/skus/{skuId}",
+            "commerce",
+            "catalog.skus.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/catalog/skus/{skuId}/prices",
+            "commerce",
+            "catalog.skus.prices.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/catalog/spus",
+            "commerce",
+            "catalog.spus.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/catalog/spus/{spuId}",
+            "commerce",
+            "catalog.spus.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/checkout/sessions",
+            "commerce",
+            "checkout.sessions.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/checkout/sessions/{checkoutSessionId}",
+            "commerce",
+            "checkout.sessions.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/checkout/sessions/{checkoutSessionId}/quotes",
+            "commerce",
+            "checkout.sessions.quotes.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/checkout/sessions/{checkoutSessionId}/orders",
+            "commerce",
+            "checkout.sessions.orders.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/promotions/user_coupons",
+            "commerce",
+            "promotions.userCoupons.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/promotions/offers",
+            "commerce",
+            "promotions.offers.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/promotions/user_coupon_claims",
+            "commerce",
+            "promotions.userCoupons.claims.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/promotions/codes/redemptions",
+            "commerce",
+            "promotions.codes.redemptions.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/orders",
+            "commerce",
+            "orders.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/orders/{orderId}",
+            "commerce",
+            "orders.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/orders",
+            "commerce",
+            "orders.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/orders/{orderId}/payments",
+            "commerce",
+            "orders.pay",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/orders/{orderId}/cancel",
+            "commerce",
+            "orders.cancel",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/orders/statistics",
+            "commerce",
+            "orders.statistics.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/orders/{orderId}/status",
+            "commerce",
+            "orders.status.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/orders/{orderId}/payment_success",
+            "commerce",
+            "orders.paymentSuccess.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/orders/{orderId}/events",
+            "commerce",
+            "orders.events.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/orders/{orderId}/cancellations",
+            "commerce",
+            "orders.cancellations.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/payments/methods",
+            "commerce",
+            "payments.methods.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/payments/intents",
+            "commerce",
+            "payments.intents.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/payments",
+            "commerce",
+            "payments.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/payments/{paymentId}/close",
+            "commerce",
+            "payments.close",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/payments/records",
+            "commerce",
+            "payments.records.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/payments/records/{paymentId}",
+            "commerce",
+            "payments.records.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/payments/statistics",
+            "commerce",
+            "payments.statistics.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/payments/intents/{paymentIntentId}",
+            "commerce",
+            "payments.intents.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/payments/intents/{paymentIntentId}/attempts",
+            "commerce",
+            "payments.intents.attempts.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/payments/attempts/{paymentAttemptId}",
+            "commerce",
+            "payments.attempts.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/refunds",
+            "commerce",
+            "refunds.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/refunds",
+            "commerce",
+            "refunds.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/refunds/{refundId}",
+            "commerce",
+            "refunds.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/fulfillments",
+            "commerce",
+            "fulfillments.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/fulfillments/{fulfillmentId}",
+            "commerce",
+            "fulfillments.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/shipments/{shipmentId}",
+            "commerce",
+            "shipments.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/recharges/packages",
+            "commerce",
+            "recharges.packages.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/recharges/orders",
+            "commerce",
+            "recharges.orders.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/recharges/orders/{orderId}",
+            "commerce",
+            "recharges.orders.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/billing/history",
+            "commerce",
+            "billing.history.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/recharges/orders/{orderId}/cancellations",
+            "commerce",
+            "recharges.orders.cancel",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/wallet/overview",
+            "commerce",
+            "wallet.overview.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/wallet/accounts",
+            "commerce",
+            "wallet.accounts.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/wallet/accounts/{accountId}",
+            "commerce",
+            "wallet.accounts.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/wallet/ledger_entries",
+            "commerce",
+            "wallet.ledgerEntries.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/wallet/ledger_entries/{ledgerEntryId}",
+            "commerce",
+            "wallet.ledgerEntries.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/wallet/transactions",
+            "commerce",
+            "wallet.transactions.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/wallet/transactions/{transactionId}",
+            "commerce",
+            "wallet.transactions.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/wallet/tokens",
+            "commerce",
+            "wallet.tokens.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/wallet/exchange_rate",
+            "commerce",
+            "wallet.exchangeRate.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/wallet/points/exchanges/rules",
+            "commerce",
+            "wallet.points.exchangeRules.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/memberships/current",
+            "commerce",
+            "memberships.current.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/memberships/plans",
+            "commerce",
+            "memberships.plans.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/memberships/benefits",
+            "commerce",
+            "memberships.benefits.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/memberships/current/status",
+            "commerce",
+            "memberships.current.status.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/memberships/package_groups",
+            "commerce",
+            "memberships.packageGroups.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/memberships/package_groups/{packageGroupId}",
+            "commerce",
+            "memberships.packageGroups.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/memberships/package_groups/{packageGroupId}/packages",
+            "commerce",
+            "memberships.packageGroups.packages.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/memberships/packages",
+            "commerce",
+            "memberships.packages.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/memberships/packages/{packageId}",
+            "commerce",
+            "memberships.packages.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/memberships/purchases",
+            "commerce",
+            "memberships.purchases.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/memberships/purchases/renew",
+            "commerce",
+            "memberships.purchases.renew",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/memberships/purchases/upgrade",
+            "commerce",
+            "memberships.purchases.upgrade",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/memberships/points/balance",
+            "commerce",
+            "memberships.points.balance.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/memberships/points/history",
+            "commerce",
+            "memberships.points.history.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/memberships/points/daily_rewards",
+            "commerce",
+            "memberships.points.dailyRewards.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/memberships/points/daily_rewards/status",
+            "commerce",
+            "memberships.points.dailyRewards.status.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/memberships/privileges/usage",
+            "commerce",
+            "memberships.privileges.usage.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/memberships/privileges/speed_ups",
+            "commerce",
+            "memberships.privileges.speedUps.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/invoices",
+            "commerce",
+            "invoices.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/invoices",
+            "commerce",
+            "invoices.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/invoices/{invoiceId}",
+            "commerce",
+            "invoices.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Patch,
+            "/app/v3/api/invoices/{invoiceId}",
+            "commerce",
+            "invoices.update",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/invoices/mine",
+            "commerce",
+            "invoices.mine.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/invoices/statistics",
+            "commerce",
+            "invoices.statistics.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/invoices/{invoiceId}/items",
+            "commerce",
+            "invoices.items.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/invoices/{invoiceId}/submissions",
+            "commerce",
+            "invoices.submit",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/invoices/{invoiceId}/cancellations",
+            "commerce",
+            "invoices.cancel",
+        ),
+    ]
+}
+
+pub fn backend_routes() -> Vec<CommerceHttpRoute> {
+    vec![
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/catalog/categories",
+            "catalog",
+            "catalog.categories.management.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/catalog/categories",
+            "catalog",
+            "catalog.categories.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/catalog/categories/{categoryId}",
+            "catalog",
+            "catalog.categories.update",
+        ),
+        route(
+            HttpMethod::Delete,
+            "/backend/v3/api/catalog/categories/{categoryId}",
+            "catalog",
+            "catalog.categories.delete",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/catalog/products",
+            "catalog",
+            "catalog.products.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/catalog/products",
+            "catalog",
+            "catalog.products.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/catalog/products/{productId}",
+            "catalog",
+            "catalog.products.update",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/catalog/spus",
+            "catalog",
+            "catalog.spus.management.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/catalog/spus",
+            "catalog",
+            "catalog.spus.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/catalog/spus/{spuId}",
+            "catalog",
+            "catalog.spus.update",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/catalog/spus/{spuId}/publish",
+            "catalog",
+            "catalog.spus.publish",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/catalog/spus/{spuId}/archive",
+            "catalog",
+            "catalog.spus.archive",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/catalog/skus",
+            "catalog",
+            "catalog.skus.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/catalog/skus",
+            "catalog",
+            "catalog.skus.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/catalog/skus/{skuId}",
+            "catalog",
+            "catalog.skus.update",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/catalog/attributes",
+            "catalog",
+            "catalog.attributes.management.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/catalog/attributes",
+            "catalog",
+            "catalog.attributes.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/catalog/price_lists",
+            "catalog",
+            "catalog.priceLists.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/catalog/price_lists",
+            "catalog",
+            "catalog.priceLists.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/catalog/price_lists/{priceListId}",
+            "catalog",
+            "catalog.priceLists.update",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/inventory/stocks",
+            "inventory",
+            "inventory.stocks.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/inventory/stocks/{stockId}/adjust",
+            "inventory",
+            "inventory.stocks.adjust",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/inventory/reservations",
+            "inventory",
+            "inventory.reservations.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/inventory/reservations/{reservationId}/release",
+            "inventory",
+            "inventory.reservations.release",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/inventory/ledger",
+            "inventory",
+            "inventory.ledger.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/inventory/ledger_entries",
+            "inventory",
+            "inventory.ledgerEntries.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/orders",
+            "orders",
+            "orders.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/orders/management",
+            "orders",
+            "orders.management.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/orders/management/{orderId}",
+            "orders",
+            "orders.management.retrieve",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/orders/management/{orderId}/cancel",
+            "orders",
+            "orders.management.cancel",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/orders/management/{orderId}/close",
+            "orders",
+            "orders.management.close",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/orders/{orderId}/events",
+            "orders",
+            "orders.events.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/payments/provider_accounts",
+            "payments",
+            "payments.providerAccounts.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/payments/provider_accounts",
+            "payments",
+            "payments.providerAccounts.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/payments/provider_accounts/{providerAccountId}",
+            "payments",
+            "payments.providerAccounts.update",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/payments/methods",
+            "payments",
+            "payments.methods.management.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/payments/methods",
+            "payments",
+            "payments.methods.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/payments/channels",
+            "payments",
+            "payments.channels.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/payments/channels",
+            "payments",
+            "payments.channels.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/payments/route_rules",
+            "payments",
+            "payments.routeRules.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/payments/route_rules",
+            "payments",
+            "payments.routeRules.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/payments/route_rules/{routeRuleId}",
+            "payments",
+            "payments.routeRules.update",
+        ),
+        route(
+            HttpMethod::Delete,
+            "/backend/v3/api/payments/route_rules/{routeRuleId}",
+            "payments",
+            "payments.routeRules.delete",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/payments/intents",
+            "payments",
+            "payments.intents.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/payments/attempts",
+            "payments",
+            "payments.attempts.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/payments/webhook_events",
+            "payments",
+            "payments.webhookEvents.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/payments/webhooks",
+            "payments",
+            "payments.webhooks.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/payments/webhooks/{webhookEventId}",
+            "payments",
+            "payments.webhooks.retrieve",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/payments/webhooks/{webhookEventId}/replay",
+            "payments",
+            "payments.webhooks.replay",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/payments/reconciliation_runs",
+            "payments",
+            "payments.reconciliationRuns.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/payments/reconciliation_runs",
+            "payments",
+            "payments.reconciliationRuns.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/refunds",
+            "refunds",
+            "refunds.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/refunds/management",
+            "refunds",
+            "refunds.management.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/refunds/management/{refundId}",
+            "refunds",
+            "refunds.management.retrieve",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/refunds/{refundId}",
+            "refunds",
+            "refunds.retrieve",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/refunds/{refundId}/approvals",
+            "refunds",
+            "refunds.approvals.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/refunds/{refundId}/attempts",
+            "refunds",
+            "refunds.attempts.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/refunds/{refundId}/attempts",
+            "refunds",
+            "refunds.attempts.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/fulfillments",
+            "fulfillments",
+            "fulfillments.management.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/fulfillments",
+            "fulfillments",
+            "fulfillments.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/fulfillments/{fulfillmentId}",
+            "fulfillments",
+            "fulfillments.management.retrieve",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/fulfillments/{fulfillmentId}/shipments",
+            "fulfillments",
+            "fulfillments.shipments.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/fulfillments/{fulfillmentId}/shipments/{shipmentId}",
+            "fulfillments",
+            "fulfillments.shipments.update",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/fulfillments/{fulfillmentId}/shipments/{shipmentId}/tracking_events",
+            "fulfillments",
+            "fulfillments.trackingEvents.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/shipments",
+            "shipments",
+            "shipments.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/memberships/plans",
+            "memberships",
+            "memberships.plans.management.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/memberships/plans",
+            "memberships",
+            "memberships.plans.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/memberships/plans/{planId}",
+            "memberships",
+            "memberships.plans.update",
+        ),
+        route(
+            HttpMethod::Delete,
+            "/backend/v3/api/memberships/plans/{planId}",
+            "memberships",
+            "memberships.plans.delete",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/memberships/packages",
+            "memberships",
+            "memberships.packages.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/memberships/packages",
+            "memberships",
+            "memberships.packages.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/memberships/packages/{packageId}",
+            "memberships",
+            "memberships.packages.update",
+        ),
+        route(
+            HttpMethod::Delete,
+            "/backend/v3/api/memberships/packages/{packageId}",
+            "memberships",
+            "memberships.packages.delete",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/memberships/package_groups",
+            "memberships",
+            "memberships.packageGroups.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/memberships/package_groups",
+            "memberships",
+            "memberships.packageGroups.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/memberships/package_groups/{packageGroupId}",
+            "memberships",
+            "memberships.packageGroups.update",
+        ),
+        route(
+            HttpMethod::Delete,
+            "/backend/v3/api/memberships/package_groups/{packageGroupId}",
+            "memberships",
+            "memberships.packageGroups.delete",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/memberships/members",
+            "memberships",
+            "memberships.members.list",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/memberships/members/{membershipId}",
+            "memberships",
+            "memberships.members.update",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/memberships/entitlements",
+            "memberships",
+            "memberships.entitlements.management.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/memberships/entitlements/grants",
+            "memberships",
+            "memberships.entitlements.grant",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/memberships/entitlements/{entitlementId}/revoke",
+            "memberships",
+            "memberships.entitlements.revoke",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/recharges/packages",
+            "recharges",
+            "recharges.packages.management.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/recharges/packages",
+            "recharges",
+            "recharges.packages.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/recharges/packages/{packageId}",
+            "recharges",
+            "recharges.packages.update",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/recharges/orders",
+            "recharges",
+            "recharges.orders.management.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/wallet/accounts",
+            "wallet",
+            "wallet.accounts.management.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/wallet/adjustments",
+            "wallet",
+            "wallet.adjustments.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/wallet/ledger",
+            "wallet",
+            "wallet.ledger.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/wallet/ledger_entries",
+            "wallet",
+            "wallet.ledgerEntries.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/wallet/exchange_rules",
+            "wallet",
+            "wallet.exchangeRules.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/promotions/offers",
+            "promotions",
+            "promotions.offers.management.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/promotions/offers",
+            "promotions",
+            "promotions.offers.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/promotions/offers/{offerId}",
+            "promotions",
+            "promotions.offers.update",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/promotions/coupon_stocks",
+            "promotions",
+            "promotions.couponStocks.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/promotions/coupon_stocks",
+            "promotions",
+            "promotions.couponStocks.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/promotions/codes",
+            "promotions",
+            "promotions.codes.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/promotions/codes",
+            "promotions",
+            "promotions.codes.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/promotions/user_coupons",
+            "promotions",
+            "promotions.userCoupons.management.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/promotions/discount_applications",
+            "promotions",
+            "promotions.discountApplications.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/promotions/discount_allocations",
+            "promotions",
+            "promotions.discountAllocations.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/invoices",
+            "invoices",
+            "invoices.management.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/invoices/{invoiceId}",
+            "invoices",
+            "invoices.management.retrieve",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/invoices/titles",
+            "invoices",
+            "invoices.titles.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/invoices/{invoiceId}/issuance",
+            "invoices",
+            "invoices.issuance.create",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/invoices/{invoiceId}/voids",
+            "invoices",
+            "invoices.voids.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/audit/logs",
+            "audit",
+            "audit.logs.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/audit/commerce_events",
+            "audit",
+            "audit.commerceEvents.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/commerce_reports/usage_statements",
+            "commerceReports",
+            "commerceReports.usageStatements.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/commerce_reports/payment_reconciliation",
+            "commerceReports",
+            "commerceReports.paymentReconciliation.retrieve",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/commerce_reports/order_revenue",
+            "commerceReports",
+            "commerceReports.orderRevenue.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/commerce_reports/refunds",
+            "commerceReports",
+            "commerceReports.refunds.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/reports/commerce_overview",
+            "reports",
+            "reports.commerceOverview.retrieve",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/reports/sales",
+            "reports",
+            "reports.sales.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/reports/payment_reconciliation",
+            "reports",
+            "reports.paymentReconciliation.list",
+        ),
+    ]
+}
+
+pub fn all_routes() -> Vec<CommerceHttpRoute> {
+    let mut routes = app_routes();
+    routes.extend(backend_routes());
+    routes
+}
+
+pub fn app_route_execution_metadata() -> Vec<CommerceHttpRouteExecutionMetadata> {
+    app_routes()
+        .into_iter()
+        .map(|route| {
+            let contract = resolve_operation_contract(route.operation_id)
+                .expect("app route operation must bind to a runtime operation contract");
+            CommerceHttpRouteExecutionMetadata {
+                operation_id: route.operation_id,
+                service_name: contract.service_name,
+                execution_policy: contract.execution_policy.clone(),
+                capability_name: contract.capability_name,
+                requires_idempotency: contract.requires_idempotency(),
+                requires_transaction: contract.requires_transaction(),
+            }
+        })
+        .collect()
+}
+
+pub fn commerce_http_response_envelope() -> CommerceHttpResponseEnvelope {
+    CommerceHttpResponseEnvelope {
+        name: COMMERCE_RUNTIME_OPERATION_ENVELOPE_NAME,
+        fields: vec![
+            "ok",
+            "operation_id",
+            "service_name",
+            "body_json",
+            "outcome_kind",
+            "idempotency_scope",
+            "error",
+        ],
+        error_fields: vec!["code", "message"],
+        applies_to_app_routes: true,
+        applies_to_tauri_commands: true,
+    }
+}
+
+pub fn commerce_http_runtime_input_binding() -> CommerceRuntimeInputBinding {
+    runtime_input_binding(
+        "request.authenticated_runtime_context",
+        "request.body_json",
+        true,
+        false,
+        false,
+    )
+}
+
+pub fn commerce_tauri_runtime_input_binding() -> CommerceRuntimeInputBinding {
+    runtime_input_binding(
+        "tauri.authenticated_runtime_context",
+        "command.payload_json",
+        false,
+        false,
+        true,
+    )
+}
+
+pub fn required_dual_token_headers() -> [&'static str; 2] {
+    ["Authorization", "Access-Token"]
+}
+
+pub const COMMERCE_RUNTIME_OPERATION_ENVELOPE_NAME: &str = "CommerceRuntimeOperationEnvelope";
+pub const COMMERCE_RUNTIME_OPERATION_INPUT_NAME: &str = "CommerceRuntimeOperationInput";
+
+fn runtime_input_binding(
+    context_source: &'static str,
+    body_json_source: &'static str,
+    applies_to_app_routes: bool,
+    applies_to_backend_routes: bool,
+    applies_to_tauri_commands: bool,
+) -> CommerceRuntimeInputBinding {
+    CommerceRuntimeInputBinding {
+        input_type: COMMERCE_RUNTIME_OPERATION_INPUT_NAME,
+        operation_id_source: "route.operation_id",
+        body_json_source,
+        context_source,
+        capabilities_source: "runtime.capability_manifest",
+        idempotency_key_header: "Idempotency-Key",
+        request_hash_header: "Sdkwork-Request-Hash",
+        required_context_fields: vec![
+            "tenant_id",
+            "organization_id",
+            "user_id",
+            "session_id",
+            "app_id",
+            "deployment_mode",
+            "environment",
+            "surface_profile",
+        ],
+        applies_to_app_routes,
+        applies_to_backend_routes,
+        applies_to_tauri_commands,
+    }
+}

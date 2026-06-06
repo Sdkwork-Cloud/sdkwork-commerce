@@ -1,0 +1,32 @@
+{
+  "name": "@sdkwork/commerce-sdk-ports",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "SDKWork commerce generated app SDK port contracts.",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm --dir ../../../.. exec vitest run packages/common/commerce/sdkwork-commerce-sdk-ports/tests --config vitest.config.ts --configLoader native --pool vmThreads"
+  },
+  "dependencies": {
+    "@sdkwork/commerce-contracts": "workspace:*"
+  },
+  "sdkwork": {
+    "architecture": "common",
+    "capability": "commerce-sdk-ports",
+    "domain": "commerce",
+    "packageType": "ports",
+    "status": "standard"
+  }
+}

@@ -1,0 +1,20 @@
+[package]
+name = "sdkwork_commerce_runtime"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "SDKWork commerce local/private Rust runtime composition for first-slice commerce services."
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+sdkwork_commerce_core = { path = "../sdkwork-commerce-core-rust" }
+sdkwork_commerce_account = { path = "../sdkwork-commerce-account-rust" }
+sdkwork_commerce_catalog = { path = "../sdkwork-commerce-catalog-rust" }
+sdkwork_commerce_inventory = { path = "../sdkwork-commerce-inventory-rust" }
+sdkwork_commerce_order = { path = "../sdkwork-commerce-order-rust" }
+sdkwork_commerce_payment = { path = "../sdkwork-commerce-payment-rust" }
+sdkwork_commerce_invoice = { path = "../sdkwork-commerce-invoice-rust" }
+sdkwork_commerce_promotion = { path = "../sdkwork-commerce-promotion-rust" }
+sdkwork_commerce_membership = { path = "../sdkwork-commerce-membership-rust" }

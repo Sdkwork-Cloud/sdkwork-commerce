@@ -1,0 +1,25 @@
+[workspace]
+members = [
+    "crates/sdkwork-commerce-account-rust",
+    "crates/sdkwork-commerce-bootstrap-rust",
+    "crates/sdkwork-commerce-catalog-rust",
+    "crates/sdkwork-commerce-core-rust",
+    "crates/sdkwork-commerce-http-rust",
+    "crates/sdkwork-commerce-inventory-rust",
+    "crates/sdkwork-commerce-invoice-rust",
+    "crates/sdkwork-commerce-membership-rust",
+    "crates/sdkwork-commerce-membership-sqlx-rust",
+    "crates/sdkwork-commerce-order-rust",
+    "crates/sdkwork-commerce-payment-rust",
+    "crates/sdkwork-commerce-promotion-rust",
+    "crates/sdkwork-commerce-rpc-rust",
+    "crates/sdkwork-commerce-runtime-rust",
+    "crates/sdkwork-commerce-storage-sqlx-rust",
+    "crates/sdkwork-commerce-tauri-rust",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+

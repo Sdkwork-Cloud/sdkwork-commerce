@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "sdkName": "sdkwork-commerce-app-sdk",
+  "sdkOwner": "sdkwork-commerce",
+  "apiAuthority": "sdkwork-commerce.app",
+  "sdkFamily": "sdkwork-commerce-app-sdk",
+  "sdkType": "app",
+  "apiPrefix": "/app/v3/api",
+  "generationInputSpec": "../../generated/openapi/commerce-app-api.openapi.json",
+  "generatedPackages": {},
+  "sdkDependencies": [
+    {
+      "workspace": "sdkwork-appbase-app-sdk",
+      "role": "appbase-app-capability",
+      "required": true,
+      "dependencyMode": "consumer-sdk",
+      "apiPrefix": "/app/v3/api",
+      "apiAuthority": "sdkwork-appbase.app",
+      "generatedTransportImportPolicy": "forbidden",
+      "packageByLanguage": {
+        "typescript": "@sdkwork/appbase-app-sdk",
+        "rust": "sdkwork-appbase-app-sdk",
+        "java": "com.sdkwork:sdkwork-appbase-app-sdk",
+        "python": "sdkwork-appbase-app-sdk",
+        "go": "github.com/sdkwork/sdkwork-appbase-app-sdk"
+      }
+    }
+  ],
+  "standardProfile": "sdkwork-v3",
+  "fixedSdkVersion": "0.1.0",
+  "ownerOnlyOperationCount": 0,
+  "managedBy": "tools/commerce_sdk_generator_runner.mjs"
+}
+

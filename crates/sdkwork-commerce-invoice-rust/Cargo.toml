@@ -1,0 +1,12 @@
+[package]
+name = "sdkwork_commerce_invoice"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "SDKWork commerce invoice and tax document domain rules for local/private Rust deployments."
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+sdkwork_commerce_core = { path = "../sdkwork-commerce-core-rust" }

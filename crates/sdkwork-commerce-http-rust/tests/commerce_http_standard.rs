@@ -1,0 +1,734 @@
+use sdkwork_commerce_core::OperationExecutionPolicy;
+use sdkwork_commerce_http::{
+    app_route_execution_metadata, app_routes, backend_routes, commerce_http_response_envelope,
+    commerce_http_runtime_input_binding, required_dual_token_headers, HttpMethod, APP_API_PREFIX,
+    BACKEND_API_PREFIX,
+};
+use std::collections::HashSet;
+
+fn canonical_app_route_specs() -> Vec<(HttpMethod, &'static str, &'static str)> {
+    vec![
+        (
+            HttpMethod::Get,
+            "/app/v3/api/accounts/current/summary",
+            "accounts.current.summary.retrieve",
+        ),
+        (HttpMethod::Get, "/app/v3/api/addresses", "addresses.list"),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/addresses",
+            "addresses.create",
+        ),
+        (
+            HttpMethod::Patch,
+            "/app/v3/api/addresses/{addressId}",
+            "addresses.update",
+        ),
+        (
+            HttpMethod::Delete,
+            "/app/v3/api/addresses/{addressId}",
+            "addresses.delete",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/addresses/{addressId}/default_selection",
+            "addresses.defaultSelection.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/cart/current",
+            "cart.current.retrieve",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/cart/items",
+            "cart.items.create",
+        ),
+        (
+            HttpMethod::Patch,
+            "/app/v3/api/cart/items/{cartItemId}",
+            "cart.items.update",
+        ),
+        (
+            HttpMethod::Delete,
+            "/app/v3/api/cart/items/{cartItemId}",
+            "cart.items.delete",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/catalog/categories",
+            "catalog.categories.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/catalog/categories/{categoryId}",
+            "catalog.categories.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/catalog/attributes",
+            "catalog.attributes.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/catalog/products",
+            "catalog.products.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/catalog/products/{productId}",
+            "catalog.products.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/catalog/skus/{skuId}",
+            "catalog.skus.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/catalog/skus/{skuId}/prices",
+            "catalog.skus.prices.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/catalog/spus",
+            "catalog.spus.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/catalog/spus/{spuId}",
+            "catalog.spus.retrieve",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/checkout/sessions",
+            "checkout.sessions.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/checkout/sessions/{checkoutSessionId}",
+            "checkout.sessions.retrieve",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/checkout/sessions/{checkoutSessionId}/quotes",
+            "checkout.sessions.quotes.create",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/checkout/sessions/{checkoutSessionId}/orders",
+            "checkout.sessions.orders.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/promotions/user_coupons",
+            "promotions.userCoupons.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/promotions/offers",
+            "promotions.offers.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/promotions/user_coupon_claims",
+            "promotions.userCoupons.claims.create",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/promotions/codes/redemptions",
+            "promotions.codes.redemptions.create",
+        ),
+        (HttpMethod::Get, "/app/v3/api/orders", "orders.list"),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/orders/{orderId}",
+            "orders.retrieve",
+        ),
+        (HttpMethod::Post, "/app/v3/api/orders", "orders.create"),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/orders/{orderId}/payments",
+            "orders.pay",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/orders/{orderId}/cancel",
+            "orders.cancel",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/orders/{orderId}/events",
+            "orders.events.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/orders/{orderId}/cancellations",
+            "orders.cancellations.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/payments/methods",
+            "payments.methods.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/payments/intents",
+            "payments.intents.create",
+        ),
+        (HttpMethod::Post, "/app/v3/api/payments", "payments.create"),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/payments/{paymentId}/close",
+            "payments.close",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/payments/records",
+            "payments.records.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/payments/intents/{paymentIntentId}",
+            "payments.intents.retrieve",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/payments/intents/{paymentIntentId}/attempts",
+            "payments.intents.attempts.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/payments/attempts/{paymentAttemptId}",
+            "payments.attempts.retrieve",
+        ),
+        (HttpMethod::Get, "/app/v3/api/refunds", "refunds.list"),
+        (HttpMethod::Post, "/app/v3/api/refunds", "refunds.create"),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/refunds/{refundId}",
+            "refunds.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/fulfillments",
+            "fulfillments.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/fulfillments/{fulfillmentId}",
+            "fulfillments.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shipments/{shipmentId}",
+            "shipments.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/recharges/packages",
+            "recharges.packages.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/recharges/orders",
+            "recharges.orders.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/recharges/orders/{orderId}",
+            "recharges.orders.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/billing/history",
+            "billing.history.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/recharges/orders/{orderId}/cancellations",
+            "recharges.orders.cancel",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/wallet/overview",
+            "wallet.overview.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/wallet/accounts",
+            "wallet.accounts.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/wallet/accounts/{accountId}",
+            "wallet.accounts.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/wallet/ledger_entries",
+            "wallet.ledgerEntries.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/wallet/ledger_entries/{ledgerEntryId}",
+            "wallet.ledgerEntries.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/wallet/transactions",
+            "wallet.transactions.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/wallet/transactions/{transactionId}",
+            "wallet.transactions.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/wallet/tokens",
+            "wallet.tokens.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/wallet/exchange_rate",
+            "wallet.exchangeRate.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/wallet/points/exchanges/rules",
+            "wallet.points.exchangeRules.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/memberships/current",
+            "memberships.current.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/memberships/plans",
+            "memberships.plans.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/memberships/benefits",
+            "memberships.benefits.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/memberships/current/status",
+            "memberships.current.status.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/memberships/package_groups",
+            "memberships.packageGroups.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/memberships/package_groups/{packageGroupId}",
+            "memberships.packageGroups.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/memberships/package_groups/{packageGroupId}/packages",
+            "memberships.packageGroups.packages.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/memberships/packages",
+            "memberships.packages.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/memberships/packages/{packageId}",
+            "memberships.packages.retrieve",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/memberships/purchases",
+            "memberships.purchases.create",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/memberships/purchases/renew",
+            "memberships.purchases.renew",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/memberships/purchases/upgrade",
+            "memberships.purchases.upgrade",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/memberships/points/balance",
+            "memberships.points.balance.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/memberships/points/history",
+            "memberships.points.history.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/memberships/points/daily_rewards",
+            "memberships.points.dailyRewards.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/memberships/points/daily_rewards/status",
+            "memberships.points.dailyRewards.status.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/memberships/privileges/usage",
+            "memberships.privileges.usage.retrieve",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/memberships/privileges/speed_ups",
+            "memberships.privileges.speedUps.create",
+        ),
+        (HttpMethod::Get, "/app/v3/api/invoices", "invoices.list"),
+        (HttpMethod::Post, "/app/v3/api/invoices", "invoices.create"),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/invoices/{invoiceId}",
+            "invoices.retrieve",
+        ),
+        (
+            HttpMethod::Patch,
+            "/app/v3/api/invoices/{invoiceId}",
+            "invoices.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/invoices/mine",
+            "invoices.mine.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/invoices/statistics",
+            "invoices.statistics.retrieve",
+        ),
+    ]
+}
+
+fn canonical_backend_route_specs() -> Vec<(HttpMethod, &'static str, &'static str)> {
+    vec![
+        (HttpMethod::Get, "/backend/v3/api/orders", "orders.list"),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/payments/reconciliation_runs",
+            "payments.reconciliationRuns.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/invoices",
+            "invoices.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/wallet/ledger_entries",
+            "wallet.ledgerEntries.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/promotions/offers",
+            "promotions.offers.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/memberships/plans",
+            "memberships.plans.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/memberships/members",
+            "memberships.members.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/catalog/spus",
+            "catalog.spus.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/reports/commerce_overview",
+            "reports.commerceOverview.retrieve",
+        ),
+    ]
+}
+
+#[test]
+fn exposes_canonical_standard_app_commerce_routes_only() {
+    let routes = app_routes();
+    let actual: Vec<(HttpMethod, &str, &str)> = routes
+        .iter()
+        .map(|route| (route.method.clone(), route.path, route.operation_id))
+        .collect();
+    let expected = canonical_app_route_specs();
+
+    assert_eq!(APP_API_PREFIX, "/app/v3/api");
+    for expected_route in expected {
+        assert!(
+            actual.contains(&expected_route),
+            "standard app route must be exposed: {expected_route:?}"
+        );
+    }
+
+    let retired_paths = [
+        "/app/v3/api/wallet/operations/{requestNo}",
+        "/app/v3/api/wallet/topups",
+        "/app/v3/api/wallet/withdrawals",
+        "/app/v3/api/wallet/transfers",
+        "/app/v3/api/wallet/exchanges",
+        "/app/v3/api/wallet/tokens/deductions",
+        "/app/v3/api/wallet/points/exchanges",
+        "/app/v3/api/wallet/points/exchanges/{exchangeNo}",
+        "/app/v3/api/coupons",
+        "/app/v3/api/coupons/claims",
+        "/app/v3/api/coupons/redemptions",
+        "/app/v3/api/coupons/catalog",
+        "/app/v3/api/coupons/catalog/{couponId}",
+        "/app/v3/api/coupons/user_coupons/{userCouponId}",
+        "/app/v3/api/coupons/usage",
+        "/app/v3/api/coupons/usage_reversals",
+        "/app/v3/api/payments/attempts",
+        "/app/v3/api/checkout/preflight/estimates",
+        "/app/v3/api/checkout/preflight/prechecks",
+        "/app/v3/api/checkout/preflight/preholds",
+        "/app/v3/api/checkout/preflight/settlements",
+        "/app/v3/api/checkout/preflight/releases",
+    ];
+    let retired_operation_ids = [
+        "wallet.operations.retrieve",
+        "wallet.topups.create",
+        "wallet.withdrawals.create",
+        "wallet.transfers.create",
+        "wallet.exchanges.create",
+        "wallet.tokens.deductions.create",
+        "wallet.points.exchanges.rules.list",
+        "wallet.points.exchanges.create",
+        "wallet.points.exchanges.retrieve",
+        "coupons.list",
+        "coupons.claims.create",
+        "coupons.redemptions.create",
+        "coupons.catalog.list",
+        "coupons.catalog.retrieve",
+        "coupons.userCoupons.retrieve",
+        "coupons.usage.create",
+        "coupons.usageReversals.create",
+        "payments.attempts.list",
+        "checkout.preflight.estimates.create",
+        "checkout.preflight.prechecks.create",
+        "checkout.preflight.preholds.create",
+        "checkout.preflight.settlements.create",
+        "checkout.preflight.releases.create",
+        "invoices.submissions.create",
+    ];
+
+    for route in routes {
+        assert!(route.path.starts_with("/app/v3/api/"));
+        assert!(route.path == "/app/v3/api/billing/history" || !route.path.contains("/billing/"));
+        assert!(!route.path.contains("/vip/"));
+        assert!(!route.path.contains("__"));
+        assert!(!route.operation_id.contains('_'));
+        assert!(route.operation_id.contains('.'));
+        assert!(!route.operation_id.starts_with("vip."));
+    }
+    assert_unique_route_specs(&actual);
+    for retired_path in retired_paths {
+        assert!(
+            !actual.iter().any(|(_, path, _)| path == &retired_path),
+            "retired appbase app route must not be exposed: {retired_path}"
+        );
+    }
+    for retired_operation_id in retired_operation_ids {
+        assert!(
+            !actual
+                .iter()
+                .any(|(_, _, operation_id)| operation_id == &retired_operation_id),
+            "retired appbase app operationId must not be exposed: {retired_operation_id}"
+        );
+    }
+}
+
+#[test]
+fn exposes_first_slice_backend_management_routes_separately() {
+    let routes = backend_routes();
+    let actual: Vec<(HttpMethod, &str, &str)> = routes
+        .iter()
+        .map(|route| (route.method.clone(), route.path, route.operation_id))
+        .collect();
+
+    assert_eq!(BACKEND_API_PREFIX, "/backend/v3/api");
+    for expected_route in canonical_backend_route_specs() {
+        assert!(
+            actual.contains(&expected_route),
+            "standard backend route must be exposed: {expected_route:?}"
+        );
+    }
+
+    for route in routes {
+        assert!(route.path.starts_with("/backend/v3/api/"));
+        assert!(!route.path.contains("/billing/"));
+        assert!(!route.path.contains("/vip/"));
+        assert!(!route.operation_id.contains('_'));
+        assert!(route.operation_id.contains('.'));
+        assert!(!route.operation_id.starts_with("backend."));
+        assert!(!route.operation_id.starts_with("vip."));
+    }
+    assert_unique_route_specs(&actual);
+}
+
+fn assert_unique_route_specs(routes: &[(HttpMethod, &str, &str)]) {
+    let mut route_keys = HashSet::new();
+    let mut operation_ids = HashSet::new();
+
+    for (method, path, operation_id) in routes {
+        assert!(
+            route_keys.insert(format!("{method:?}:{path}")),
+            "route method/path must be unique: {method:?} {path}"
+        );
+        assert!(
+            operation_ids.insert(*operation_id),
+            "route operationId must be unique: {operation_id}"
+        );
+    }
+}
+
+#[test]
+fn requires_dual_token_headers_for_private_runtime_parity() {
+    assert_eq!(
+        required_dual_token_headers(),
+        ["Authorization", "Access-Token"]
+    );
+}
+
+#[test]
+fn app_routes_expose_runtime_execution_metadata_for_handler_generation() {
+    let metadata = app_route_execution_metadata();
+    let routes = app_routes();
+
+    assert_eq!(metadata.len(), routes.len());
+
+    let checkout_order = metadata
+        .iter()
+        .find(|entry| entry.operation_id == "checkout.sessions.orders.create")
+        .unwrap();
+    assert_eq!(checkout_order.service_name, "commerce.order");
+    assert_eq!(
+        checkout_order.execution_policy,
+        OperationExecutionPolicy::TransactionalWrite,
+    );
+    assert_eq!(checkout_order.capability_name, "commerce.order.lifecycle");
+    assert!(checkout_order.requires_idempotency);
+    assert!(checkout_order.requires_transaction);
+
+    let account_summary = metadata
+        .iter()
+        .find(|entry| entry.operation_id == "accounts.current.summary.retrieve")
+        .unwrap();
+    assert_eq!(account_summary.service_name, "commerce.account");
+    assert_eq!(
+        account_summary.execution_policy,
+        OperationExecutionPolicy::ReadOnly,
+    );
+    assert_eq!(account_summary.capability_name, "commerce.account.summary");
+    assert!(!account_summary.requires_idempotency);
+    assert!(!account_summary.requires_transaction);
+
+    let cart_update = metadata
+        .iter()
+        .find(|entry| entry.operation_id == "cart.items.update")
+        .unwrap();
+    assert_eq!(cart_update.service_name, "commerce.catalog");
+    assert_eq!(
+        cart_update.execution_policy,
+        OperationExecutionPolicy::TransactionalWrite,
+    );
+    assert_eq!(cart_update.capability_name, "commerce.catalog.cart");
+    assert!(cart_update.requires_idempotency);
+    assert!(cart_update.requires_transaction);
+
+    let exchange_rules = metadata
+        .iter()
+        .find(|entry| entry.operation_id == "wallet.points.exchangeRules.list")
+        .unwrap();
+    assert_eq!(exchange_rules.service_name, "commerce.promotion");
+    assert_eq!(
+        exchange_rules.execution_policy,
+        OperationExecutionPolicy::ReadOnly,
+    );
+    assert_eq!(exchange_rules.capability_name, "commerce.promotion.points");
+    assert!(!exchange_rules.requires_idempotency);
+    assert!(!exchange_rules.requires_transaction);
+}
+
+#[test]
+fn http_routes_declare_the_standard_runtime_response_envelope() {
+    let envelope = commerce_http_response_envelope();
+
+    assert_eq!(envelope.name, "CommerceRuntimeOperationEnvelope");
+    assert_eq!(
+        envelope.fields,
+        vec![
+            "ok",
+            "operation_id",
+            "service_name",
+            "body_json",
+            "outcome_kind",
+            "idempotency_scope",
+            "error",
+        ],
+    );
+    assert_eq!(envelope.error_fields, vec!["code", "message"],);
+    assert!(envelope.applies_to_app_routes);
+    assert!(envelope.applies_to_tauri_commands);
+
+    for route in app_routes() {
+        assert_eq!(
+            route.response_envelope_name,
+            "CommerceRuntimeOperationEnvelope"
+        );
+    }
+}
+
+#[test]
+fn http_routes_declare_how_requests_map_into_runtime_operation_input() {
+    let binding = commerce_http_runtime_input_binding();
+
+    assert_eq!(binding.input_type, "CommerceRuntimeOperationInput");
+    assert_eq!(binding.operation_id_source, "route.operation_id");
+    assert_eq!(binding.body_json_source, "request.body_json");
+    assert_eq!(
+        binding.context_source,
+        "request.authenticated_runtime_context"
+    );
+    assert_eq!(binding.capabilities_source, "runtime.capability_manifest");
+    assert_eq!(binding.idempotency_key_header, "Idempotency-Key");
+    assert_eq!(binding.request_hash_header, "Sdkwork-Request-Hash");
+    assert_eq!(
+        binding.required_context_fields,
+        vec![
+            "tenant_id",
+            "organization_id",
+            "user_id",
+            "session_id",
+            "app_id",
+            "deployment_mode",
+            "environment",
+            "surface_profile",
+        ],
+    );
+    assert!(binding.applies_to_app_routes);
+    assert!(!binding.applies_to_backend_routes);
+
+    for route in app_routes() {
+        assert_eq!(
+            route.runtime_input_binding_name,
+            "CommerceRuntimeOperationInput"
+        );
+    }
+}

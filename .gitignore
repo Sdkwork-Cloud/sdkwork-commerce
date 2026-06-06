@@ -1,0 +1,13 @@
+target/
+node_modules/
+dist/
+.pnpm-store/
+.turbo/
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.db
+*.sqlite
+*.sqlite3
+

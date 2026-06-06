@@ -1,0 +1,66 @@
+{
+  "name": "@sdkwork/offer-pc-react",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Shared commercial offer cards, featured pricing opportunities, and reusable routing into coupon, points, and subscription workspaces.",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@sdkwork/appbase-pc-react": "*",
+    "@sdkwork/commerce-service": "*",
+    "@sdkwork/coupon-pc-react": "*",
+    "@sdkwork/points-pc-react": "*",
+    "@sdkwork/subscription-pc-react": "*",
+    "@sdkwork/ui-pc-react": "*",
+    "@sdkwork/membership-pc-react": "*",
+    "@sdkwork/wallet-pc-react": "*",
+    "react": ">=18.2.0 <20.0.0",
+    "react-dom": ">=18.2.0 <20.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@sdkwork/appbase-pc-react": {
+      "optional": true
+    },
+    "@sdkwork/commerce-service": {
+      "optional": true
+    },
+    "@sdkwork/coupon-pc-react": {
+      "optional": true
+    },
+    "@sdkwork/points-pc-react": {
+      "optional": true
+    },
+    "@sdkwork/subscription-pc-react": {
+      "optional": true
+    },
+    "@sdkwork/ui-pc-react": {
+      "optional": true
+    },
+    "@sdkwork/membership-pc-react": {
+      "optional": true
+    },
+    "@sdkwork/wallet-pc-react": {
+      "optional": true
+    }
+  },
+  "sdkwork": {
+    "workspace": "sdkwork-commerce",
+    "architecture": "pc-react",
+    "domain": "commerce",
+    "capability": "offer",
+    "status": "ready"
+  }
+}

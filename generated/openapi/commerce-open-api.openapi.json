@@ -1,0 +1,123 @@
+{
+  "openapi": "3.1.2",
+  "paths": {},
+  "components": {
+    "securitySchemes": {},
+    "schemas": {
+      "CommerceApiResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message",
+          "requestId",
+          "data"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "CommerceOperationCommand": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ProblemDetail": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "type",
+          "title",
+          "status"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            }
+          }
+        }
+      },
+      "FieldError": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "field",
+          "message"
+        ],
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "info": {
+    "title": "SDKWork Commerce Open API",
+    "version": "1.0.0",
+    "description": "Public commerce contract for SDKWork Commerce owned Open API operations.",
+    "x-sdkwork-owner": "sdkwork-commerce",
+    "x-sdkwork-api-authority": "sdkwork-commerce.open",
+    "x-sdkwork-sdk-family": "sdkwork-commerce-sdk",
+    "x-sdkwork-audience": "Public commerce integrations."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:18082",
+      "description": "Local sdkwork-commerce runtime"
+    }
+  ],
+  "tags": [],
+  "x-sdkwork-owner": "sdkwork-commerce",
+  "x-sdkwork-api-authority": "sdkwork-commerce.open",
+  "x-sdkwork-domain": "commerce",
+  "x-sdkwork-standard-profile": "sdkwork-commerce-open-v3"
+}

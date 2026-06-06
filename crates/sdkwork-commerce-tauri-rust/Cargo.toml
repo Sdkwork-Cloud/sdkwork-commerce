@@ -1,0 +1,14 @@
+[package]
+name = "sdkwork_commerce_tauri"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "SDKWork commerce Tauri host adapter contract for local/private deployments."
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+sdkwork_commerce_core = { path = "../sdkwork-commerce-core-rust" }
+sdkwork_commerce_http = { path = "../sdkwork-commerce-http-rust" }
+sdkwork_commerce_runtime = { path = "../sdkwork-commerce-runtime-rust" }

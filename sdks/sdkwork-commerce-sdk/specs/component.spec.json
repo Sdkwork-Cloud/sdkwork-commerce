@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "kind": "sdkwork.component.spec",
+  "component": {
+    "name": "sdkwork-commerce-sdk",
+    "displayName": "SDKWork Commerce Open API SDK",
+    "version": "0.1.0",
+    "type": "sdk-family",
+    "root": "sdkwork-commerce/sdks/sdkwork-commerce-sdk",
+    "domain": "commerce",
+    "capability": "commerce",
+    "status": "standardized",
+    "languages": [
+      "typescript",
+      "rust",
+      "java",
+      "python",
+      "go"
+    ],
+    "generated": true,
+    "private": false,
+    "manifests": [
+      ".sdkwork-assembly.json",
+      "sdk-manifest.json"
+    ]
+  },
+  "canonicalSpecs": [
+    {
+      "file": "API_SPEC.md",
+      "path": "../../../../../javasource/spring-ai-plus/spring-ai-plus-business/specs/API_SPEC.md",
+      "purpose": "HTTP/OpenAPI and generated SDK contract rules."
+    },
+    {
+      "file": "SDK_SPEC.md",
+      "path": "../../../../../javasource/spring-ai-plus/spring-ai-plus-business/specs/SDK_SPEC.md",
+      "purpose": "SDK generation, SDK dependency, and SDK integration rules."
+    },
+    {
+      "file": "SDK_WORKSPACE_GENERATION_SPEC.md",
+      "path": "../../../../../javasource/spring-ai-plus/spring-ai-plus-business/specs/SDK_WORKSPACE_GENERATION_SPEC.md",
+      "purpose": "SDK workspace and authority naming rules."
+    }
+  ],
+  "contracts": {
+    "apiAuthority": {
+      "name": "sdkwork-commerce.open",
+      "prefix": "/open/v3/api",
+      "authorityOpenApi": "../../generated/openapi/commerce-open-api.openapi.json",
+      "owner": "sdkwork-commerce"
+    },
+    "sdkDependencies": []
+  },
+  "verification": {
+    "commands": [
+      "node sdks/test/verify-sdk-ownership-boundaries.test.mjs"
+    ]
+  }
+}
+
