@@ -17,8 +17,83 @@
   ],
   "tags": [
     {
-      "name": "commerce",
-      "description": "Commerce API resources.",
+      "name": "accounts",
+      "description": "Accounts API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "addresses",
+      "description": "Addresses API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "billing",
+      "description": "Billing API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "cart",
+      "description": "Cart API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "catalog",
+      "description": "Catalog API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "checkout",
+      "description": "Checkout API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "fulfillments",
+      "description": "Fulfillments API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "invoices",
+      "description": "Invoices API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "memberships",
+      "description": "Memberships API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "orders",
+      "description": "Orders API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "payments",
+      "description": "Payments API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "promotions",
+      "description": "Promotions API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "recharges",
+      "description": "Recharges API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "refunds",
+      "description": "Refunds API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "shipments",
+      "description": "Shipments API resources.",
+      "x-sdk-nested-resource-surface": true
+    },
+    {
+      "name": "wallet",
+      "description": "Wallet API resources.",
       "x-sdk-nested-resource-surface": true
     }
   ],
@@ -32,7 +107,7 @@
     "/app/v3/api/accounts/current/summary": {
       "get": {
         "tags": [
-          "commerce"
+          "accounts"
         ],
         "summary": "Accounts current summary retrieve.",
         "operationId": "accounts.current.summary.retrieve",
@@ -126,7 +201,7 @@
     "/app/v3/api/addresses": {
       "get": {
         "tags": [
-          "commerce"
+          "addresses"
         ],
         "summary": "Addresses list.",
         "operationId": "addresses.list",
@@ -150,30 +225,6 @@
               "minimum": 1,
               "maximum": 200,
               "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -264,7 +315,7 @@
       },
       "post": {
         "tags": [
-          "commerce"
+          "addresses"
         ],
         "summary": "Addresses create.",
         "operationId": "addresses.create",
@@ -368,7 +419,7 @@
     "/app/v3/api/addresses/{addressId}": {
       "delete": {
         "tags": [
-          "commerce"
+          "addresses"
         ],
         "summary": "Addresses delete.",
         "operationId": "addresses.delete",
@@ -469,7 +520,7 @@
       },
       "patch": {
         "tags": [
-          "commerce"
+          "addresses"
         ],
         "summary": "Addresses update.",
         "operationId": "addresses.update",
@@ -582,7 +633,7 @@
     "/app/v3/api/addresses/{addressId}/default_selection": {
       "post": {
         "tags": [
-          "commerce"
+          "addresses"
         ],
         "summary": "Addresses default Selection create.",
         "operationId": "addresses.defaultSelection.create",
@@ -695,7 +746,7 @@
     "/app/v3/api/billing/history": {
       "get": {
         "tags": [
-          "commerce"
+          "billing"
         ],
         "summary": "Billing history list.",
         "operationId": "billing.history.list",
@@ -722,23 +773,23 @@
             }
           },
           {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
             "in": "query",
             "required": false,
             "schema": {
@@ -835,7 +886,7 @@
     "/app/v3/api/cart/current": {
       "get": {
         "tags": [
-          "commerce"
+          "cart"
         ],
         "summary": "Cart current retrieve.",
         "operationId": "cart.current.retrieve",
@@ -929,7 +980,7 @@
     "/app/v3/api/cart/items": {
       "post": {
         "tags": [
-          "commerce"
+          "cart"
         ],
         "summary": "Cart items create.",
         "operationId": "cart.items.create",
@@ -1033,7 +1084,7 @@
     "/app/v3/api/cart/items/{cartItemId}": {
       "delete": {
         "tags": [
-          "commerce"
+          "cart"
         ],
         "summary": "Cart items delete.",
         "operationId": "cart.items.delete",
@@ -1134,7 +1185,7 @@
       },
       "patch": {
         "tags": [
-          "commerce"
+          "cart"
         ],
         "summary": "Cart items update.",
         "operationId": "cart.items.update",
@@ -1247,50 +1298,13 @@
     "/app/v3/api/catalog/attributes": {
       "get": {
         "tags": [
-          "commerce"
+          "catalog"
         ],
         "summary": "Catalog attributes list.",
         "operationId": "catalog.attributes.list",
         "parameters": [
           {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
+            "name": "category_id",
             "in": "query",
             "required": false,
             "schema": {
@@ -1382,11 +1396,27 @@
     "/app/v3/api/catalog/categories": {
       "get": {
         "tags": [
-          "commerce"
+          "catalog"
         ],
         "summary": "Catalog categories list.",
         "operationId": "catalog.categories.list",
         "parameters": [
+          {
+            "name": "parent_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "page",
             "in": "query",
@@ -1406,30 +1436,6 @@
               "minimum": 1,
               "maximum": 200,
               "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -1517,7 +1523,7 @@
     "/app/v3/api/catalog/categories/{categoryId}": {
       "get": {
         "tags": [
-          "commerce"
+          "catalog"
         ],
         "summary": "Catalog categories retrieve.",
         "operationId": "catalog.categories.retrieve",
@@ -1615,11 +1621,43 @@
     "/app/v3/api/catalog/products": {
       "get": {
         "tags": [
-          "commerce"
+          "catalog"
         ],
         "summary": "Catalog products list.",
         "operationId": "catalog.products.list",
         "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "product_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "page",
             "in": "query",
@@ -1642,23 +1680,7 @@
             }
           },
           {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
             "in": "query",
             "required": false,
             "schema": {
@@ -1750,7 +1772,7 @@
     "/app/v3/api/catalog/products/{productId}": {
       "get": {
         "tags": [
-          "commerce"
+          "catalog"
         ],
         "summary": "Catalog products retrieve.",
         "operationId": "catalog.products.retrieve",
@@ -1848,7 +1870,7 @@
     "/app/v3/api/catalog/skus/{skuId}": {
       "get": {
         "tags": [
-          "commerce"
+          "catalog"
         ],
         "summary": "Catalog skus retrieve.",
         "operationId": "catalog.skus.retrieve",
@@ -1946,7 +1968,7 @@
     "/app/v3/api/catalog/skus/{skuId}/prices": {
       "get": {
         "tags": [
-          "commerce"
+          "catalog"
         ],
         "summary": "Catalog skus prices retrieve.",
         "operationId": "catalog.skus.prices.retrieve",
@@ -1955,6 +1977,22 @@
             "name": "skuId",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency_code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -2044,11 +2082,35 @@
     "/app/v3/api/catalog/spus": {
       "get": {
         "tags": [
-          "commerce"
+          "catalog"
         ],
         "summary": "Catalog spus list.",
         "operationId": "catalog.spus.list",
         "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "product_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "page",
             "in": "query",
@@ -2072,22 +2134,6 @@
           },
           {
             "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
             "in": "query",
             "required": false,
             "schema": {
@@ -2179,7 +2225,7 @@
     "/app/v3/api/catalog/spus/{spuId}": {
       "get": {
         "tags": [
-          "commerce"
+          "catalog"
         ],
         "summary": "Catalog spus retrieve.",
         "operationId": "catalog.spus.retrieve",
@@ -2277,7 +2323,7 @@
     "/app/v3/api/checkout/sessions": {
       "post": {
         "tags": [
-          "commerce"
+          "checkout"
         ],
         "summary": "Checkout sessions create.",
         "operationId": "checkout.sessions.create",
@@ -2381,7 +2427,7 @@
     "/app/v3/api/checkout/sessions/{checkoutSessionId}": {
       "get": {
         "tags": [
-          "commerce"
+          "checkout"
         ],
         "summary": "Checkout sessions retrieve.",
         "operationId": "checkout.sessions.retrieve",
@@ -2484,7 +2530,7 @@
     "/app/v3/api/checkout/sessions/{checkoutSessionId}/orders": {
       "post": {
         "tags": [
-          "commerce"
+          "checkout"
         ],
         "summary": "Checkout sessions orders create.",
         "operationId": "checkout.sessions.orders.create",
@@ -2597,7 +2643,7 @@
     "/app/v3/api/checkout/sessions/{checkoutSessionId}/quotes": {
       "post": {
         "tags": [
-          "commerce"
+          "checkout"
         ],
         "summary": "Checkout sessions quotes create.",
         "operationId": "checkout.sessions.quotes.create",
@@ -2710,11 +2756,19 @@
     "/app/v3/api/fulfillments": {
       "get": {
         "tags": [
-          "commerce"
+          "fulfillments"
         ],
         "summary": "Fulfillments list.",
         "operationId": "fulfillments.list",
         "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "page",
             "in": "query",
@@ -2734,30 +2788,6 @@
               "minimum": 1,
               "maximum": 200,
               "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -2850,7 +2880,7 @@
     "/app/v3/api/fulfillments/{fulfillmentId}": {
       "get": {
         "tags": [
-          "commerce"
+          "fulfillments"
         ],
         "summary": "Fulfillments retrieve.",
         "operationId": "fulfillments.retrieve",
@@ -2953,11 +2983,19 @@
     "/app/v3/api/invoices": {
       "get": {
         "tags": [
-          "commerce"
+          "invoices"
         ],
         "summary": "Invoices list.",
         "operationId": "invoices.list",
         "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "page",
             "in": "query",
@@ -2977,30 +3015,6 @@
               "minimum": 1,
               "maximum": 200,
               "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -3091,7 +3105,7 @@
       },
       "post": {
         "tags": [
-          "commerce"
+          "invoices"
         ],
         "summary": "Invoices create.",
         "operationId": "invoices.create",
@@ -3195,7 +3209,7 @@
     "/app/v3/api/invoices/{invoiceId}": {
       "get": {
         "tags": [
-          "commerce"
+          "invoices"
         ],
         "summary": "Invoices retrieve.",
         "operationId": "invoices.retrieve",
@@ -3296,7 +3310,7 @@
       },
       "patch": {
         "tags": [
-          "commerce"
+          "invoices"
         ],
         "summary": "Invoices update.",
         "operationId": "invoices.update",
@@ -3409,10 +3423,10 @@
     "/app/v3/api/invoices/{invoiceId}/cancellations": {
       "post": {
         "tags": [
-          "commerce"
+          "invoices"
         ],
-        "summary": "Invoices cancel.",
-        "operationId": "invoices.cancel",
+        "summary": "Invoices cancellations create.",
+        "operationId": "invoices.cancellations.create",
         "parameters": [
           {
             "name": "invoiceId",
@@ -3504,7 +3518,7 @@
         "x-sdkwork-owner": "sdkwork-commerce",
         "x-sdkwork-api-authority": "sdkwork-commerce.app",
         "x-sdkwork-domain": "commerce",
-        "x-sdkwork-resource": "invoices",
+        "x-sdkwork-resource": "invoices.cancellations",
         "x-sdkwork-request-context": "AppRequestContext",
         "x-sdkwork-server-request-id": true,
         "requestBody": {
@@ -3522,7 +3536,7 @@
     "/app/v3/api/invoices/{invoiceId}/items": {
       "get": {
         "tags": [
-          "commerce"
+          "invoices"
         ],
         "summary": "Invoices items list.",
         "operationId": "invoices.items.list",
@@ -3531,51 +3545,6 @@
             "name": "invoiceId",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
             "schema": {
               "type": "string"
             }
@@ -3670,10 +3639,10 @@
     "/app/v3/api/invoices/{invoiceId}/submissions": {
       "post": {
         "tags": [
-          "commerce"
+          "invoices"
         ],
-        "summary": "Invoices submit.",
-        "operationId": "invoices.submit",
+        "summary": "Invoices submissions create.",
+        "operationId": "invoices.submissions.create",
         "parameters": [
           {
             "name": "invoiceId",
@@ -3765,7 +3734,7 @@
         "x-sdkwork-owner": "sdkwork-commerce",
         "x-sdkwork-api-authority": "sdkwork-commerce.app",
         "x-sdkwork-domain": "commerce",
-        "x-sdkwork-resource": "invoices",
+        "x-sdkwork-resource": "invoices.submissions",
         "x-sdkwork-request-context": "AppRequestContext",
         "x-sdkwork-server-request-id": true,
         "requestBody": {
@@ -3783,11 +3752,19 @@
     "/app/v3/api/invoices/mine": {
       "get": {
         "tags": [
-          "commerce"
+          "invoices"
         ],
         "summary": "Invoices mine list.",
         "operationId": "invoices.mine.list",
         "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "page",
             "in": "query",
@@ -3807,30 +3784,6 @@
               "minimum": 1,
               "maximum": 200,
               "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -3923,7 +3876,7 @@
     "/app/v3/api/invoices/statistics": {
       "get": {
         "tags": [
-          "commerce"
+          "invoices"
         ],
         "summary": "Invoices statistics retrieve.",
         "operationId": "invoices.statistics.retrieve",
@@ -4017,57 +3970,11 @@
     "/app/v3/api/memberships/benefits": {
       "get": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships benefits list.",
         "operationId": "memberships.benefits.list",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
@@ -4152,7 +4059,7 @@
     "/app/v3/api/memberships/current": {
       "get": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships current retrieve.",
         "operationId": "memberships.current.retrieve",
@@ -4246,7 +4153,7 @@
     "/app/v3/api/memberships/current/status": {
       "get": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships current status retrieve.",
         "operationId": "memberships.current.status.retrieve",
@@ -4340,50 +4247,13 @@
     "/app/v3/api/memberships/package_groups": {
       "get": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships package Groups list.",
         "operationId": "memberships.packageGroups.list",
         "parameters": [
           {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
+            "name": "status",
             "in": "query",
             "required": false,
             "schema": {
@@ -4475,7 +4345,7 @@
     "/app/v3/api/memberships/package_groups/{packageGroupId}": {
       "get": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships package Groups retrieve.",
         "operationId": "memberships.packageGroups.retrieve",
@@ -4573,7 +4443,7 @@
     "/app/v3/api/memberships/package_groups/{packageGroupId}/packages": {
       "get": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships package Groups packages list.",
         "operationId": "memberships.packageGroups.packages.list",
@@ -4587,44 +4457,7 @@
             }
           },
           {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
+            "name": "status",
             "in": "query",
             "required": false,
             "schema": {
@@ -4716,50 +4549,13 @@
     "/app/v3/api/memberships/packages": {
       "get": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships packages list.",
         "operationId": "memberships.packages.list",
         "parameters": [
           {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
+            "name": "status",
             "in": "query",
             "required": false,
             "schema": {
@@ -4851,7 +4647,7 @@
     "/app/v3/api/memberships/packages/{packageId}": {
       "get": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships packages retrieve.",
         "operationId": "memberships.packages.retrieve",
@@ -4949,50 +4745,13 @@
     "/app/v3/api/memberships/plans": {
       "get": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships plans list.",
         "operationId": "memberships.plans.list",
         "parameters": [
           {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
+            "name": "status",
             "in": "query",
             "required": false,
             "schema": {
@@ -5084,7 +4843,7 @@
     "/app/v3/api/memberships/points/balance": {
       "get": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships points balance retrieve.",
         "operationId": "memberships.points.balance.retrieve",
@@ -5178,7 +4937,7 @@
     "/app/v3/api/memberships/points/daily_rewards": {
       "post": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships points daily Rewards create.",
         "operationId": "memberships.points.dailyRewards.create",
@@ -5282,7 +5041,7 @@
     "/app/v3/api/memberships/points/daily_rewards/status": {
       "get": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships points daily Rewards status retrieve.",
         "operationId": "memberships.points.dailyRewards.status.retrieve",
@@ -5376,7 +5135,7 @@
     "/app/v3/api/memberships/points/history": {
       "get": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships points history list.",
         "operationId": "memberships.points.history.list",
@@ -5404,22 +5163,6 @@
           },
           {
             "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
             "in": "query",
             "required": false,
             "schema": {
@@ -5516,7 +5259,7 @@
     "/app/v3/api/memberships/privileges/speed_ups": {
       "post": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships privileges speed Ups create.",
         "operationId": "memberships.privileges.speedUps.create",
@@ -5620,7 +5363,7 @@
     "/app/v3/api/memberships/privileges/usage": {
       "get": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships privileges usage retrieve.",
         "operationId": "memberships.privileges.usage.retrieve",
@@ -5714,7 +5457,7 @@
     "/app/v3/api/memberships/purchases": {
       "post": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships purchases create.",
         "operationId": "memberships.purchases.create",
@@ -5818,7 +5561,7 @@
     "/app/v3/api/memberships/purchases/renew": {
       "post": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships purchases renew.",
         "operationId": "memberships.purchases.renew",
@@ -5922,7 +5665,7 @@
     "/app/v3/api/memberships/purchases/upgrade": {
       "post": {
         "tags": [
-          "commerce"
+          "memberships"
         ],
         "summary": "Memberships purchases upgrade.",
         "operationId": "memberships.purchases.upgrade",
@@ -6026,11 +5769,19 @@
     "/app/v3/api/orders": {
       "get": {
         "tags": [
-          "commerce"
+          "orders"
         ],
         "summary": "Orders list.",
         "operationId": "orders.list",
         "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "page",
             "in": "query",
@@ -6050,30 +5801,6 @@
               "minimum": 1,
               "maximum": 200,
               "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -6164,7 +5891,7 @@
       },
       "post": {
         "tags": [
-          "commerce"
+          "orders"
         ],
         "summary": "Orders create.",
         "operationId": "orders.create",
@@ -6268,7 +5995,7 @@
     "/app/v3/api/orders/{orderId}": {
       "get": {
         "tags": [
-          "commerce"
+          "orders"
         ],
         "summary": "Orders retrieve.",
         "operationId": "orders.retrieve",
@@ -6371,7 +6098,7 @@
     "/app/v3/api/orders/{orderId}/cancel": {
       "post": {
         "tags": [
-          "commerce"
+          "orders"
         ],
         "summary": "Orders cancel.",
         "operationId": "orders.cancel",
@@ -6484,7 +6211,7 @@
     "/app/v3/api/orders/{orderId}/cancellations": {
       "post": {
         "tags": [
-          "commerce"
+          "orders"
         ],
         "summary": "Orders cancellations create.",
         "operationId": "orders.cancellations.create",
@@ -6597,7 +6324,7 @@
     "/app/v3/api/orders/{orderId}/events": {
       "get": {
         "tags": [
-          "commerce"
+          "orders"
         ],
         "summary": "Orders events list.",
         "operationId": "orders.events.list",
@@ -6606,51 +6333,6 @@
             "name": "orderId",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
             "schema": {
               "type": "string"
             }
@@ -6745,7 +6427,7 @@
     "/app/v3/api/orders/{orderId}/payment_success": {
       "get": {
         "tags": [
-          "commerce"
+          "orders"
         ],
         "summary": "Orders payment Success retrieve.",
         "operationId": "orders.paymentSuccess.retrieve",
@@ -6848,7 +6530,7 @@
     "/app/v3/api/orders/{orderId}/payments": {
       "post": {
         "tags": [
-          "commerce"
+          "orders"
         ],
         "summary": "Orders pay.",
         "operationId": "orders.pay",
@@ -6956,12 +6638,113 @@
             }
           }
         }
+      },
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Payments order Payments list.",
+        "operationId": "payments.orderPayments.list",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "payments.orderPayments",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
       }
     },
     "/app/v3/api/orders/{orderId}/status": {
       "get": {
         "tags": [
-          "commerce"
+          "orders"
         ],
         "summary": "Orders status retrieve.",
         "operationId": "orders.status.retrieve",
@@ -7064,7 +6847,7 @@
     "/app/v3/api/orders/statistics": {
       "get": {
         "tags": [
-          "commerce"
+          "orders"
         ],
         "summary": "Orders statistics retrieve.",
         "operationId": "orders.statistics.retrieve",
@@ -7158,7 +6941,7 @@
     "/app/v3/api/payments": {
       "post": {
         "tags": [
-          "commerce"
+          "payments"
         ],
         "summary": "Payments create.",
         "operationId": "payments.create",
@@ -7262,7 +7045,7 @@
     "/app/v3/api/payments/{paymentId}/close": {
       "post": {
         "tags": [
-          "commerce"
+          "payments"
         ],
         "summary": "Payments close.",
         "operationId": "payments.close",
@@ -7375,7 +7158,7 @@
     "/app/v3/api/payments/attempts/{paymentAttemptId}": {
       "get": {
         "tags": [
-          "commerce"
+          "payments"
         ],
         "summary": "Payments attempts retrieve.",
         "operationId": "payments.attempts.retrieve",
@@ -7478,7 +7261,7 @@
     "/app/v3/api/payments/intents": {
       "post": {
         "tags": [
-          "commerce"
+          "payments"
         ],
         "summary": "Payments intents create.",
         "operationId": "payments.intents.create",
@@ -7582,7 +7365,7 @@
     "/app/v3/api/payments/intents/{paymentIntentId}": {
       "get": {
         "tags": [
-          "commerce"
+          "payments"
         ],
         "summary": "Payments intents retrieve.",
         "operationId": "payments.intents.retrieve",
@@ -7685,7 +7468,7 @@
     "/app/v3/api/payments/intents/{paymentIntentId}/attempts": {
       "post": {
         "tags": [
-          "commerce"
+          "payments"
         ],
         "summary": "Payments intents attempts create.",
         "operationId": "payments.intents.attempts.create",
@@ -7798,57 +7581,11 @@
     "/app/v3/api/payments/methods": {
       "get": {
         "tags": [
-          "commerce"
+          "payments"
         ],
         "summary": "Payments methods list.",
         "operationId": "payments.methods.list",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
@@ -7938,11 +7675,19 @@
     "/app/v3/api/payments/records": {
       "get": {
         "tags": [
-          "commerce"
+          "payments"
         ],
         "summary": "Payments records list.",
         "operationId": "payments.records.list",
         "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "page",
             "in": "query",
@@ -7966,22 +7711,6 @@
           },
           {
             "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
             "in": "query",
             "required": false,
             "schema": {
@@ -8078,7 +7807,7 @@
     "/app/v3/api/payments/records/{paymentId}": {
       "get": {
         "tags": [
-          "commerce"
+          "payments"
         ],
         "summary": "Payments records retrieve.",
         "operationId": "payments.records.retrieve",
@@ -8181,7 +7910,7 @@
     "/app/v3/api/payments/statistics": {
       "get": {
         "tags": [
-          "commerce"
+          "payments"
         ],
         "summary": "Payments statistics retrieve.",
         "operationId": "payments.statistics.retrieve",
@@ -8275,7 +8004,7 @@
     "/app/v3/api/promotions/codes/redemptions": {
       "post": {
         "tags": [
-          "commerce"
+          "promotions"
         ],
         "summary": "Promotions codes redemptions create.",
         "operationId": "promotions.codes.redemptions.create",
@@ -8379,11 +8108,19 @@
     "/app/v3/api/promotions/offers": {
       "get": {
         "tags": [
-          "commerce"
+          "promotions"
         ],
         "summary": "Promotions offers list.",
         "operationId": "promotions.offers.list",
         "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "page",
             "in": "query",
@@ -8407,22 +8144,6 @@
           },
           {
             "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
             "in": "query",
             "required": false,
             "schema": {
@@ -8514,7 +8235,7 @@
     "/app/v3/api/promotions/user_coupon_claims": {
       "post": {
         "tags": [
-          "commerce"
+          "promotions"
         ],
         "summary": "Promotions user Coupons claims create.",
         "operationId": "promotions.userCoupons.claims.create",
@@ -8618,11 +8339,19 @@
     "/app/v3/api/promotions/user_coupons": {
       "get": {
         "tags": [
-          "commerce"
+          "promotions"
         ],
         "summary": "Promotions user Coupons list.",
         "operationId": "promotions.userCoupons.list",
         "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "page",
             "in": "query",
@@ -8642,30 +8371,6 @@
               "minimum": 1,
               "maximum": 200,
               "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -8758,7 +8463,7 @@
     "/app/v3/api/recharges/orders": {
       "post": {
         "tags": [
-          "commerce"
+          "recharges"
         ],
         "summary": "Recharges orders create.",
         "operationId": "recharges.orders.create",
@@ -8862,7 +8567,7 @@
     "/app/v3/api/recharges/orders/{orderId}": {
       "get": {
         "tags": [
-          "commerce"
+          "recharges"
         ],
         "summary": "Recharges orders retrieve.",
         "operationId": "recharges.orders.retrieve",
@@ -8965,7 +8670,7 @@
     "/app/v3/api/recharges/orders/{orderId}/cancellations": {
       "post": {
         "tags": [
-          "commerce"
+          "recharges"
         ],
         "summary": "Recharges orders cancel.",
         "operationId": "recharges.orders.cancel",
@@ -9078,50 +8783,13 @@
     "/app/v3/api/recharges/packages": {
       "get": {
         "tags": [
-          "commerce"
+          "recharges"
         ],
         "summary": "Recharges packages list.",
         "operationId": "recharges.packages.list",
         "parameters": [
           {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
+            "name": "status",
             "in": "query",
             "required": false,
             "schema": {
@@ -9210,14 +8878,111 @@
         "x-sdkwork-server-request-id": true
       }
     },
+    "/app/v3/api/recharges/settings": {
+      "get": {
+        "tags": [
+          "recharges"
+        ],
+        "summary": "Recharges settings retrieve.",
+        "operationId": "recharges.settings.retrieve",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "recharges.settings",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
     "/app/v3/api/refunds": {
       "get": {
         "tags": [
-          "commerce"
+          "refunds"
         ],
         "summary": "Refunds list.",
         "operationId": "refunds.list",
         "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "page",
             "in": "query",
@@ -9237,30 +9002,6 @@
               "minimum": 1,
               "maximum": 200,
               "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -9351,7 +9092,7 @@
       },
       "post": {
         "tags": [
-          "commerce"
+          "refunds"
         ],
         "summary": "Refunds create.",
         "operationId": "refunds.create",
@@ -9455,7 +9196,7 @@
     "/app/v3/api/refunds/{refundId}": {
       "get": {
         "tags": [
-          "commerce"
+          "refunds"
         ],
         "summary": "Refunds retrieve.",
         "operationId": "refunds.retrieve",
@@ -9558,7 +9299,7 @@
     "/app/v3/api/shipments/{shipmentId}": {
       "get": {
         "tags": [
-          "commerce"
+          "shipments"
         ],
         "summary": "Shipments retrieve.",
         "operationId": "shipments.retrieve",
@@ -9661,50 +9402,13 @@
     "/app/v3/api/wallet/accounts": {
       "get": {
         "tags": [
-          "commerce"
+          "wallet"
         ],
         "summary": "Wallet accounts list.",
         "operationId": "wallet.accounts.list",
         "parameters": [
           {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
+            "name": "asset_type",
             "in": "query",
             "required": false,
             "schema": {
@@ -9801,7 +9505,7 @@
     "/app/v3/api/wallet/accounts/{accountId}": {
       "get": {
         "tags": [
-          "commerce"
+          "wallet"
         ],
         "summary": "Wallet accounts retrieve.",
         "operationId": "wallet.accounts.retrieve",
@@ -9904,7 +9608,7 @@
     "/app/v3/api/wallet/exchange_rate": {
       "get": {
         "tags": [
-          "commerce"
+          "wallet"
         ],
         "summary": "Wallet exchange Rate retrieve.",
         "operationId": "wallet.exchangeRate.retrieve",
@@ -9998,7 +9702,7 @@
     "/app/v3/api/wallet/ledger_entries": {
       "get": {
         "tags": [
-          "commerce"
+          "wallet"
         ],
         "summary": "Wallet ledger Entries list.",
         "operationId": "wallet.ledgerEntries.list",
@@ -10026,22 +9730,6 @@
           },
           {
             "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
             "in": "query",
             "required": false,
             "schema": {
@@ -10138,7 +9826,7 @@
     "/app/v3/api/wallet/ledger_entries/{ledgerEntryId}": {
       "get": {
         "tags": [
-          "commerce"
+          "wallet"
         ],
         "summary": "Wallet ledger Entries retrieve.",
         "operationId": "wallet.ledgerEntries.retrieve",
@@ -10241,7 +9929,7 @@
     "/app/v3/api/wallet/overview": {
       "get": {
         "tags": [
-          "commerce"
+          "wallet"
         ],
         "summary": "Wallet overview retrieve.",
         "operationId": "wallet.overview.retrieve",
@@ -10335,57 +10023,11 @@
     "/app/v3/api/wallet/points/exchanges/rules": {
       "get": {
         "tags": [
-          "commerce"
+          "wallet"
         ],
         "summary": "Wallet points exchange Rules list.",
         "operationId": "wallet.points.exchangeRules.list",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 20
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
@@ -10475,7 +10117,7 @@
     "/app/v3/api/wallet/tokens": {
       "get": {
         "tags": [
-          "commerce"
+          "wallet"
         ],
         "summary": "Wallet tokens retrieve.",
         "operationId": "wallet.tokens.retrieve",
@@ -10569,11 +10211,19 @@
     "/app/v3/api/wallet/transactions": {
       "get": {
         "tags": [
-          "commerce"
+          "wallet"
         ],
         "summary": "Wallet transactions list.",
         "operationId": "wallet.transactions.list",
         "parameters": [
+          {
+            "name": "asset_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "page",
             "in": "query",
@@ -10597,22 +10247,6 @@
           },
           {
             "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "q",
             "in": "query",
             "required": false,
             "schema": {
@@ -10709,7 +10343,7 @@
     "/app/v3/api/wallet/transactions/{transactionId}": {
       "get": {
         "tags": [
-          "commerce"
+          "wallet"
         ],
         "summary": "Wallet transactions retrieve.",
         "operationId": "wallet.transactions.retrieve",
@@ -10807,6 +10441,3275 @@
         "x-sdkwork-resource": "wallet.transactions",
         "x-sdkwork-request-context": "AppRequestContext",
         "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/payments/checkout/{paymentId}": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Payments checkout retrieve.",
+        "operationId": "payments.checkout.retrieve",
+        "parameters": [
+          {
+            "name": "paymentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "payments.checkout",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/payments/intents/{paymentIntentId}/cancel": {
+      "post": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Payments intents cancel.",
+        "operationId": "payments.intents.cancel",
+        "parameters": [
+          {
+            "name": "paymentIntentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "payments.intents",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/payments/reconciliations": {
+      "post": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Payments reconcile.",
+        "operationId": "payments.reconcile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "payments",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/payments/status/{paymentId}": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Payments status retrieve.",
+        "operationId": "payments.status.retrieve",
+        "parameters": [
+          {
+            "name": "paymentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "payments.status",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/payments/status/out_trade_no/{outTradeNo}": {
+      "get": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Payments status retrieve By Out Trade No.",
+        "operationId": "payments.status.retrieveByOutTradeNo",
+        "parameters": [
+          {
+            "name": "outTradeNo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "payments.status",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/wallet/accounts/overview": {
+      "get": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet accounts overview retrieve.",
+        "operationId": "wallet.accounts.overview.retrieve",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.accounts.overview",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/wallet/accounts/points": {
+      "get": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet accounts points retrieve.",
+        "operationId": "wallet.accounts.points.retrieve",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.accounts.points",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/wallet/accounts/tokens": {
+      "get": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet accounts tokens retrieve.",
+        "operationId": "wallet.accounts.tokens.retrieve",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.accounts.tokens",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/wallet/ledger_entries/points": {
+      "get": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet ledger Entries points list.",
+        "operationId": "wallet.ledgerEntries.points.list",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.ledgerEntries.points",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/wallet/holds": {
+      "post": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet holds create.",
+        "operationId": "wallet.holds.create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.holds",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/wallet/holds/releases": {
+      "post": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet holds releases create.",
+        "operationId": "wallet.holds.releases.create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.holds.releases",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/wallet/holds/settlements": {
+      "post": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet holds settlements create.",
+        "operationId": "wallet.holds.settlements.create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.holds.settlements",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/wallet/exchange_rules": {
+      "get": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet exchange Rules list.",
+        "operationId": "wallet.exchangeRules.list",
+        "parameters": [
+          {
+            "name": "source_asset_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target_asset_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.exchangeRules",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/wallet/exchanges": {
+      "post": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet exchanges create.",
+        "operationId": "wallet.exchanges.create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.exchanges",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/wallet/point_transfers": {
+      "post": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet point Transfers create.",
+        "operationId": "wallet.pointTransfers.create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.pointTransfers",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/wallet/point_exchanges": {
+      "post": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet point Exchanges create.",
+        "operationId": "wallet.pointExchanges.create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.pointExchanges",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/wallet/point_exchanges/{exchangeNo}": {
+      "get": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet point Exchanges retrieve.",
+        "operationId": "wallet.pointExchanges.retrieve",
+        "parameters": [
+          {
+            "name": "exchangeNo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.pointExchanges",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/wallet/transfers": {
+      "post": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet transfers create.",
+        "operationId": "wallet.transfers.create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.transfers",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/wallet/topup_transfers": {
+      "post": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet topup Transfers create.",
+        "operationId": "wallet.topupTransfers.create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.topupTransfers",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/wallet/withdrawal_transfers": {
+      "post": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet withdrawal Transfers create.",
+        "operationId": "wallet.withdrawalTransfers.create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.withdrawalTransfers",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/wallet/requests/{requestNo}": {
+      "get": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet requests retrieve.",
+        "operationId": "wallet.requests.retrieve",
+        "parameters": [
+          {
+            "name": "requestNo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.requests",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/wallet/adjustments": {
+      "post": {
+        "tags": [
+          "wallet"
+        ],
+        "summary": "Wallet adjustments create.",
+        "operationId": "wallet.adjustments.create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "wallet.adjustments",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/promotions/user_coupons/{userCouponId}": {
+      "get": {
+        "tags": [
+          "promotions"
+        ],
+        "summary": "Promotions user Coupons retrieve.",
+        "operationId": "promotions.userCoupons.retrieve",
+        "parameters": [
+          {
+            "name": "userCouponId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "promotions.userCoupons",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/promotions/user_coupons/wallet": {
+      "get": {
+        "tags": [
+          "promotions"
+        ],
+        "summary": "Promotions user Coupons wallet list.",
+        "operationId": "promotions.userCoupons.wallet.list",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "promotions.userCoupons.wallet",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/promotions/user_coupons/wallet/{userCouponId}": {
+      "get": {
+        "tags": [
+          "promotions"
+        ],
+        "summary": "Promotions user Coupons wallet retrieve.",
+        "operationId": "promotions.userCoupons.wallet.retrieve",
+        "parameters": [
+          {
+            "name": "userCouponId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "promotions.userCoupons.wallet",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/promotions/offers/{offerId}": {
+      "get": {
+        "tags": [
+          "promotions"
+        ],
+        "summary": "Promotions offers retrieve.",
+        "operationId": "promotions.offers.retrieve",
+        "parameters": [
+          {
+            "name": "offerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "promotions.offers",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true
+      }
+    },
+    "/app/v3/api/promotions/discount_applications": {
+      "post": {
+        "tags": [
+          "promotions"
+        ],
+        "summary": "Promotions discount Applications create.",
+        "operationId": "promotions.discountApplications.create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "promotions.discountApplications",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/promotions/discount_applications/{applicationId}/rollback": {
+      "post": {
+        "tags": [
+          "promotions"
+        ],
+        "summary": "Promotions discount Applications rollback.",
+        "operationId": "promotions.discountApplications.rollback",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "promotions.discountApplications",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/promotions/discount_applications/reversals": {
+      "post": {
+        "tags": [
+          "promotions"
+        ],
+        "summary": "Promotions discount Applications reversals create.",
+        "operationId": "promotions.discountApplications.reversals.create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "promotions.discountApplications.reversals",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/promotions/discount_applications/{applicationId}/settlements": {
+      "post": {
+        "tags": [
+          "promotions"
+        ],
+        "summary": "Promotions discount Applications settle.",
+        "operationId": "promotions.discountApplications.settle",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "promotions.discountApplications",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/v3/api/promotions/discount_applications/{applicationId}/releases": {
+      "post": {
+        "tags": [
+          "promotions"
+        ],
+        "summary": "Promotions discount Applications release.",
+        "operationId": "promotions.discountApplications.release",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommerceApiResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.app",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "promotions.discountApplications",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceOperationCommand"
+              }
+            }
+          }
+        }
       }
     }
   },

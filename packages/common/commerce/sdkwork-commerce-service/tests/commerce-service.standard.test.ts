@@ -48,6 +48,8 @@ describe("SDKWork commerce service", () => {
       "commerce.promotions.userCoupons.list": [{ userCouponId: "coupon-1" }],
       "commerce.promotions.codes.redemptions.create": { redemptionId: "redemption-1" },
       "commerce.promotions.discountApplications.create": { applicationId: "application-1" },
+      "commerce.promotions.discountApplications.settle": { applicationId: "application-1", status: "settled" },
+      "commerce.promotions.discountApplications.release": { applicationId: "application-1", status: "released" },
       "commerce.invoices.create": { invoiceId: "invoice-1" },
     });
     const service = createSdkworkCommerceService({ appClient });
@@ -84,6 +86,14 @@ describe("SDKWork commerce service", () => {
     await expect(service.promotions.discountApplications.create({ orderId: "order-1" })).resolves.toEqual({
       applicationId: "application-1",
     });
+    await expect(service.promotions.discountApplications.settle("application-1", { orderId: "order-1" })).resolves.toEqual({
+      applicationId: "application-1",
+      status: "settled",
+    });
+    await expect(service.promotions.discountApplications.release("application-1", { reason: "checkout-timeout" })).resolves.toEqual({
+      applicationId: "application-1",
+      status: "released",
+    });
     await expect(service.invoices.create({ orderNo: "order-1" })).resolves.toEqual({ invoiceId: "invoice-1" });
 
     expect(appClient.commerce.cart.items.create).toHaveBeenCalledWith({ skuId: "sku-1", quantity: 1 });
@@ -93,6 +103,12 @@ describe("SDKWork commerce service", () => {
       promotionCode: "WELCOME",
     });
     expect(appClient.commerce.promotions.discountApplications.create).toHaveBeenCalledWith({ orderId: "order-1" });
+    expect(appClient.commerce.promotions.discountApplications.settle).toHaveBeenCalledWith("application-1", {
+      orderId: "order-1",
+    });
+    expect(appClient.commerce.promotions.discountApplications.release).toHaveBeenCalledWith("application-1", {
+      reason: "checkout-timeout",
+    });
     expect(appClient.commerce.memberships.current.retrieve).toHaveBeenCalledWith();
     expect(appClient.commerce.memberships.packages.list).toHaveBeenCalledWith();
     expect(appClient.commerce.memberships.purchases.create).toHaveBeenCalledWith({ packageId: "package-1" });
@@ -110,14 +126,24 @@ describe("SDKWork commerce service", () => {
       "commerce.catalog.categoryAttributes.update": { bindingId: "category-attribute-1", required: true },
       "commerce.catalog.categoryAttributes.delete": { deleted: true, bindingId: "category-attribute-1" },
       "commerce.inventory.stocks.update": { skuId: "sku-1", availableQuantity: 10 },
+      "commerce.orders.management.cancel": { orderId: "order-1", status: "cancelled" },
+      "commerce.orders.management.close": { orderId: "order-1", status: "closed" },
       "commerce.payments.providerAccounts.create": { providerAccountId: "wechat-main" },
       "commerce.payments.reconciliationRuns.list": [{ runNo: "recon-1" }],
+      "commerce.refunds.approvals.create": { refundNo: "refund-1", status: "approved" },
+      "commerce.refunds.attempts.create": { refundNo: "refund-1", status: "processing" },
       "commerce.refunds.retrieve": { refundNo: "refund-1" },
+      "commerce.fulfillments.create": { fulfillmentNo: "fulfillment-1" },
+      "commerce.fulfillments.update": { fulfillmentNo: "fulfillment-1", status: "packed" },
+      "commerce.fulfillments.shipments.create": { shipmentNo: "shipment-1" },
+      "commerce.fulfillments.shipments.update": { shipmentNo: "shipment-1", status: "shipped" },
+      "commerce.fulfillments.trackingEvents.create": { trackingEventId: "track-1" },
       "commerce.shipments.trackingEvents.list": [{ shipmentNo: "shipment-1" }],
       "commerce.entitlements.grants.list": [{ grantId: "grant-1" }],
       "commerce.entitlements.accounts.list": [{ accountId: "entitlement-account-1" }],
       "commerce.entitlements.ledgerEntries.list": [{ ledgerEntryId: "entitlement-ledger-1" }],
       "commerce.memberships.plans.list": [{ planId: "pro-plan-1" }],
+      "commerce.memberships.entitlements.list": [{ membershipEntitlementId: "membership-entitlement-1" }],
       "commerce.promotions.offers.management.list": [{ offerId: "new-user-offer" }],
       "commerce.promotions.couponStocks.list": [{ stockId: "stock-1" }],
       "commerce.promotions.codes.list": [{ codeId: "code-1" }],
@@ -165,13 +191,46 @@ describe("SDKWork commerce service", () => {
       skuId: "sku-1",
       availableQuantity: 10,
     });
+    await expect(service.admin.orders.management.cancel("order-1", { reason: "customer-request" })).resolves.toEqual({
+      orderId: "order-1",
+      status: "cancelled",
+    });
+    await expect(service.admin.orders.management.close("order-1", { reason: "risk-control" })).resolves.toEqual({
+      orderId: "order-1",
+      status: "closed",
+    });
     await expect(service.admin.payments.providerAccounts.create({ providerCode: "wechat_pay" })).resolves.toEqual({
       providerAccountId: "wechat-main",
     });
     await expect(service.admin.payments.reconciliationRuns.list({ providerCode: "stripe" })).resolves.toEqual([
       { runNo: "recon-1" },
     ]);
+    await expect(service.admin.refunds.approvals.create("refund-1", {
+      action: "approve",
+      reason: "policy-match",
+    })).resolves.toEqual({ refundNo: "refund-1", status: "approved" });
+    await expect(service.admin.refunds.attempts.create("refund-1", {
+      providerCode: "wechat_pay",
+      reason: "operator-submit",
+    })).resolves.toEqual({ refundNo: "refund-1", status: "processing" });
     await expect(service.admin.refunds.retrieve("refund-1")).resolves.toEqual({ refundNo: "refund-1" });
+    await expect(service.admin.fulfillments.create({ orderId: "order-1" })).resolves.toEqual({
+      fulfillmentNo: "fulfillment-1",
+    });
+    await expect(service.admin.fulfillments.update("fulfillment-1", { status: "packed" })).resolves.toEqual({
+      fulfillmentNo: "fulfillment-1",
+      status: "packed",
+    });
+    await expect(service.admin.fulfillments.shipments.create("fulfillment-1", {
+      carrierCode: "sf",
+      trackingNo: "SF123",
+    })).resolves.toEqual({ shipmentNo: "shipment-1" });
+    await expect(service.admin.fulfillments.shipments.update("fulfillment-1", "shipment-1", {
+      status: "shipped",
+    })).resolves.toEqual({ shipmentNo: "shipment-1", status: "shipped" });
+    await expect(service.admin.fulfillments.trackingEvents.create("fulfillment-1", "shipment-1", {
+      status: "in_transit",
+    })).resolves.toEqual({ trackingEventId: "track-1" });
     await expect(service.admin.shipments.trackingEvents.list({ shipmentNo: "shipment-1" })).resolves.toEqual([
       { shipmentNo: "shipment-1" },
     ]);
@@ -186,6 +245,9 @@ describe("SDKWork commerce service", () => {
     ]);
     await expect(service.admin.memberships.plans.list({ status: "active" })).resolves.toEqual([
       { planId: "pro-plan-1" },
+    ]);
+    await expect(service.admin.memberships.entitlements.list({ membershipId: "membership-1" })).resolves.toEqual([
+      { membershipEntitlementId: "membership-entitlement-1" },
     ]);
     await expect(service.admin.promotions.offers.management.list({ status: "active" })).resolves.toEqual([
       { offerId: "new-user-offer" },
@@ -226,15 +288,50 @@ describe("SDKWork commerce service", () => {
       { required: true },
     );
     expect(backendClient.commerce.catalog.categoryAttributes.delete).toHaveBeenCalledWith("category-attribute-1");
+    expect(backendClient.commerce.orders.management.cancel).toHaveBeenCalledWith("order-1", {
+      reason: "customer-request",
+    });
+    expect(backendClient.commerce.orders.management.close).toHaveBeenCalledWith("order-1", {
+      reason: "risk-control",
+    });
     expect(backendClient.commerce.payments.providerAccounts.create).toHaveBeenCalledWith({
       providerCode: "wechat_pay",
     });
+    expect(backendClient.commerce.refunds.approvals.create).toHaveBeenCalledWith("refund-1", {
+      action: "approve",
+      reason: "policy-match",
+    });
+    expect(backendClient.commerce.refunds.attempts.create).toHaveBeenCalledWith("refund-1", {
+      providerCode: "wechat_pay",
+      reason: "operator-submit",
+    });
+    expect(backendClient.commerce.fulfillments.create).toHaveBeenCalledWith({ orderId: "order-1" });
+    expect(backendClient.commerce.fulfillments.update).toHaveBeenCalledWith("fulfillment-1", {
+      status: "packed",
+    });
+    expect(backendClient.commerce.fulfillments.shipments.create).toHaveBeenCalledWith("fulfillment-1", {
+      carrierCode: "sf",
+      trackingNo: "SF123",
+    });
+    expect(backendClient.commerce.fulfillments.shipments.update).toHaveBeenCalledWith(
+      "fulfillment-1",
+      "shipment-1",
+      { status: "shipped" },
+    );
+    expect(backendClient.commerce.fulfillments.trackingEvents.create).toHaveBeenCalledWith(
+      "fulfillment-1",
+      "shipment-1",
+      { status: "in_transit" },
+    );
     expect(backendClient.commerce.entitlements.grants.list).toHaveBeenCalledWith({ subjectId: "user-1" });
     expect(backendClient.commerce.entitlements.accounts.list).toHaveBeenCalledWith({ subjectId: "user-1" });
     expect(backendClient.commerce.entitlements.ledgerEntries.list).toHaveBeenCalledWith({
       accountId: "entitlement-account-1",
     });
     expect(backendClient.commerce.memberships.plans.list).toHaveBeenCalledWith({ status: "active" });
+    expect(backendClient.commerce.memberships.entitlements.list).toHaveBeenCalledWith({
+      membershipId: "membership-1",
+    });
     expect(backendClient.commerce.promotions.offers.management.list).toHaveBeenCalledWith({ status: "active" });
     expect(backendClient.commerce.promotions.userCoupons.management.list).toHaveBeenCalledWith({
       status: "available",

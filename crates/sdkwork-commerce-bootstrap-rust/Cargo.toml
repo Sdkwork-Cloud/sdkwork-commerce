@@ -9,8 +9,8 @@ description = "SDKWork commerce local/private bootstrap manifest composition."
 path = "src/lib.rs"
 
 [dependencies]
-sdkwork_commerce_core = { path = "../sdkwork-commerce-core-rust" }
-sdkwork_commerce_runtime = { path = "../sdkwork-commerce-runtime-rust" }
-sdkwork_commerce_storage_sqlx = { path = "../sdkwork-commerce-storage-sqlx-rust" }
-sdkwork_commerce_http = { path = "../sdkwork-commerce-http-rust" }
-sdkwork_commerce_tauri = { path = "../sdkwork-commerce-tauri-rust" }
+sdkwork_commerce_core.workspace = true
+sdkwork_commerce_runtime.workspace = true
+sdkwork_commerce_storage_sqlx.workspace = true
+sdkwork_commerce_http.workspace = true
+sdkwork_commerce_tauri.workspace = true

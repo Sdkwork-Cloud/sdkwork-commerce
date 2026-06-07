@@ -13,18 +13,18 @@ axum = "0.8"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio", "sqlite", "postgres"] }
-sdkwork_commerce_account = { path = "../sdkwork-commerce-account-rust" }
-sdkwork_commerce_core = { path = "../sdkwork-commerce-core-rust" }
-sdkwork_commerce_invoice = { path = "../sdkwork-commerce-invoice-rust" }
-sdkwork_commerce_payment = { path = "../sdkwork-commerce-payment-rust" }
-sdkwork_commerce_promotion = { path = "../sdkwork-commerce-promotion-rust" }
-sdkwork_commerce_runtime = { path = "../sdkwork-commerce-runtime-rust" }
-sdkwork_commerce_storage_sqlx = { path = "../sdkwork-commerce-storage-sqlx-rust" }
-sdkwork_http_context = { path = "../../../sdkwork-appbase/packages/native-rust/foundation/sdkwork-http-context-rust" }
-sdkwork_iam_core = { path = "../../../sdkwork-appbase/packages/native-rust/iam/sdkwork-iam-core-rust" }
+sdkwork_commerce_account.workspace = true
+sdkwork_commerce_core.workspace = true
+sdkwork_commerce_invoice.workspace = true
+sdkwork_commerce_payment.workspace = true
+sdkwork_commerce_promotion.workspace = true
+sdkwork_commerce_runtime.workspace = true
+sdkwork_commerce_storage_sqlx.workspace = true
+sdkwork_http_context.workspace = true
+sdkwork_iam_core.workspace = true
 
 [dev-dependencies]
 http-body-util = "0.1"
-sdkwork_commerce_membership_sqlx = { path = "../sdkwork-commerce-membership-sqlx-rust" }
+sdkwork_commerce_membership_sqlx.workspace = true
 tokio = { version = "1.51", features = ["macros", "rt-multi-thread"] }
 tower = { version = "0.5", features = ["util"] }

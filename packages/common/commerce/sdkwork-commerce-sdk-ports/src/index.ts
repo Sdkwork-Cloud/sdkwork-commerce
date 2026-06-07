@@ -147,6 +147,7 @@ export const APP_COMMERCE_METHOD_TREE = {
   },
   recharges: {
     packages: { list: true },
+    settings: { retrieve: true },
     orders: {
       create: true,
       retrieve: true,
@@ -213,6 +214,8 @@ export const APP_COMMERCE_METHOD_TREE = {
     },
     discountApplications: {
       create: true,
+      settle: true,
+      release: true,
       rollback: true,
       reversals: { create: true },
     },
@@ -299,14 +302,29 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
     codes: {
       list: true,
       create: true,
+      redemptions: { list: true },
     },
     userCoupons: {
       management: { list: true },
     },
     discountApplications: { list: true },
     discountAllocations: { list: true },
+    couponLedgerEntries: { list: true },
+    budgetLedgerEntries: { list: true },
+    externalBindings: { list: true },
+    events: { list: true },
   },
-  fulfillments: { list: true },
+  fulfillments: {
+    list: true,
+    create: true,
+    retrieve: true,
+    update: true,
+    shipments: {
+      create: true,
+      update: true,
+    },
+    trackingEvents: { create: true },
+  },
   entitlements: {
     grants: { list: true },
     accounts: { list: true },
@@ -348,17 +366,30 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
       list: true,
       update: true,
     },
+    entitlements: {
+      list: true,
+    },
   },
   orders: {
     list: true,
     retrieve: true,
     events: { list: true },
+    management: {
+      list: true,
+      retrieve: true,
+      cancel: true,
+      close: true,
+    },
+    cancellations: { list: true },
   },
   payments: {
     providers: { list: true },
     providerAccounts: {
       list: true,
       create: true,
+      update: true,
+      delete: true,
+      status: { update: true },
     },
     methods: { list: true },
     channels: { list: true },
@@ -367,9 +398,21 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
     attempts: { list: true },
     webhookEvents: { list: true },
     reconciliationRuns: { list: true },
+    runtime: {
+      snapshot: { retrieve: true },
+    },
   },
   recharges: {
-    packages: { list: true },
+    packages: {
+      list: true,
+      create: true,
+      update: true,
+      delete: true,
+    },
+    settings: {
+      retrieve: true,
+      update: true,
+    },
     orders: { list: true },
   },
   refunds: {
@@ -380,9 +423,14 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
       list: true,
       create: true,
     },
+    management: {
+      list: true,
+      retrieve: true,
+    },
   },
   shipments: {
     list: true,
+    retrieve: true,
     trackingEvents: { list: true },
   },
   wallet: {

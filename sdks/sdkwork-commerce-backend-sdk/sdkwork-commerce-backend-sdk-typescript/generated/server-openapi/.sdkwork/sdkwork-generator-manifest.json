@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "generator": "@sdkwork/sdk-generator",
+  "sdk": {
+    "name": "sdkwork-commerce-backend-sdk",
+    "version": "0.1.0",
+    "language": "typescript",
+    "sdkType": "backend",
+    "packageName": "sdkwork-commerce-backend-sdk-generated-typescript"
+  },
+  "generatedFiles": [
+    {
+      "path": "bin/publish-core.mjs",
+      "sha256": "affb1f1b5400ac492e94e2d01f3104b8dd38b50329e371265d4f0945f2b0763c"
+    },
+    {
+      "path": "bin/publish.ps1",
+      "sha256": "78c6419400b988409d9393c2ecd85aa02dd6760f73edb3cc84cb28fefc51b41e"
+    },
+    {
+      "path": "bin/publish.sh",
+      "sha256": "899087c23e670b6951a12a13490fd557f761c96d78fabfb7e58a37e367db889f"
+    },
+    {
+      "path": "bin/sdk-gen.bat",
+      "sha256": "1fa0948b506e5deecf73be9371db39a042e48555d018292334fa0004a897fcbe"
+    },
+    {
+      "path": "bin/sdk-gen.sh",
+      "sha256": "215c7192b3f5891efebd79d6e2938a520ac6c9c6eb6b64979371c1ee7a58fd3d"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "fb941a0806986a54fc192f98a98f6d9c282b8d350b2b19a3e71dda404e92d545"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "7840cc7d2b36ff364ac16c2fc5ec15b861bfe96854eecf81fb59b00edb8b1447"
+    },
+    {
+      "path": "package.json",
+      "sha256": "596a9fb8534f0e884ffcbab6dd4f5797599bb8f702b5f6a8bd438cf1394303cd"
+    },
+    {
+      "path": "README.md",
+      "sha256": "bceb768230c965c2e3bb4d558678094199d517632a774671c6def1c4f52bac7d"
+    },
+    {
+      "path": "sdkwork-sdk.json",
+      "sha256": "a89942124a9c0a31aa79b182da3947d6e0af5bc604fb7db92959121d1de186f1"
+    },
+    {
+      "path": "src/api/audit.ts",
+      "sha256": "d4773e4c9f9676cdd04f06cf822617deafed3c5ced24deecaa6a787c05ba717c"
+    },
+    {
+      "path": "src/api/base.ts",
+      "sha256": "02ad25e6bf331ff241ba387c2947ddf1900dd849038e08c2757416a3aa788a04"
+    },
+    {
+      "path": "src/api/catalog.ts",
+      "sha256": "226ac5f3c06dc709ae75b070be6f1eeb3c45ce7648499ea99842fab9ea85fd2b"
+    },
+    {
+      "path": "src/api/commerce-reports.ts",
+      "sha256": "249753d9d6a0597e00dd6299950dd27a0cec965c578422ddb00a2f9787f268a5"
+    },
+    {
+      "path": "src/api/entitlements.ts",
+      "sha256": "6a73f3a4ea2fea8d6abdb41f92cbb5daca13f52fd08707b463675cfdbdaf8e6a"
+    },
+    {
+      "path": "src/api/fulfillments.ts",
+      "sha256": "3c9aa11a6801f21df69e32f47b414c7c34a47c1d17e4e1133ff24006a00ac63f"
+    },
+    {
+      "path": "src/api/index.ts",
+      "sha256": "61a57f3b23024333e7614c36fbf8c710eb39d460e95d152500095caacb54db55"
+    },
+    {
+      "path": "src/api/inventory.ts",
+      "sha256": "69ba21fe9bfad97206ea28e0812868034a00ae724232e4be80dfa1ee551ddbd1"
+    },
+    {
+      "path": "src/api/invoices.ts",
+      "sha256": "d7a3ffc3e85f267c25f325a787a873b26dcbaed9d6a601d31c153c5e65b15946"
+    },
+    {
+      "path": "src/api/memberships.ts",
+      "sha256": "de3253610eefe57ec21d9aa5d30bc61dd7019205f030f6b669941b3f3d8ddb36"
+    },
+    {
+      "path": "src/api/orders.ts",
+      "sha256": "3f8702789655739241e282369bb20b787dddf3078f3531370518fd254765b614"
+    },
+    {
+      "path": "src/api/paths.ts",
+      "sha256": "fb06a3db13e96bb5b349ddc1831aa6d350c17b09d05ea92a36438131140f666e"
+    },
+    {
+      "path": "src/api/payments.ts",
+      "sha256": "b63cefb8375e4379220a877d4abf6d60b6e094d7bb8de12d9c0e7eaba3fdfac4"
+    },
+    {
+      "path": "src/api/promotions.ts",
+      "sha256": "07b302bc3f5a01c5ec3e83ebf5a8f9da41146daac057b005c4918581d7f6ccd1"
+    },
+    {
+      "path": "src/api/recharges.ts",
+      "sha256": "4f589e714ac5713acf4107076d09c47f049ed6c514e7bcf9c20b9e0e078bdfc5"
+    },
+    {
+      "path": "src/api/refunds.ts",
+      "sha256": "920da128602407b2dfda0be4c9d24098248e93662575be8e8c5bee211df33393"
+    },
+    {
+      "path": "src/api/reports.ts",
+      "sha256": "08cc470d48852c254f82790b2b0a455864570670ab760566fc179f6cce18a846"
+    },
+    {
+      "path": "src/api/shipments.ts",
+      "sha256": "eb76be1e6a6a1edf8bead04f39d89d36b75560dd1847440714a9afbe59bb9443"
+    },
+    {
+      "path": "src/api/wallet.ts",
+      "sha256": "01258143c0f2600e38c2ed1167f6eb6047b3d92a5a301c93dfdd7256383bea7a"
+    },
+    {
+      "path": "src/auth/index.ts",
+      "sha256": "657fc63738bdcd61d83133120732a477dd127448cf2c51229b05d21f5e1f5c04"
+    },
+    {
+      "path": "src/http/client.ts",
+      "sha256": "8e22baf6ea589cda56bf7a8f5827b6f6f91887467da7383f2461e9485fe337de"
+    },
+    {
+      "path": "src/http/index.ts",
+      "sha256": "fc204fbe89750b9d25ecaffe41003e6ac243a1a895b65e65856202ab825d2dbe"
+    },
+    {
+      "path": "src/index.ts",
+      "sha256": "3a4a3f9c5ce1c5bf55baf261e7b648091cbef7ba2c30ea402dd15f3f37820956"
+    },
+    {
+      "path": "src/sdk.ts",
+      "sha256": "eb3e12b88dec08ba261ddc1d935b7f18da88e5834605ef727491a91d5853702f"
+    },
+    {
+      "path": "src/types/commerce-api-result.ts",
+      "sha256": "13f45ffed175d5aab0b050c3fb197d858eef5ce1e84b0a5814081a0e9938519a"
+    },
+    {
+      "path": "src/types/commerce-operation-command.ts",
+      "sha256": "f0a4310b8460b20f8387188f56641f8f570af04e57c69169e53b26e17bb00eab"
+    },
+    {
+      "path": "src/types/common.ts",
+      "sha256": "351d721c3c6f48f4453f92276856105120d72eb8d2fa9cd28de8e3854bf10f6c"
+    },
+    {
+      "path": "src/types/field-error.ts",
+      "sha256": "44b8c95731a9dd8f7b30bb07a415b9541460964861f9ee806c31a4291953bf60"
+    },
+    {
+      "path": "src/types/index.ts",
+      "sha256": "38481be15cd347550f333d0bedd5cfee7c9fb08b7de54cdbb249e2745882f74b"
+    },
+    {
+      "path": "src/types/problem-detail.ts",
+      "sha256": "7801e79cab9a1ccace62b2a0ba2119f835b41e4e22f858b10490ffd638b7f3a6"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "7c8a6c2b00fb208ec28e1e6045194487d1b3e563d6c44cef4783fd4fe0e8ffad"
+    }
+  ],
+  "scaffoldFiles": [
+    "custom/build-runtime.mjs",
+    "custom/README.md"
+  ],
+  "customRoots": [
+    "custom/"
+  ]
+}

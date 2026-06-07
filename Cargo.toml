@@ -23,3 +23,26 @@ resolver = "2"
 edition = "2021"
 version = "0.1.0"
 
+[workspace.dependencies]
+# SDKWork workspace members - declared once at workspace root
+# Keys use underscores to match the package names defined in the [package] sections.
+sdkwork_commerce_account = { path = "crates/sdkwork-commerce-account-rust" }
+sdkwork_commerce_bootstrap = { path = "crates/sdkwork-commerce-bootstrap-rust" }
+sdkwork_commerce_catalog = { path = "crates/sdkwork-commerce-catalog-rust" }
+sdkwork_commerce_core = { path = "crates/sdkwork-commerce-core-rust" }
+sdkwork_commerce_http = { path = "crates/sdkwork-commerce-http-rust" }
+sdkwork_commerce_inventory = { path = "crates/sdkwork-commerce-inventory-rust" }
+sdkwork_commerce_invoice = { path = "crates/sdkwork-commerce-invoice-rust" }
+sdkwork_commerce_membership = { path = "crates/sdkwork-commerce-membership-rust" }
+sdkwork_commerce_membership_sqlx = { path = "crates/sdkwork-commerce-membership-sqlx-rust" }
+sdkwork_commerce_order = { path = "crates/sdkwork-commerce-order-rust" }
+sdkwork_commerce_payment = { path = "crates/sdkwork-commerce-payment-rust" }
+sdkwork_commerce_promotion = { path = "crates/sdkwork-commerce-promotion-rust" }
+sdkwork_commerce_runtime = { path = "crates/sdkwork-commerce-runtime-rust" }
+sdkwork_commerce_storage_sqlx = { path = "crates/sdkwork-commerce-storage-sqlx-rust" }
+sdkwork_commerce_tauri = { path = "crates/sdkwork-commerce-tauri-rust" }
+sdkwork_commerce_rpc = { path = "crates/sdkwork-commerce-rpc-rust" }
+sdkwork_http_context = { path = "../sdkwork-appbase/packages/native-rust/foundation/sdkwork-http-context-rust" }
+sdkwork_iam_core = { path = "../sdkwork-appbase/packages/native-rust/iam/sdkwork-iam-core-rust" }
+sdkwork_rpc_core = { path = "../sdkwork-appbase/packages/native-rust/foundation/sdkwork-rpc-core-rust" }
+

@@ -337,7 +337,11 @@ function readMethod(root: unknown, path: readonly string[]): CommerceSdkMethod |
     if (!node || typeof node !== "object") {
       return undefined;
     }
-    node = (node as Record<string, unknown>)[segment];
+    const parent = node;
+    node = (parent as Record<string, unknown>)[segment];
+    if (typeof node === "function") {
+      return node.bind(parent) as CommerceSdkMethod;
+    }
   }
 
   return typeof node === "function" ? (node as CommerceSdkMethod) : undefined;

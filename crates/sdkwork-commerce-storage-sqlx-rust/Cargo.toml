@@ -9,11 +9,11 @@ description = "SDKWork canonical commerce SQL table catalog and migration contra
 path = "src/lib.rs"
 
 [dependencies]
-sdkwork_commerce_account = { path = "../sdkwork-commerce-account-rust" }
-sdkwork_commerce_core = { path = "../sdkwork-commerce-core-rust" }
-sdkwork_commerce_invoice = { path = "../sdkwork-commerce-invoice-rust" }
-sdkwork_commerce_payment = { path = "../sdkwork-commerce-payment-rust" }
-sdkwork_commerce_promotion = { path = "../sdkwork-commerce-promotion-rust" }
+sdkwork_commerce_account.workspace = true
+sdkwork_commerce_core.workspace = true
+sdkwork_commerce_invoice.workspace = true
+sdkwork_commerce_payment.workspace = true
+sdkwork_commerce_promotion.workspace = true
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio", "sqlite", "postgres"] }

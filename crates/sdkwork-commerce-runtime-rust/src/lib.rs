@@ -1184,6 +1184,16 @@ pub fn operation_contracts() -> Vec<CommerceOperationContract> {
             "commerce.promotion.discountApplication",
         ),
         write(
+            "promotions.discountApplications.settle",
+            "commerce.promotion",
+            "commerce.promotion.discountApplication",
+        ),
+        write(
+            "promotions.discountApplications.release",
+            "commerce.promotion",
+            "commerce.promotion.discountApplication",
+        ),
+        write(
             "promotions.discountApplications.rollback",
             "commerce.promotion",
             "commerce.promotion.discountApplication",

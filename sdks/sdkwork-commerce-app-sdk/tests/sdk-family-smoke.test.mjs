@@ -40,3 +40,54 @@ test("sdkwork-commerce-app-sdk declares appbase as a consumer SDK dependency", (
   }
 });
 
+test("sdkwork-commerce-app-sdk exposes recharge settings through the generated app SDK", () => {
+  const openapi = readFileSync(
+    path.join(sdkRoot, "..", "..", "generated", "openapi", "commerce-app-api.openapi.json"),
+    "utf8",
+  );
+  const generatedSource = readFileSync(
+    path.join(
+      sdkRoot,
+      "sdkwork-commerce-app-sdk-typescript",
+      "generated",
+      "server-openapi",
+      "src",
+      "api",
+      "commerce.ts",
+    ),
+    "utf8",
+  );
+
+  assert.match(openapi, /"\/app\/v3\/api\/recharges\/settings"/);
+  assert.match(openapi, /"operationId": "recharges\.settings\.retrieve"/);
+  assert.match(generatedSource, /class CommerceRechargesSettingsApi/);
+  assert.match(generatedSource, /async retrieve\(\)/);
+  assert.match(generatedSource, /public readonly settings: CommerceRechargesSettingsApi/);
+});
+
+test("sdkwork-commerce-app-sdk exposes complete checkout discount application lifecycle methods", () => {
+  const openapi = readFileSync(
+    path.join(sdkRoot, "..", "..", "generated", "openapi", "commerce-app-api.openapi.json"),
+    "utf8",
+  );
+  const generatedSource = readFileSync(
+    path.join(
+      sdkRoot,
+      "sdkwork-commerce-app-sdk-typescript",
+      "generated",
+      "server-openapi",
+      "src",
+      "api",
+      "promotions.ts",
+    ),
+    "utf8",
+  );
+
+  assert.match(openapi, /"\/app\/v3\/api\/promotions\/discount_applications\/\{applicationId\}\/settlements"/);
+  assert.match(openapi, /"operationId": "promotions\.discountApplications\.settle"/);
+  assert.match(openapi, /"\/app\/v3\/api\/promotions\/discount_applications\/\{applicationId\}\/releases"/);
+  assert.match(openapi, /"operationId": "promotions\.discountApplications\.release"/);
+  assert.match(generatedSource, /async settle\(applicationId: string, body: CommerceOperationCommand\)/);
+  assert.match(generatedSource, /async release\(applicationId: string, body: CommerceOperationCommand\)/);
+});
+

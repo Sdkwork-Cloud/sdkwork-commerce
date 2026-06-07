@@ -3,6 +3,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { SDKWORK_COMMERCE_API_ROUTES } from "../packages/common/commerce/sdkwork-commerce-contracts/src/index.ts";
+
 const HTTP_METHODS = new Set([
   "get",
   "post",
@@ -159,6 +161,7 @@ function normalizeOwnerOnlyDocument(inputDocument, options) {
   document.components = document.components || {};
   document.components.securitySchemes = document.components.securitySchemes || {};
   document.components.schemas = document.components.schemas || {};
+  syncOperationContractsFromContracts(document, options);
   normalizeOperationTags(document);
   normalizeErrorResponseContent(document);
   document["x-sdkwork-owner"] = SDK_OWNER;
@@ -173,6 +176,160 @@ function normalizeOwnerOnlyDocument(inputDocument, options) {
   }
 
   return document;
+}
+
+function syncOperationContractsFromContracts(document, options) {
+  for (const contract of commerceOperationContractsForSurface(options.surface)) {
+    document.paths[contract.path] = document.paths[contract.path] || {};
+    const methodName = contract.method.toLowerCase();
+    if (!document.paths[contract.path][methodName]) {
+      document.paths[contract.path][methodName] = createOperationFromContract(contract, options);
+      continue;
+    }
+    syncOperationFromContract(document.paths[contract.path][methodName], contract, options);
+  }
+}
+
+function commerceOperationContractsForSurface(surface) {
+  const entries = [];
+  collectCommerceOperationContracts(SDKWORK_COMMERCE_API_ROUTES, surface, entries);
+  return entries;
+}
+
+function collectCommerceOperationContracts(node, surface, entries) {
+  if (!node || typeof node !== "object") {
+    return;
+  }
+  if (typeof node.method === "string" && typeof node.path === "string" && typeof node.operationId === "string") {
+    if (node.apiSurface === surface) {
+      entries.push(node);
+    }
+    return;
+  }
+  for (const value of Object.values(node)) {
+    collectCommerceOperationContracts(value, surface, entries);
+  }
+}
+
+function createOperationFromContract(contract, options) {
+  const operation = {
+    tags: [contract.tag || "commerce"],
+    summary: `${toTitle(contract.operationId)}.`,
+    operationId: contract.operationId,
+    parameters: createParametersFromContract(contract),
+    responses: createStandardResponses(),
+    security: [
+      {
+        AuthToken: [],
+        AccessToken: [],
+      },
+    ],
+    "x-sdkwork-owner": SDK_OWNER,
+    "x-sdkwork-api-authority": options.authority,
+    "x-sdkwork-domain": "commerce",
+    "x-sdkwork-resource": resourceNameFromOperationId(contract.operationId),
+    "x-sdkwork-request-context": "AppRequestContext",
+    "x-sdkwork-server-request-id": true,
+  };
+  if (!["GET", "DELETE", "HEAD"].includes(contract.method)) {
+    operation.requestBody = {
+      required: contract.method === "POST",
+      content: {
+        "application/json": {
+          schema: { $ref: "#/components/schemas/CommerceOperationCommand" },
+        },
+      },
+    };
+  }
+  return operation;
+}
+
+function syncOperationFromContract(operation, contract, options) {
+  operation.tags = [contract.tag || "commerce"];
+  operation.summary = `${toTitle(contract.operationId)}.`;
+  operation.operationId = contract.operationId;
+  operation.parameters = createParametersFromContract(contract);
+  operation["x-sdkwork-owner"] = SDK_OWNER;
+  operation["x-sdkwork-api-authority"] = options.authority;
+  operation["x-sdkwork-domain"] = "commerce";
+  operation["x-sdkwork-resource"] = resourceNameFromOperationId(contract.operationId);
+  operation["x-sdkwork-request-context"] = "AppRequestContext";
+  operation["x-sdkwork-server-request-id"] = true;
+}
+
+function createParametersFromContract(contract) {
+  const queryParameters = Array.isArray(contract.queryParameters)
+    ? contract.queryParameters.map((name) => createQueryParameter(name))
+    : [];
+  return [...createPathParameters(contract.path), ...queryParameters];
+}
+
+function createPathParameters(pathTemplate) {
+  return Array.from(pathTemplate.matchAll(/\{([^}]+)\}/g)).map((match) => ({
+    name: match[1],
+    in: "path",
+    required: true,
+    schema: { type: "string" },
+  }));
+}
+
+function createQueryParameter(name) {
+  return {
+    name,
+    in: "query",
+    required: false,
+    schema: queryParameterSchema(name),
+  };
+}
+
+function queryParameterSchema(name) {
+  if (name === "page") {
+    return {
+      type: "integer",
+      minimum: 1,
+      default: 1,
+    };
+  }
+  if (name === "page_size") {
+    return {
+      type: "integer",
+      minimum: 1,
+      maximum: 200,
+      default: 20,
+    };
+  }
+  return { type: "string" };
+}
+
+function createStandardResponses() {
+  return {
+    "200": {
+      description: "Success",
+      content: {
+        "application/json": {
+          schema: { $ref: "#/components/schemas/CommerceApiResult" },
+        },
+      },
+    },
+    "400": { description: "Bad request", content: problemContent() },
+    "401": { description: "Unauthorized", content: problemContent() },
+    "403": { description: "Forbidden", content: problemContent() },
+    "404": { description: "Not found", content: problemContent() },
+    "409": { description: "Conflict", content: problemContent() },
+    "500": { description: "Internal server error", content: problemContent() },
+  };
+}
+
+function problemContent() {
+  return {
+    "application/problem+json": {
+      schema: { $ref: "#/components/schemas/ProblemDetail" },
+    },
+  };
+}
+
+function resourceNameFromOperationId(operationId) {
+  return String(operationId).split(".").slice(0, -1).join(".");
 }
 
 function toTitle(value) {
@@ -224,6 +381,7 @@ function parseArgs(argv) {
 
 const surfaceOptions = {
   open: {
+    surface: "open",
     authority: SDK_AUTHORITIES.open,
     sdkFamily: "sdkwork-commerce-sdk",
     title: "SDKWork Commerce Open API",
@@ -234,6 +392,7 @@ const surfaceOptions = {
     standardProfile: "sdkwork-commerce-open-v3",
   },
   app: {
+    surface: "app",
     authority: SDK_AUTHORITIES.app,
     sdkFamily: "sdkwork-commerce-app-sdk",
     title: "SDKWork Commerce App API",
@@ -244,6 +403,7 @@ const surfaceOptions = {
     standardProfile: "sdkwork-v3",
   },
   backend: {
+    surface: "backend",
     authority: SDK_AUTHORITIES.backend,
     sdkFamily: "sdkwork-commerce-backend-sdk",
     title: "SDKWork Commerce Backend API",

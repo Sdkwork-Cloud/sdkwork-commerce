@@ -370,6 +370,9 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
     packages: {
       list: operation("GET", `${app}/recharges/packages`, "recharges.packages.list", ["status"]),
     },
+    settings: {
+      retrieve: operation("GET", `${app}/recharges/settings`, "recharges.settings.retrieve"),
+    },
     orders: {
       create: operation("POST", `${app}/recharges/orders`, "recharges.orders.create"),
       retrieve: operation("GET", `${app}/recharges/orders/{orderId}`, "recharges.orders.retrieve"),
@@ -481,6 +484,8 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
     },
     discountApplications: {
       create: operation("POST", `${app}/promotions/discount_applications`, "promotions.discountApplications.create"),
+      settle: operation("POST", `${app}/promotions/discount_applications/{applicationId}/settlements`, "promotions.discountApplications.settle"),
+      release: operation("POST", `${app}/promotions/discount_applications/{applicationId}/releases`, "promotions.discountApplications.release"),
       rollback: operation("POST", `${app}/promotions/discount_applications/{applicationId}/rollback`, "promotions.discountApplications.rollback"),
       reversals: {
         create: operation("POST", `${app}/promotions/discount_applications/reversals`, "promotions.discountApplications.reversals.create"),
@@ -588,6 +593,9 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
         create: operation("POST", `${backend}/payments/provider_accounts`, "payments.providerAccounts.create"),
         update: operation("PATCH", `${backend}/payments/provider_accounts/{providerAccountId}`, "payments.providerAccounts.update"),
         delete: operation("DELETE", `${backend}/payments/provider_accounts/{providerAccountId}`, "payments.providerAccounts.delete"),
+        status: {
+          update: operation("PATCH", `${backend}/payments/provider_accounts/{providerAccountId}/status`, "payments.providerAccounts.status.update"),
+        },
       },
       methods: {
         list: operation("GET", `${backend}/payments/methods`, "payments.methods.list", ["status"]),
@@ -620,6 +628,11 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
       reconciliationRuns: {
         list: operation("GET", `${backend}/payments/reconciliation_runs`, "payments.reconciliationRuns.list", ["provider", "status", "page", "page_size"]),
         create: operation("POST", `${backend}/payments/reconciliation_runs`, "payments.reconciliationRuns.create"),
+      },
+      runtime: {
+        snapshot: {
+          retrieve: operation("GET", `${backend}/payments/runtime/snapshot`, "payments.runtime.snapshot.retrieve", ["environment"]),
+        },
       },
       disputes: {
         list: operation("GET", `${backend}/payments/disputes`, "payments.disputes.list", ["status", "page", "page_size"]),
@@ -671,6 +684,9 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
         list: operation("GET", `${backend}/memberships/members`, "memberships.members.list", ["user_id", "plan_id", "status", "page", "page_size"]),
         update: operation("PATCH", `${backend}/memberships/members/{membershipId}`, "memberships.members.update"),
       },
+      entitlements: {
+        list: operation("GET", `${backend}/memberships/entitlements`, "memberships.entitlements.list", ["membership_id", "plan_id", "status", "page", "page_size"]),
+      },
     },
     recharges: {
       packages: {
@@ -678,6 +694,10 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
         create: operation("POST", `${backend}/recharges/packages`, "recharges.packages.create"),
         update: operation("PATCH", `${backend}/recharges/packages/{packageId}`, "recharges.packages.update"),
         delete: operation("DELETE", `${backend}/recharges/packages/{packageId}`, "recharges.packages.delete"),
+      },
+      settings: {
+        retrieve: operation("GET", `${backend}/recharges/settings`, "recharges.settings.retrieve"),
+        update: operation("PUT", `${backend}/recharges/settings`, "recharges.settings.update"),
       },
       orders: {
         list: operation("GET", `${backend}/recharges/orders`, "recharges.orders.list", ["user_id", "status", "page", "page_size", "cursor"]),
@@ -715,6 +735,9 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
       codes: {
         list: operation("GET", `${backend}/promotions/codes`, "promotions.codes.list", ["stock_id", "offer_id", "status", "page", "page_size"]),
         create: operation("POST", `${backend}/promotions/codes`, "promotions.codes.create"),
+        redemptions: {
+          list: operation("GET", `${backend}/promotions/codes/redemptions`, "promotions.codes.redemptions.list", ["page", "page_size", "code_status"]),
+        },
       },
       userCoupons: {
         list: operation("GET", `${backend}/promotions/user_coupons`, "promotions.userCoupons.management.list", ["user_id", "status", "page", "page_size", "cursor"]),
@@ -724,6 +747,18 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
       },
       discountAllocations: {
         list: operation("GET", `${backend}/promotions/discount_allocations`, "promotions.discountAllocations.list", ["application_id", "order_item_id", "page", "page_size"]),
+      },
+      couponLedgerEntries: {
+        list: operation("GET", `${backend}/promotions/coupon_ledger_entries`, "promotions.couponLedgerEntries.list", ["stock_id", "page", "page_size"]),
+      },
+      budgetLedgerEntries: {
+        list: operation("GET", `${backend}/promotions/budget_ledger_entries`, "promotions.budgetLedgerEntries.list", ["budget_account_id", "page", "page_size"]),
+      },
+      externalBindings: {
+        list: operation("GET", `${backend}/promotions/external_bindings`, "promotions.externalBindings.list", ["platform", "page", "page_size"]),
+      },
+      events: {
+        list: operation("GET", `${backend}/promotions/events`, "promotions.events.list", ["status", "page", "page_size"]),
       },
     },
     invoices: {
