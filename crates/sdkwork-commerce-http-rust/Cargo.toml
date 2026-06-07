@@ -20,8 +20,8 @@ sdkwork_commerce_payment = { path = "../sdkwork-commerce-payment-rust" }
 sdkwork_commerce_promotion = { path = "../sdkwork-commerce-promotion-rust" }
 sdkwork_commerce_runtime = { path = "../sdkwork-commerce-runtime-rust" }
 sdkwork_commerce_storage_sqlx = { path = "../sdkwork-commerce-storage-sqlx-rust" }
-sdkwork_http_context = { path = "../../../../javasource/spring-ai-plus/spring-ai-plus-business/apps/sdkwork-appbase/packages/native-rust/foundation/sdkwork-http-context-rust" }
-sdkwork_iam_core = { path = "../../../../javasource/spring-ai-plus/spring-ai-plus-business/apps/sdkwork-appbase/packages/native-rust/iam/sdkwork-iam-core-rust" }
+sdkwork_http_context = { path = "../../../sdkwork-appbase/packages/native-rust/foundation/sdkwork-http-context-rust" }
+sdkwork_iam_core = { path = "../../../sdkwork-appbase/packages/native-rust/iam/sdkwork-iam-core-rust" }
 
 [dev-dependencies]
 http-body-util = "0.1"

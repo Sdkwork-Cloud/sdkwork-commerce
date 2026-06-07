@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 
 const localRequire = createRequire(import.meta.url);
 const generatorRequire = createRequire(
-  new URL("../../../../../javasource/spring-ai-plus/sdk/sdkwork-sdk-generator/package.json", import.meta.url),
+  new URL("../../../../sdkwork-sdk-generator/package.json", import.meta.url),
 );
 
 type YamlModule = {

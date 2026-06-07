@@ -42,11 +42,11 @@ export interface SdkGeneratorClient {
 const GENERATE_MODULE_SPECIFIER = "@sdkwork/sdk-generator/node/generate";
 const CONTROL_PLANE_MODULE_SPECIFIER = "@sdkwork/sdk-generator/node/control-plane";
 const GENERATE_MODULE_FALLBACK_URL = new URL(
-  "../../../../../javasource/spring-ai-plus/sdk/sdkwork-sdk-generator/tmp-js/node/generate.js",
+  "../../../../sdkwork-sdk-generator/tmp-js/node/generate.js",
   import.meta.url,
 );
 const CONTROL_PLANE_MODULE_FALLBACK_URL = new URL(
-  "../../../../../javasource/spring-ai-plus/sdk/sdkwork-sdk-generator/tmp-js/node/control-plane.js",
+  "../../../../sdkwork-sdk-generator/tmp-js/node/control-plane.js",
   import.meta.url,
 );
 

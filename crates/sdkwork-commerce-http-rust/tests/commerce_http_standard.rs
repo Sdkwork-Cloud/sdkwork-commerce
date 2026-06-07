@@ -453,6 +453,41 @@ fn canonical_backend_route_specs() -> Vec<(HttpMethod, &'static str, &'static st
             "catalog.spus.management.list",
         ),
         (
+            HttpMethod::Delete,
+            "/backend/v3/api/catalog/products/{productId}",
+            "catalog.products.delete",
+        ),
+        (
+            HttpMethod::Delete,
+            "/backend/v3/api/catalog/skus/{skuId}",
+            "catalog.skus.delete",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/catalog/category_seeds/initialize",
+            "catalog.categorySeeds.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/catalog/category_attributes",
+            "catalog.categoryAttributes.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/catalog/category_attributes",
+            "catalog.categoryAttributes.create",
+        ),
+        (
+            HttpMethod::Patch,
+            "/backend/v3/api/catalog/category_attributes/{bindingId}",
+            "catalog.categoryAttributes.update",
+        ),
+        (
+            HttpMethod::Delete,
+            "/backend/v3/api/catalog/category_attributes/{bindingId}",
+            "catalog.categoryAttributes.delete",
+        ),
+        (
             HttpMethod::Get,
             "/backend/v3/api/reports/commerce_overview",
             "reports.commerceOverview.retrieve",

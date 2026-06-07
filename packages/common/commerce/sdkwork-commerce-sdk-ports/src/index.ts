@@ -247,6 +247,15 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
       update: true,
       delete: true,
     },
+    categoryAttributes: {
+      list: true,
+      create: true,
+      update: true,
+      delete: true,
+    },
+    categorySeeds: {
+      create: true,
+    },
     priceLists: {
       list: true,
       create: true,
@@ -256,11 +265,13 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
       list: true,
       create: true,
       update: true,
+      delete: true,
     },
     skus: {
       list: true,
       create: true,
       update: true,
+      delete: true,
     },
     spus: {
       list: true,

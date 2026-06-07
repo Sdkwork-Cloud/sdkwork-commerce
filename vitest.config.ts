@@ -9,13 +9,13 @@ const workspaceNodeModules = path.join(workspaceRoot, "node_modules");
 const workspacePnpmStore = path.join(workspaceNodeModules, ".pnpm");
 const appbaseRoot = path.resolve(
   workspaceRoot,
-  "../../javasource/spring-ai-plus/spring-ai-plus-business/apps/sdkwork-appbase",
+  "../sdkwork-appbase",
 );
 const uiRoot = path.resolve(
   workspaceRoot,
-  "../../javasource/spring-ai-plus/spring-ai-plus-business/apps/sdkwork-ui",
+  "../sdkwork-ui",
 );
-const sdkRoot = path.resolve(workspaceRoot, "../../javasource/spring-ai-plus/sdk");
+const sdkRoot = path.resolve(workspaceRoot, "..");
 
 const sharedUiRuntimePackages = [
   "@radix-ui/react-avatar",

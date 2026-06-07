@@ -16,7 +16,7 @@ const DEFAULT_MAX_BYTES = 2 * 1024 * 1024;
 const DEFAULT_MAX_REDIRECTS = 5;
 const localRequire = createRequire(import.meta.url);
 const generatorRequire = createRequire(
-  new URL("../../../../../javasource/spring-ai-plus/sdk/sdkwork-sdk-generator/package.json", import.meta.url),
+  new URL("../../../../sdkwork-sdk-generator/package.json", import.meta.url),
 );
 
 type YamlModule = {

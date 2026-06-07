@@ -26,14 +26,14 @@ registration, session, or IAM management ownership.
 ## Standards
 
 The workspace follows the same owner-only SDK family pattern as
-`D:\sdkwork-opensource\sdkwork-drive` and the root SDKWork standards in:
+`../sdkwork-drive` and the root SDKWork standards in:
 
-- `D:\javasource\spring-ai-plus\spring-ai-plus-business\specs\API_SPEC.md`
-- `D:\javasource\spring-ai-plus\spring-ai-plus-business\specs\SDK_SPEC.md`
-- `D:\javasource\spring-ai-plus\spring-ai-plus-business\specs\SDK_WORKSPACE_GENERATION_SPEC.md`
-- `D:\javasource\spring-ai-plus\spring-ai-plus-business\specs\DATABASE_SPEC.md`
-- `D:\javasource\spring-ai-plus\spring-ai-plus-business\specs\RPC_SPEC.md`
-- `D:\javasource\spring-ai-plus\spring-ai-plus-business\specs\RUST_RPC_SPEC.md`
+- `../sdkwork-specs/API_SPEC.md`
+- `../sdkwork-specs/SDK_SPEC.md`
+- `../sdkwork-specs/SDK_WORKSPACE_GENERATION_SPEC.md`
+- `../sdkwork-specs/DATABASE_SPEC.md`
+- `../sdkwork-specs/RPC_SPEC.md`
+- `../sdkwork-specs/RUST_RPC_SPEC.md`
 
 ## SDK And OpenAPI
 

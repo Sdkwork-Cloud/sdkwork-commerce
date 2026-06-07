@@ -742,6 +742,12 @@ pub fn backend_routes() -> Vec<CommerceHttpRoute> {
             "catalog.products.update",
         ),
         route(
+            HttpMethod::Delete,
+            "/backend/v3/api/catalog/products/{productId}",
+            "catalog",
+            "catalog.products.delete",
+        ),
+        route(
             HttpMethod::Get,
             "/backend/v3/api/catalog/spus",
             "catalog",
@@ -790,6 +796,12 @@ pub fn backend_routes() -> Vec<CommerceHttpRoute> {
             "catalog.skus.update",
         ),
         route(
+            HttpMethod::Delete,
+            "/backend/v3/api/catalog/skus/{skuId}",
+            "catalog",
+            "catalog.skus.delete",
+        ),
+        route(
             HttpMethod::Get,
             "/backend/v3/api/catalog/attributes",
             "catalog",
@@ -800,6 +812,36 @@ pub fn backend_routes() -> Vec<CommerceHttpRoute> {
             "/backend/v3/api/catalog/attributes",
             "catalog",
             "catalog.attributes.create",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/catalog/category_seeds/initialize",
+            "catalog",
+            "catalog.categorySeeds.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/catalog/category_attributes",
+            "catalog",
+            "catalog.categoryAttributes.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/catalog/category_attributes",
+            "catalog",
+            "catalog.categoryAttributes.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/catalog/category_attributes/{bindingId}",
+            "catalog",
+            "catalog.categoryAttributes.update",
+        ),
+        route(
+            HttpMethod::Delete,
+            "/backend/v3/api/catalog/category_attributes/{bindingId}",
+            "catalog",
+            "catalog.categoryAttributes.delete",
         ),
         route(
             HttpMethod::Get,

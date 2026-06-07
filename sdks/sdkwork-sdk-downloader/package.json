@@ -19,7 +19,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@sdkwork/sdk-generator": "file:../../../../javasource/spring-ai-plus/sdk/sdkwork-sdk-generator",
+    "@sdkwork/sdk-generator": "file:../../../sdkwork-sdk-generator",
     "js-yaml": "^4.1.0"
   }
 }

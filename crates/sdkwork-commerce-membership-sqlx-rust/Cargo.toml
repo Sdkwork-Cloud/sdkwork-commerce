@@ -16,8 +16,8 @@ sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio
 sdkwork_commerce_core = { path = "../sdkwork-commerce-core-rust" }
 sdkwork_commerce_bootstrap = { path = "../sdkwork-commerce-bootstrap-rust" }
 sdkwork_commerce_storage_sqlx = { path = "../sdkwork-commerce-storage-sqlx-rust" }
-sdkwork_http_context = { path = "../../../../javasource/spring-ai-plus/spring-ai-plus-business/apps/sdkwork-appbase/packages/native-rust/foundation/sdkwork-http-context-rust" }
-sdkwork_iam_core = { path = "../../../../javasource/spring-ai-plus/spring-ai-plus-business/apps/sdkwork-appbase/packages/native-rust/iam/sdkwork-iam-core-rust" }
+sdkwork_http_context = { path = "../../../sdkwork-appbase/packages/native-rust/foundation/sdkwork-http-context-rust" }
+sdkwork_iam_core = { path = "../../../sdkwork-appbase/packages/native-rust/iam/sdkwork-iam-core-rust" }
 
 [dev-dependencies]
 http-body-util = "0.1"

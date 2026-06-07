@@ -522,6 +522,7 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
         list: operation("GET", `${backend}/catalog/products`, "catalog.products.list", ["q", "category_id", "product_type", "status", "page", "page_size", "sort"]),
         create: operation("POST", `${backend}/catalog/products`, "catalog.products.create"),
         update: operation("PATCH", `${backend}/catalog/products/{productId}`, "catalog.products.update"),
+        delete: operation("DELETE", `${backend}/catalog/products/{productId}`, "catalog.products.delete"),
       },
       spus: {
         list: operation("GET", `${backend}/catalog/spus`, "catalog.spus.management.list", ["q", "status", "page", "page_size", "cursor"]),
@@ -534,10 +535,20 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
         list: operation("GET", `${backend}/catalog/skus`, "catalog.skus.list", ["product_id", "status", "page", "page_size"]),
         create: operation("POST", `${backend}/catalog/skus`, "catalog.skus.create"),
         update: operation("PATCH", `${backend}/catalog/skus/{skuId}`, "catalog.skus.update"),
+        delete: operation("DELETE", `${backend}/catalog/skus/{skuId}`, "catalog.skus.delete"),
       },
       attributes: {
         list: operation("GET", `${backend}/catalog/attributes`, "catalog.attributes.list", ["scope", "status", "page", "page_size"]),
         create: operation("POST", `${backend}/catalog/attributes`, "catalog.attributes.create"),
+      },
+      categorySeeds: {
+        create: operation("POST", `${backend}/catalog/category_seeds/initialize`, "catalog.categorySeeds.create"),
+      },
+      categoryAttributes: {
+        list: operation("GET", `${backend}/catalog/category_attributes`, "catalog.categoryAttributes.list", ["category_id", "attribute_id", "status", "page", "page_size"]),
+        create: operation("POST", `${backend}/catalog/category_attributes`, "catalog.categoryAttributes.create"),
+        update: operation("PATCH", `${backend}/catalog/category_attributes/{bindingId}`, "catalog.categoryAttributes.update"),
+        delete: operation("DELETE", `${backend}/catalog/category_attributes/{bindingId}`, "catalog.categoryAttributes.delete"),
       },
       priceLists: {
         list: operation("GET", `${backend}/catalog/price_lists`, "catalog.priceLists.list", ["currency_code", "market_code", "status", "page", "page_size"]),

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const workspaceRoot = process.cwd();
 const appbaseRoot = resolve(
   workspaceRoot,
-  "../../javasource/spring-ai-plus/spring-ai-plus-business/apps/sdkwork-appbase",
+  "../sdkwork-appbase",
 );
 
 function resolveCommerceWorkspacePath(relativePath: string): string {

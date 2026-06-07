@@ -102,6 +102,13 @@ describe("SDKWork commerce service", () => {
   it("exposes commerce admin services over generated backend SDK clients", async () => {
     const backendClient = createMockClient<CommerceBackendSdkClient>(SDKWORK_COMMERCE_BACKEND_SDK_REQUIRED_METHODS, {
       "commerce.catalog.products.create": { productId: "spu-1" },
+      "commerce.catalog.products.delete": { deleted: true, productId: "spu-1" },
+      "commerce.catalog.skus.delete": { deleted: true, skuId: "sku-1" },
+      "commerce.catalog.categorySeeds.create": [{ dataset: "product", requested: 3, upserted: 3 }],
+      "commerce.catalog.categoryAttributes.list": [{ bindingId: "category-attribute-1" }],
+      "commerce.catalog.categoryAttributes.create": { bindingId: "category-attribute-1" },
+      "commerce.catalog.categoryAttributes.update": { bindingId: "category-attribute-1", required: true },
+      "commerce.catalog.categoryAttributes.delete": { deleted: true, bindingId: "category-attribute-1" },
       "commerce.inventory.stocks.update": { skuId: "sku-1", availableQuantity: 10 },
       "commerce.payments.providerAccounts.create": { providerAccountId: "wechat-main" },
       "commerce.payments.reconciliationRuns.list": [{ runNo: "recon-1" }],
@@ -128,6 +135,31 @@ describe("SDKWork commerce service", () => {
 
     await expect(service.admin.catalog.products.create({ title: "Standard product" })).resolves.toEqual({
       productId: "spu-1",
+    });
+    await expect(service.admin.catalog.products.delete("spu-1")).resolves.toEqual({
+      deleted: true,
+      productId: "spu-1",
+    });
+    await expect(service.admin.catalog.skus.delete("sku-1")).resolves.toEqual({
+      deleted: true,
+      skuId: "sku-1",
+    });
+    await expect(service.admin.catalog.categorySeeds.create({ datasets: ["product"] })).resolves.toEqual([
+      { dataset: "product", requested: 3, upserted: 3 },
+    ]);
+    await expect(service.admin.catalog.categoryAttributes.list({ categoryId: "category-1" })).resolves.toEqual([
+      { bindingId: "category-attribute-1" },
+    ]);
+    await expect(service.admin.catalog.categoryAttributes.create({ categoryId: "category-1" })).resolves.toEqual({
+      bindingId: "category-attribute-1",
+    });
+    await expect(service.admin.catalog.categoryAttributes.update("category-attribute-1", { required: true })).resolves.toEqual({
+      bindingId: "category-attribute-1",
+      required: true,
+    });
+    await expect(service.admin.catalog.categoryAttributes.delete("category-attribute-1")).resolves.toEqual({
+      deleted: true,
+      bindingId: "category-attribute-1",
     });
     await expect(service.admin.inventory.stocks.update("sku-1", { availableQuantity: 10 })).resolves.toEqual({
       skuId: "sku-1",
@@ -184,6 +216,16 @@ describe("SDKWork commerce service", () => {
     ]);
 
     expect(backendClient.commerce.catalog.products.create).toHaveBeenCalledWith({ title: "Standard product" });
+    expect(backendClient.commerce.catalog.products.delete).toHaveBeenCalledWith("spu-1");
+    expect(backendClient.commerce.catalog.skus.delete).toHaveBeenCalledWith("sku-1");
+    expect(backendClient.commerce.catalog.categorySeeds.create).toHaveBeenCalledWith({ datasets: ["product"] });
+    expect(backendClient.commerce.catalog.categoryAttributes.list).toHaveBeenCalledWith({ categoryId: "category-1" });
+    expect(backendClient.commerce.catalog.categoryAttributes.create).toHaveBeenCalledWith({ categoryId: "category-1" });
+    expect(backendClient.commerce.catalog.categoryAttributes.update).toHaveBeenCalledWith(
+      "category-attribute-1",
+      { required: true },
+    );
+    expect(backendClient.commerce.catalog.categoryAttributes.delete).toHaveBeenCalledWith("category-attribute-1");
     expect(backendClient.commerce.payments.providerAccounts.create).toHaveBeenCalledWith({
       providerCode: "wechat_pay",
     });
