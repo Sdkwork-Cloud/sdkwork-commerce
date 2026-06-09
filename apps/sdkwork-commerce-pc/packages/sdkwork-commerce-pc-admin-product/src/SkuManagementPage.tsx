@@ -17,6 +17,11 @@ import {
 import { readProductRecords, readProductString } from './ProductListPage';
 
 type SkuRecord = Record<string, unknown>;
+type SkuAttributeSummary = {
+  total: number;
+  required: number;
+  completed: number;
+};
 
 type SkuPageState = {
   loading: boolean;
@@ -251,6 +256,7 @@ export function SkuManagementPage() {
                     <th className="px-4 py-3">Product</th>
                     <th className="px-4 py-3">Title</th>
                     <th className="px-4 py-3">Price</th>
+                    <th className="px-4 py-3">Attributes</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Image</th>
                     <th className="px-4 py-3 text-right">Actions</th>
@@ -263,6 +269,7 @@ export function SkuManagementPage() {
                     const image = readSkuImage(record);
                     const imageHref = readMediaResourceUrl(image);
                     const status = normalizeSkuStatus(readSkuString(record, ['status']));
+                    const attributeSummary = readSkuAttributeSummary(record);
                     return (
                       <tr key={skuId} className="align-top text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/5">
                         <td className="px-4 py-3 font-medium">{readSkuString(record, ['skuNo', 'sku_no']) || skuId}</td>
@@ -274,6 +281,9 @@ export function SkuManagementPage() {
                         <td className="px-4 py-3">
                           {readSkuString(record, ['defaultCurrencyCode', 'currencyCode', 'currency_code']) || 'CNY'}{' '}
                           {readSkuString(record, ['defaultPriceAmount', 'priceAmount', 'price_amount']) || '0.00'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <SkuAttributeSummaryPill summary={attributeSummary} />
                         </td>
                         <td className="px-4 py-3">
                           <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 dark:bg-white/10 dark:text-slate-200">
@@ -437,6 +447,15 @@ export function SkuManagementPage() {
                     />
                   </Field>
                 </div>
+                {drawer.record ? (
+                  <div className="md:col-span-2">
+                    <Field label="SKU attributes">
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                        {formatSkuAttributeSummary(readSkuAttributeSummary(drawer.record))}
+                      </div>
+                    </Field>
+                  </div>
+                ) : null}
               </div>
 
               <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 dark:border-white/10">
@@ -485,6 +504,21 @@ function fieldClassName(disabled = false) {
   }`;
 }
 
+function SkuAttributeSummaryPill({ summary }: { summary: SkuAttributeSummary }) {
+  const complete = summary.required === 0 || summary.completed >= summary.required;
+  return (
+    <span
+      className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+        complete
+          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
+          : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200'
+      }`}
+    >
+      {formatSkuAttributeSummary(summary)}
+    </span>
+  );
+}
+
 export function readSkuRecords(value: unknown): SkuRecord[] {
   const payload = readPayload(value);
   if (Array.isArray(payload)) {
@@ -531,6 +565,30 @@ function readSkuImage(record: SkuRecord): ClawRouterMediaResource | undefined {
   return readMediaResource(record.image);
 }
 
+function readSkuAttributeSummary(record: SkuRecord): SkuAttributeSummary {
+  const attributes = Array.isArray(record.attributes) ? record.attributes.filter(isSkuRecord) : [];
+  const required = attributes.filter((attribute) => attribute.required === true).length;
+  const completed = attributes.filter((attribute) => (
+    attribute.required !== true
+    || Boolean(readSkuString(attribute, ['displayValue', 'customValue', 'valueCode', 'attributeValueId']))
+  )).length;
+  return {
+    total: attributes.length,
+    required,
+    completed,
+  };
+}
+
+function formatSkuAttributeSummary(summary: SkuAttributeSummary): string {
+  if (summary.total === 0) {
+    return 'No attributes';
+  }
+  if (summary.required === 0) {
+    return `${summary.total} optional`;
+  }
+  return `${summary.completed}/${summary.required} required`;
+}
+
 function createEmptySkuForm(productOptions: ProductOption[]): SkuFormState {
   return {
     productId: productOptions[0]?.id ?? '',
@@ -552,7 +610,7 @@ function readSkuFormState(record: SkuRecord): SkuFormState {
     skuNo: readSkuString(record, ['skuNo', 'sku_no']),
     defaultPriceAmount: readSkuString(record, ['defaultPriceAmount', 'priceAmount', 'price_amount']) || '0.00',
     defaultCurrencyCode: readSkuString(record, ['defaultCurrencyCode', 'currencyCode', 'currency_code']) || 'CNY',
-    fulfillmentType: normalizeSkuFulfillmentType(readSkuString(record, ['fulfillmentType', 'deliveryMode', 'delivery_mode'])),
+    fulfillmentType: normalizeSkuFulfillmentType(readSkuString(record, ['fulfillmentType'])),
     status: normalizeSkuStatus(readSkuString(record, ['status'])),
     barcode: readSkuString(record, ['barcode']),
     image: readSkuImage(record),
