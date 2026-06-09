@@ -543,18 +543,24 @@ export function ProductCreatePage({ mode = 'create', productId }: ProductCreateP
   }
 
   async function handleSubmit(mode: ProductSubmitMode) {
+    const normalizedSpecGroups = normalizeSpecGroups(draft.specGroups);
+    const submitSkuDrafts = draft.skuDrafts.length
+      ? draft.skuDrafts
+      : generateSkuDraftsFromSpecGroups(normalizedSpecGroups, {
+        title: productSkuBaseTitle(draft.title),
+        baseSkuNo: draft.baseSkuNo,
+        defaultPriceAmount: draft.defaultPriceAmount,
+        defaultCurrencyCode: draft.defaultCurrencyCode,
+      });
     const submitDraft = {
       ...draft,
       selectedCategoryIds,
-      specGroups: normalizeSpecGroups(draft.specGroups),
-      skuDrafts: draft.skuDrafts.length
-        ? draft.skuDrafts
-        : generateSkuDraftsFromSpecGroups(draft.specGroups, {
-          title: productSkuBaseTitle(draft.title),
-          baseSkuNo: draft.baseSkuNo,
-          defaultPriceAmount: draft.defaultPriceAmount,
-          defaultCurrencyCode: draft.defaultCurrencyCode,
-        }),
+      specGroups: normalizedSpecGroups,
+      skuDrafts: submitSkuDrafts,
+      skuAttributeValues: mergeSkuAttributeValues(
+        buildSkuAttributeValuesFromSkuDrafts(submitSkuDrafts),
+        draft.skuAttributeValues,
+      ),
     };
     const errors = validateProductDraft(submitDraft);
     if (errors.length > 0) {
@@ -2102,7 +2108,10 @@ function createProductDraftFromCatalogRecords(product: CatalogRecord, skuRecords
     specGroups: specGroups.length ? specGroups : baseDraft.specGroups,
     skuDrafts: nextSkuDrafts,
     skuAttributeValues: mergeSkuAttributeValues(
-      buildSkuAttributeValuesFromSkuDrafts(nextSkuDrafts),
+      mergeSkuAttributeValues(
+        buildSkuAttributeValuesFromSkuDrafts(nextSkuDrafts),
+        buildSkuAttributeValuesFromSkuRecords(skuRecords, nextSkuDrafts),
+      ),
       commercialMetadata.skuAttributeValues ?? baseDraft.skuAttributeValues,
     ),
     metadata: readCatalogMetadata(product),
@@ -2315,6 +2324,45 @@ function buildSkuAttributeValuesFromSkuDrafts(skuDrafts: ProductSkuDraft[]): Pro
     displayValue: selection.valueName,
     required: true,
   })));
+}
+
+function buildSkuAttributeValuesFromSkuRecords(
+  skuRecords: CatalogRecord[],
+  skuDrafts: ProductSkuDraft[],
+): ProductSkuAttributeValue[] {
+  const skuDraftByBackendId = new Map(skuDrafts.map((sku) => [sku.backendSkuId, sku]));
+  const skuDraftBySkuNo = new Map(skuDrafts.map((sku) => [sku.skuNo, sku]));
+
+  return skuRecords.flatMap((record) => {
+    const attributes = record.attributes;
+    if (!Array.isArray(attributes)) {
+      return [];
+    }
+    const skuDraft = skuDraftByBackendId.get(readCatalogString(record, ['id']))
+      ?? skuDraftBySkuNo.get(readCatalogString(record, ['skuNo', 'sku_no']));
+    if (!skuDraft) {
+      return [];
+    }
+
+    return attributes
+      .filter(isCatalogRecord)
+      .map((attribute, index) => {
+        const attributeName = readCatalogString(attribute, ['attributeName', 'name', 'attribute_id']) || 'SKU Attribute';
+        const value = readCatalogString(attribute, ['value', 'customValue', 'displayValue', 'valueCode', 'attributeValueId']);
+        const displayValue = readCatalogString(attribute, ['displayValue', 'value', 'customValue', 'valueCode', 'attributeValueId']);
+        return {
+          id: `${skuDraft.id}:${readCatalogString(attribute, ['attributeId', 'attribute_id']) || slugCode(attributeName)}:${index}`,
+          skuDraftId: skuDraft.id,
+          specKey: skuDraft.specKey,
+          attributeId: readCatalogString(attribute, ['attributeId', 'attribute_id']) || buildEntityNo('ATTR', attributeName),
+          attributeName,
+          valueCode: readCatalogString(attribute, ['valueCode', 'value_code']) || slugCode(displayValue || value || attributeName),
+          value,
+          displayValue,
+          required: true,
+        };
+      });
+  });
 }
 
 function mergeSkuAttributeValues(

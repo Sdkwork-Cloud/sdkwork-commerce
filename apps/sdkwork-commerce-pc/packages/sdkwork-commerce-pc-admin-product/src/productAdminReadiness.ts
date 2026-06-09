@@ -162,8 +162,21 @@ function hasMissingRequiredCategoryAttributes(draft: CommercialProductDraft): bo
 }
 
 function hasMissingRequiredSkuAttributes(draft: CommercialProductDraft): boolean {
+  const enabledSkuKeys = new Set(
+    draft.skuDrafts
+      .filter((sku) => sku.enabled && sku.status !== 'archived')
+      .flatMap((sku) => [sku.id, sku.specKey].filter(Boolean)),
+  );
   return (draft.skuAttributeValues ?? [])
-    .some((attribute) => attribute.required && !attribute.value.trim() && !attribute.displayValue.trim());
+    .some((attribute) => {
+      if (!attribute.required) {
+        return false;
+      }
+      if (enabledSkuKeys.size > 0 && !enabledSkuKeys.has(attribute.skuDraftId) && !enabledSkuKeys.has(attribute.specKey)) {
+        return false;
+      }
+      return !attribute.value.trim() && !attribute.displayValue.trim();
+    });
 }
 
 function resolveDefaultInventoryPolicy(productType: string): ProductInventoryPolicy {

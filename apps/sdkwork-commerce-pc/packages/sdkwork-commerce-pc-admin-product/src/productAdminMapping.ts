@@ -1,4 +1,10 @@
-import { evaluateProductReadiness } from './productAdminReadiness';
+import {
+  evaluateProductReadiness,
+  isDetailConfigComplete,
+  isInventoryPolicyReady,
+  isPositiveDecimalString,
+  isStoreVisibilityReady,
+} from './productAdminReadiness';
 import {
   DEFAULT_INVENTORY_POLICY,
   DEFAULT_PRODUCT_DETAIL_CONFIG,
@@ -56,17 +62,25 @@ export function readProductCommercialSignals(record: Record<string, unknown>): P
   const commercial = readRecord(readRecord(record.metadata)?.[COMMERCIAL_METADATA_KEY]);
   const detailConfig = normalizeProductDetailConfig(commercial?.productDetailConfig);
   const storeVisibility = normalizeStoreVisibility(commercial?.storeVisibility);
-  const inventoryPolicy = normalizeInventoryPolicy(readString(record.productType), commercial?.inventoryPolicy);
+  const productType = readString(record.productType) || readString(record.product_type);
+  const inventoryPolicy = normalizeInventoryPolicy(productType, commercial?.inventoryPolicy);
   const skuAttributeValues = normalizeSkuAttributeValues(commercial?.skuAttributeValues);
   const readiness = readRecord(commercial?.publishReadiness);
   const blockerCount = readNumber(readiness?.blockerCount, commercial ? 0 : 1);
   const publishable = readBoolean(readiness?.publishable, blockerCount === 0);
-  const priceComplete = readString(record.minPriceAmount) !== '' || readString(record.priceAmount) !== '';
+  const priceComplete = isPositiveDecimalString(
+    readString(record.minPriceAmount)
+    || readString(record.priceAmount)
+    || readString(record.defaultPriceAmount)
+    || readString(record.min_price_amount)
+    || readString(record.price_amount)
+    || readString(record.default_price_amount),
+  );
   return {
-    detailComplete: Boolean(detailConfig.mainImageUrl && detailConfig.detailImageUrls.length > 0),
-    storeVisible: storeVisibility.visible && storeVisibility.storeIds.length > 0 && storeVisibility.channelCodes.length > 0,
+    detailComplete: isDetailConfigComplete(detailConfig),
+    storeVisible: isStoreVisibilityReady(storeVisibility),
     skuAttributeComplete: skuAttributeValues.every((attribute) => !attribute.required || Boolean(attribute.value || attribute.displayValue)),
-    inventoryReady: inventoryPolicy.readinessMode === 'not_required' || inventoryPolicy.sourceIds.length > 0 || !inventoryPolicy.managed,
+    inventoryReady: isInventoryPolicyReady(productType, inventoryPolicy),
     priceComplete,
     readinessStatus: publishable ? 'ready' : blockerCount > 0 ? 'blocked' : 'draft',
     readinessLabel: publishable ? 'Ready' : blockerCount > 0 ? `${blockerCount} blockers` : 'Draft',
