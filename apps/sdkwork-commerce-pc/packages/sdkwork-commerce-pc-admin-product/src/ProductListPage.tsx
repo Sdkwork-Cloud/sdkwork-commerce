@@ -8,6 +8,8 @@ import {
   type ClawRouterMediaResource,
 } from './commerce-media-resource';
 import { listCommerceProducts } from './catalogService';
+import { readProductCommercialSignals } from './productAdminMapping';
+import type { ProductCommercialSignals } from './productAdminTypes';
 
 type ProductRecord = Record<string, unknown>;
 
@@ -494,6 +496,7 @@ function ProductTableRow({ onSelectedChange, record, selected, selectionId }: Pr
   const updatedAt = readProductString(record, ['updatedAt', 'publishedAt', 'createdAt']);
   const coverResource = readProductCoverResource(record);
   const coverSource = readMediaResourceUrl(coverResource);
+  const commercialSignals = readProductCommercialSignals(record);
 
   return (
     <tr className="h-[104px] border-b border-slate-200 text-[14px] text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/[0.03]">
@@ -530,8 +533,10 @@ function ProductTableRow({ onSelectedChange, record, selected, selectionId }: Pr
       <td className="px-5 text-right text-[15px] font-semibold tabular-nums text-slate-950 dark:text-white">
         {price ? `${currency ? `${currency} ` : ''}${price}` : '-'}
       </td>
-      <td className="px-5 text-right tabular-nums">-</td>
-      <td className="px-5 text-slate-500 dark:text-slate-400">-</td>
+      <td className="px-5 text-right tabular-nums">{commercialSignals.inventoryReady ? 'Ready' : 'Risk'}</td>
+      <td className="px-5">
+        <CommercialSignalStack signals={commercialSignals} />
+      </td>
       <td className="px-5">
         <span className={productStatusClassName(productStatusTone(status))}>{productStatusLabel(status)}</span>
         <div className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">{formatProductDate(updatedAt)}</div>
@@ -550,6 +555,47 @@ function ProductTableRow({ onSelectedChange, record, selected, selectionId }: Pr
       </td>
     </tr>
   );
+}
+
+function CommercialSignalStack({ signals }: { signals: ProductCommercialSignals }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1.5" data-admin-product-commercial-signals>
+      <span className={commercialReadinessClassName(signals.readinessStatus)}>
+        {signals.readinessLabel}
+      </span>
+      <div className="grid grid-cols-5 gap-1 text-[11px] font-semibold">
+        <SignalPill active={signals.detailComplete} label="Detail" />
+        <SignalPill active={signals.skuAttributeComplete} label="SKU" />
+        <SignalPill active={signals.storeVisible} label="Store" />
+        <SignalPill active={signals.inventoryReady} label="Inv" />
+        <SignalPill active={signals.priceComplete} label="Price" />
+      </div>
+    </div>
+  );
+}
+
+function SignalPill({ active, label }: { active: boolean; label: string }) {
+  return (
+    <span
+      className={`truncate rounded px-1.5 py-0.5 text-center ${
+        active
+          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
+          : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200'
+      }`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function commercialReadinessClassName(status: ProductCommercialSignals['readinessStatus']): string {
+  if (status === 'ready') {
+    return 'inline-flex w-fit rounded-full bg-emerald-50 px-2 py-1 text-[12px] font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300';
+  }
+  if (status === 'blocked') {
+    return 'inline-flex w-fit rounded-full bg-red-50 px-2 py-1 text-[12px] font-semibold text-red-700 dark:bg-red-500/10 dark:text-red-200';
+  }
+  return 'inline-flex w-fit rounded-full bg-slate-100 px-2 py-1 text-[12px] font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300';
 }
 
 type ProductTablePaginationProps = {

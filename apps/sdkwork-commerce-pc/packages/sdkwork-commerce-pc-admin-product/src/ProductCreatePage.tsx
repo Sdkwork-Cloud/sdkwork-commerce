@@ -22,6 +22,7 @@ import {
   X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { readApiData, readApiItems } from './commerce-api-result';
 import {
   readMediaResource,
   readMediaResourceUrl,
@@ -35,11 +36,31 @@ import {
   createCommerceSku,
   listCommerceAttributes,
   listCommerceCategories,
-  listCommerceProducts,
   listCommerceSkus,
+  retrieveCommerceProduct,
   updateCommerceProduct,
   updateCommerceSku,
 } from './catalogService';
+import { ProductAttributeValuePanel } from './ProductAttributeValuePanel';
+import { ProductDetailConfigPanel } from './ProductDetailConfigPanel';
+import { ProductPublishReadinessPanel } from './ProductPublishReadinessPanel';
+import { ProductStoreInventoryPanel } from './ProductStoreInventoryPanel';
+import { SkuMatrixCommercialPanel } from './SkuMatrixCommercialPanel';
+import {
+  buildCommercialProductMetadata,
+  readCommercialProductMetadata,
+} from './productAdminMapping';
+import { evaluateProductReadiness } from './productAdminReadiness';
+import {
+  DEFAULT_INVENTORY_POLICY,
+  DEFAULT_PRODUCT_DETAIL_CONFIG,
+  DEFAULT_STORE_VISIBILITY,
+  type ProductCategoryAttributeValue,
+  type ProductDetailConfig,
+  type ProductInventoryPolicy,
+  type ProductSkuAttributeValue,
+  type ProductStoreVisibility,
+} from './productAdminTypes';
 
 type ProductCreateStep = 'basic' | 'detail';
 type ProductCreatePageMode = 'create' | 'edit';
@@ -71,14 +92,15 @@ type ProductCategoryNode = {
 };
 
 type ProductCategoryRecordInput = {
-  id?: string | number | null;
-  name?: string | null;
-  label?: string | null;
-  parentId?: string | number | null;
-  parent_id?: string | number | null;
-  sortOrder?: number | string | null;
-  sort_order?: number | string | null;
-  status?: string | null;
+  [key: string]: unknown;
+  id?: unknown;
+  name?: unknown;
+  label?: unknown;
+  parentId?: unknown;
+  parent_id?: unknown;
+  sortOrder?: unknown;
+  sort_order?: unknown;
+  status?: unknown;
 };
 
 type ProductCategoryPathEntry = {
@@ -158,6 +180,12 @@ export type ProductDraftState = {
   parameters: ProductParameterDraft[];
   specGroups: ProductSpecGroup[];
   skuDrafts: ProductSkuDraft[];
+  detailConfig: ProductDetailConfig;
+  storeVisibility: ProductStoreVisibility;
+  inventoryPolicy: ProductInventoryPolicy;
+  categoryAttributeValues: ProductCategoryAttributeValue[];
+  skuAttributeValues: ProductSkuAttributeValue[];
+  metadata: Record<string, unknown>;
 };
 
 type SubmitState = {
@@ -282,6 +310,13 @@ const DEFAULT_SPEC_GROUPS: ProductSpecGroup[] = [
   },
 ];
 
+const DEFAULT_SKU_DRAFTS = generateSkuDraftsFromSpecGroups(DEFAULT_SPEC_GROUPS, {
+  title: 'AI assistant',
+  baseSkuNo: 'SKU-AI',
+  defaultPriceAmount: '1999.00',
+  defaultCurrencyCode: 'CNY',
+});
+
 export const DEFAULT_PRODUCT_DRAFT: ProductDraftState = {
   title: '企业版 AI 助手年度订阅服务',
   subtitle: '知识库问答、流程自动化、数据分析和多端协作',
@@ -299,12 +334,13 @@ export const DEFAULT_PRODUCT_DRAFT: ProductDraftState = {
   shopCategoryIds: [SHOP_CATEGORY_OPTIONS[0]],
   parameters: PARAMETER_ROWS,
   specGroups: DEFAULT_SPEC_GROUPS,
-  skuDrafts: generateSkuDraftsFromSpecGroups(DEFAULT_SPEC_GROUPS, {
-    title: '企业版 AI 助手',
-    baseSkuNo: 'SKU-AI',
-    defaultPriceAmount: '1999.00',
-    defaultCurrencyCode: 'CNY',
-  }),
+  skuDrafts: DEFAULT_SKU_DRAFTS,
+  detailConfig: createDefaultDetailConfig(),
+  storeVisibility: createDefaultStoreVisibility(),
+  inventoryPolicy: createDefaultInventoryPolicy('subscription'),
+  categoryAttributeValues: createDefaultCategoryAttributeValues(),
+  skuAttributeValues: buildSkuAttributeValuesFromSkuDrafts(DEFAULT_SKU_DRAFTS),
+  metadata: {},
 };
 
 export function ProductCreatePage({ mode = 'create', productId }: ProductCreatePageProps = {}) {
@@ -331,7 +367,7 @@ export function ProductCreatePage({ mode = 'create', productId }: ProductCreateP
         if (cancelled) {
           return;
         }
-        const nextCategoryTree = normalizeProductCategoryTree(result.data?.items ?? []);
+        const nextCategoryTree = normalizeProductCategoryTree(readCatalogRecords(result));
         if (nextCategoryTree.length > 0) {
           setCategoryTree(nextCategoryTree);
           setCategoryLoadError(null);
@@ -356,7 +392,7 @@ export function ProductCreatePage({ mode = 'create', productId }: ProductCreateP
         if (cancelled) {
           return;
         }
-        setAttributeDefinitions(normalizeProductAttributeDefinitions(result.data?.items ?? []));
+        setAttributeDefinitions(normalizeProductAttributeDefinitions(readCatalogRecords(result)));
       })
       .catch(() => {
         if (!cancelled) {
@@ -453,13 +489,24 @@ export function ProductCreatePage({ mode = 'create', productId }: ProductCreateP
         });
         nextDraft.specGroups = nextSpecGroups;
         nextDraft.skuDrafts = mergeSkuDrafts(generatedSkuDrafts, currentDraft.skuDrafts);
+        nextDraft.skuAttributeValues = mergeSkuAttributeValues(
+          buildSkuAttributeValuesFromSkuDrafts(nextDraft.skuDrafts),
+          currentDraft.skuAttributeValues,
+        );
       }
       return nextDraft;
     });
   }
 
   function updateSkuDrafts(skuDrafts: ProductSkuDraft[]) {
-    setDraft((currentDraft) => ({ ...currentDraft, skuDrafts }));
+    setDraft((currentDraft) => ({
+      ...currentDraft,
+      skuDrafts,
+      skuAttributeValues: mergeSkuAttributeValues(
+        buildSkuAttributeValuesFromSkuDrafts(skuDrafts),
+        currentDraft.skuAttributeValues,
+      ),
+    }));
   }
 
   async function handleCategoryCreate(input: { name: string; parentId?: string | null; categoryNo?: string }) {
@@ -470,7 +517,7 @@ export function ProductCreatePage({ mode = 'create', productId }: ProductCreateP
       sortOrder: '0',
       status: 'active',
     });
-    const item = result.data?.item;
+    const item = readCatalogItem(result);
     if (item) {
       const nextRecords = [...flattenCategoryTreeRecords(categoryTree), item];
       setCategoryTree(normalizeProductCategoryTree(nextRecords));
@@ -512,6 +559,15 @@ export function ProductCreatePage({ mode = 'create', productId }: ProductCreateP
     const errors = validateProductDraft(submitDraft);
     if (errors.length > 0) {
       setSubmitState({ mode, status: 'error', message: errors[0] });
+      return;
+    }
+    const readinessReport = evaluateProductReadiness(submitDraft);
+    if (mode === 'active' && !readinessReport.publishable) {
+      setSubmitState({
+        mode,
+        status: 'error',
+        message: readinessReport.blockers[0]?.message ?? 'Product is not ready to publish.',
+      });
       return;
     }
 
@@ -829,9 +885,12 @@ function ProductCreateStepTwo({
   updateDraft: (patch: Partial<ProductDraftState>) => void;
   updateSkuDrafts: (skuDrafts: ProductSkuDraft[]) => void;
 }) {
+  const readinessReport = evaluateProductReadiness(draft);
+
   return (
     <div className="flex min-h-full flex-col" data-admin-product-create-step-two>
       <div className="space-y-4">
+        <ProductPublishReadinessPanel report={readinessReport} />
         <FormPanel>
           <PanelHeader
             description="复核基础属性，并补充商品参数和资质信息。"
@@ -899,6 +958,38 @@ function ProductCreateStepTwo({
             </FormRow>
           </div>
         </FormPanel>
+
+        <ProductDetailConfigPanel
+          detailConfig={draft.detailConfig}
+          onChange={(detailConfig) => updateDraft({ detailConfig })}
+        />
+
+        <SkuMatrixCommercialPanel
+          currencyCode={draft.defaultCurrencyCode}
+          skuAttributeValues={draft.skuAttributeValues}
+          skuDrafts={draft.skuDrafts}
+          specGroups={draft.specGroups}
+          onSkuAttributeValuesChange={(skuAttributeValues) => updateDraft({ skuAttributeValues })}
+          onSkuDraftsChange={updateSkuDrafts}
+          onSpecGroupsChange={(specGroups) => updateDraft({ specGroups })}
+        />
+
+        <ProductAttributeValuePanel
+          categoryAttributeValues={draft.categoryAttributeValues}
+          selectedCategoryIds={selectedCategoryIds}
+          skuAttributeValues={draft.skuAttributeValues}
+          skuDrafts={draft.skuDrafts}
+          onCategoryAttributeValuesChange={(categoryAttributeValues) => updateDraft({ categoryAttributeValues })}
+          onSkuAttributeValuesChange={(skuAttributeValues) => updateDraft({ skuAttributeValues })}
+        />
+
+        <ProductStoreInventoryPanel
+          inventoryPolicy={draft.inventoryPolicy}
+          productType={draft.productType}
+          storeVisibility={draft.storeVisibility}
+          onInventoryPolicyChange={(inventoryPolicy) => updateDraft({ inventoryPolicy })}
+          onStoreVisibilityChange={(storeVisibility) => updateDraft({ storeVisibility })}
+        />
 
         <FormPanel>
           <PanelHeader
@@ -1679,6 +1770,12 @@ export function createDefaultProductDraft(): ProductDraftState {
       ...sku,
       specSelections: sku.specSelections.map((selection) => ({ ...selection })),
     })),
+    detailConfig: cloneDetailConfig(DEFAULT_PRODUCT_DRAFT.detailConfig),
+    storeVisibility: cloneStoreVisibility(DEFAULT_PRODUCT_DRAFT.storeVisibility),
+    inventoryPolicy: cloneInventoryPolicy(DEFAULT_PRODUCT_DRAFT.inventoryPolicy),
+    categoryAttributeValues: DEFAULT_PRODUCT_DRAFT.categoryAttributeValues.map((attribute) => ({ ...attribute })),
+    skuAttributeValues: DEFAULT_PRODUCT_DRAFT.skuAttributeValues.map((attribute) => ({ ...attribute })),
+    metadata: { ...DEFAULT_PRODUCT_DRAFT.metadata },
   };
 }
 
@@ -1774,6 +1871,10 @@ export function buildProductCreatePayload(draft: ProductDraftState, mode: Produc
     status: mode,
     subtitle: draft.subtitle || null,
     title: draft.title,
+    metadata: {
+      ...draft.metadata,
+      ...buildCommercialProductMetadata(draft),
+    },
   };
 }
 
@@ -1797,13 +1898,7 @@ export function buildSkuMutationPayloads(
     .map((sku) => ({
       backendSkuId: sku.backendSkuId,
       body: {
-        attributes: sku.specSelections.map((selection) => ({
-          attributeId: attributeIdByName.get(selection.groupName) ?? buildEntityNo('ATTR', selection.groupName),
-          attributeName: selection.groupName,
-          customValue: selection.valueName,
-          displayValue: selection.valueName,
-          valueCode: selection.valueCode,
-        })),
+        attributes: buildSkuAttributePayloads(draft, sku, attributeIdByName),
         defaultCurrencyCode: sku.currencyCode || draft.defaultCurrencyCode,
         defaultPriceAmount: sku.priceAmount || draft.defaultPriceAmount,
         fulfillmentType: draft.fulfillmentType,
@@ -1819,12 +1914,40 @@ export function buildSkuMutationPayloads(
     }));
 }
 
+function buildSkuAttributePayloads(
+  draft: ProductDraftState,
+  sku: ProductSkuDraft,
+  attributeIdByName: Map<string, string>,
+) {
+  const authoredValues = draft.skuAttributeValues.filter((attribute) => (
+    attribute.skuDraftId === sku.id || attribute.specKey === sku.specKey
+  ));
+  if (authoredValues.length > 0) {
+    return authoredValues.map((attribute) => ({
+      attributeId: attributeIdByName.get(attribute.attributeName) || attribute.attributeId || buildEntityNo('ATTR', attribute.attributeName),
+      attributeName: attribute.attributeName,
+      customValue: attribute.value,
+      displayValue: attribute.displayValue || attribute.value,
+      valueCode: attribute.valueCode || slugCode(attribute.displayValue || attribute.value || attribute.attributeName),
+    }));
+  }
+  return sku.specSelections.map((selection) => ({
+    attributeId: attributeIdByName.get(selection.groupName) ?? buildEntityNo('ATTR', selection.groupName),
+    attributeName: selection.groupName,
+    customValue: selection.valueName,
+    displayValue: selection.valueName,
+    valueCode: selection.valueCode,
+  }));
+}
+
 export async function ensureSkuAttributeDefinitions(specGroups: ProductSpecGroup[]): Promise<Map<string, string>> {
   const attributeIdByName = new Map<string, string>();
   const listResult = await listCommerceAttributes({ page: '1', pageSize: '200', status: 'active' });
-  for (const attribute of listResult.data?.items ?? []) {
-    if (attribute.name) {
-      attributeIdByName.set(attribute.name, attribute.id);
+  for (const attribute of readCatalogRecords(listResult)) {
+    const attributeName = readCatalogString(attribute, ['name']);
+    const attributeId = readCatalogString(attribute, ['id']);
+    if (attributeName && attributeId) {
+      attributeIdByName.set(attributeName, attributeId);
     }
   }
 
@@ -1842,9 +1965,13 @@ export async function ensureSkuAttributeDefinitions(specGroups: ProductSpecGroup
       status: 'active',
       valueType: 'enum',
     });
-    const item = result.data?.item;
+    const item = readCatalogItem(result);
     if (item) {
-      attributeIdByName.set(item.name, item.id);
+      const attributeName = readCatalogString(item, ['name']);
+      const attributeId = readCatalogString(item, ['id']);
+      if (attributeName && attributeId) {
+        attributeIdByName.set(attributeName, attributeId);
+      }
     }
   }
 
@@ -1869,7 +1996,7 @@ export async function submitProductDraft(
   const productResult = options.productId
     ? await updateCommerceProduct(options.productId, buildProductCreatePayload(draft, mode))
     : await createCommerceProduct(buildProductCreatePayload(draft, mode));
-  const productId = options.productId ?? productResult.data?.item.id;
+  const productId = options.productId ?? readCatalogString(readCatalogItem(productResult) ?? {}, ['id']);
   if (!productId) {
     throw new Error('商品创建成功但未返回商品 ID。');
   }
@@ -1890,38 +2017,46 @@ function readSelectedCategoryEntries(categoryIds: string[], categoryTree = PRODU
     .filter((entry) => entry.path.length > 0);
 }
 
-function normalizeProductAttributeDefinitions(records: Array<Partial<ProductAttributeDefinition>>): ProductAttributeDefinition[] {
+function normalizeProductAttributeDefinitions(records: CatalogRecord[]): ProductAttributeDefinition[] {
   return records
-    .filter((record): record is ProductAttributeDefinition => Boolean(record.id && record.name))
     .map((record) => ({
-      id: record.id,
-      attributeNo: record.attributeNo ?? buildEntityNo('ATTR', record.name),
-      name: record.name,
-      scope: record.scope ?? 'both',
-      valueType: record.valueType ?? 'text',
-      status: record.status ?? 'active',
-    }));
+      id: readCatalogString(record, ['id']),
+      attributeNo: readCatalogString(record, ['attributeNo', 'attribute_no']),
+      name: readCatalogString(record, ['name']),
+      scope: normalizeAttributeScope(readCatalogString(record, ['scope'])),
+      valueType: normalizeAttributeDefinitionValueType(readCatalogString(record, ['valueType', 'value_type'])),
+      status: normalizeAttributeStatus(readCatalogString(record, ['status'])),
+    }))
+    .filter((record) => record.id && record.name);
 }
 
 type CatalogRecord = Record<string, unknown>;
 
+function readCatalogRecords(result: unknown): CatalogRecord[] {
+  return readApiItems(result).filter(isCatalogRecord);
+}
+
+function readCatalogItem(result: unknown): CatalogRecord | null {
+  const data = readApiData(result);
+  if (isCatalogRecord(data)) {
+    const item = data.item;
+    if (isCatalogRecord(item)) {
+      return item;
+    }
+  }
+  return isCatalogRecord(data) ? data : null;
+}
+
 export async function loadProductDraftForEdit(productId: string): Promise<ProductDraftState> {
   const product = await loadProductRecordForEdit(productId);
   const skuResult = await listCommerceSkus({ page: '1', pageSize: '200', productId });
-  return createProductDraftFromCatalogRecords(product, (skuResult.data?.items ?? []) as unknown as CatalogRecord[]);
+  return createProductDraftFromCatalogRecords(product, readCatalogRecords(skuResult));
 }
 
 async function loadProductRecordForEdit(productId: string): Promise<CatalogRecord> {
-  const firstResult = await listCommerceProducts({ page: '1', pageSize: '50', q: productId });
-  const directMatch = findCatalogRecordById((firstResult.data?.items ?? []) as unknown as CatalogRecord[], productId);
-  if (directMatch) {
-    return directMatch;
-  }
-
-  const fallbackResult = await listCommerceProducts({ page: '1', pageSize: '200' });
-  const fallbackMatch = findCatalogRecordById((fallbackResult.data?.items ?? []) as unknown as CatalogRecord[], productId);
-  if (fallbackMatch) {
-    return fallbackMatch;
+  const product = readCatalogItem(await retrieveCommerceProduct(productId));
+  if (product) {
+    return product;
   }
   throw new Error('未找到商品，无法进入编辑。');
 }
@@ -1932,6 +2067,7 @@ function createProductDraftFromCatalogRecords(product: CatalogRecord, skuRecords
   const categoryIds = readCatalogStringArray(product, 'categoryIds');
   const skuDrafts = skuRecords.map(skuDraftFromRecord);
   const specGroups = inferSpecGroupsFromSkuRecords(skuDrafts);
+  const commercialMetadata = readCommercialProductMetadata(product);
   const spuNo = readCatalogString(product, ['spuNo', 'spu_no', 'code', 'id']) || baseDraft.spuNo;
   const defaultPriceAmount = firstSku
     ? readCatalogString(firstSku, ['defaultPriceAmount', 'priceAmount', 'price_amount'])
@@ -1940,8 +2076,16 @@ function createProductDraftFromCatalogRecords(product: CatalogRecord, skuRecords
     ? readCatalogString(firstSku, ['defaultCurrencyCode', 'currencyCode', 'currency_code'])
     : readCatalogString(product, ['currencyCode', 'currency_code']);
 
+  const nextSkuDrafts = skuDrafts.length ? skuDrafts : generateSkuDraftsFromSpecGroups(baseDraft.specGroups, {
+    title: productSkuBaseTitle(readCatalogString(product, ['title', 'name']) || baseDraft.title),
+    baseSkuNo: spuNo,
+    defaultPriceAmount: defaultPriceAmount || baseDraft.defaultPriceAmount,
+    defaultCurrencyCode: defaultCurrencyCode || baseDraft.defaultCurrencyCode,
+  });
+
   return {
     ...baseDraft,
+    ...commercialMetadata,
     title: readCatalogString(product, ['title', 'name']) || baseDraft.title,
     subtitle: readCatalogString(product, ['subtitle']) || '',
     description: readCatalogString(product, ['description']) || '',
@@ -1953,22 +2097,22 @@ function createProductDraftFromCatalogRecords(product: CatalogRecord, skuRecords
     baseSkuNo: firstSku ? skuBaseNo(readCatalogString(firstSku, ['skuNo', 'sku_no'])) : spuNo,
     salesUnit: firstSku ? readCatalogString(firstSku, ['salesUnit', 'sales_unit']) || baseDraft.salesUnit : baseDraft.salesUnit,
     taxCategory: firstSku ? readCatalogString(firstSku, ['taxCategory', 'tax_category']) || baseDraft.taxCategory : baseDraft.taxCategory,
-    fulfillmentType: firstSku ? normalizeFulfillmentType(readCatalogString(firstSku, ['fulfillmentType', 'deliveryMode', 'delivery_mode'])) : baseDraft.fulfillmentType,
+    fulfillmentType: firstSku ? normalizeFulfillmentType(readCatalogString(firstSku, ['fulfillmentType'])) : baseDraft.fulfillmentType,
     selectedCategoryIds: normalizeSelectedCategoryIds(categoryIds),
     specGroups: specGroups.length ? specGroups : baseDraft.specGroups,
-    skuDrafts: skuDrafts.length ? skuDrafts : generateSkuDraftsFromSpecGroups(baseDraft.specGroups, {
-      title: productSkuBaseTitle(readCatalogString(product, ['title', 'name']) || baseDraft.title),
-      baseSkuNo: spuNo,
-      defaultPriceAmount: defaultPriceAmount || baseDraft.defaultPriceAmount,
-      defaultCurrencyCode: defaultCurrencyCode || baseDraft.defaultCurrencyCode,
-    }),
+    skuDrafts: nextSkuDrafts,
+    skuAttributeValues: mergeSkuAttributeValues(
+      buildSkuAttributeValuesFromSkuDrafts(nextSkuDrafts),
+      commercialMetadata.skuAttributeValues ?? baseDraft.skuAttributeValues,
+    ),
+    metadata: readCatalogMetadata(product),
   };
 }
 
 function skuDraftFromRecord(record: CatalogRecord): ProductSkuDraft {
   const skuId = readCatalogString(record, ['id']);
   const skuNo = readCatalogString(record, ['skuNo', 'sku_no']);
-  const status = normalizeSkuStatus(readCatalogString(record, ['status', 'salesStatus', 'sales_status']));
+  const status = normalizeSkuStatus(readCatalogString(record, ['status']));
   const specSelections = readSkuSpecSelections(record);
   const specKey = specSelections.map((selection) => selection.valueId).join('|') || skuId || skuNo || 'default';
   return {
@@ -2033,10 +2177,6 @@ function inferSpecGroupsFromSkuRecords(skuDrafts: ProductSkuDraft[]): ProductSpe
   return Array.from(groups.values());
 }
 
-function findCatalogRecordById(records: CatalogRecord[], recordId: string): CatalogRecord | null {
-  return records.find((record) => readCatalogString(record, ['id']) === recordId) ?? null;
-}
-
 function readCatalogString(record: CatalogRecord, keys: string[]): string {
   for (const key of keys) {
     const value = record[key];
@@ -2066,6 +2206,23 @@ function readCatalogStringArray(record: CatalogRecord, key: string): string[] {
       return '';
     })
     .filter(Boolean);
+}
+
+function readCatalogMetadata(record: CatalogRecord): Record<string, unknown> {
+  const metadata = record.metadata;
+  return isCatalogRecord(metadata) ? { ...metadata } : {};
+}
+
+function normalizeAttributeScope(value: string): ProductAttributeDefinition['scope'] {
+  return value === 'spu' || value === 'sku' || value === 'both' ? value : 'both';
+}
+
+function normalizeAttributeDefinitionValueType(value: string): ProductAttributeDefinition['valueType'] {
+  return value === 'number' || value === 'boolean' || value === 'enum' || value === 'date' ? value : 'text';
+}
+
+function normalizeAttributeStatus(value: string): ProductAttributeDefinition['status'] {
+  return value === 'inactive' || value === 'archived' ? value : 'active';
 }
 
 function readCatalogMediaResource(record: CatalogRecord, keys: string[]): ClawRouterMediaResource | undefined {
@@ -2144,6 +2301,160 @@ function mergeSkuDrafts(generatedSkuDrafts: ProductSkuDraft[], currentSkuDrafts:
       }
       : generatedSku;
   });
+}
+
+function buildSkuAttributeValuesFromSkuDrafts(skuDrafts: ProductSkuDraft[]): ProductSkuAttributeValue[] {
+  return skuDrafts.flatMap((sku) => sku.specSelections.map((selection) => ({
+    id: `${sku.id}:${selection.groupId}`,
+    skuDraftId: sku.id,
+    specKey: sku.specKey,
+    attributeId: selection.groupId,
+    attributeName: selection.groupName,
+    valueCode: selection.valueCode,
+    value: selection.valueName,
+    displayValue: selection.valueName,
+    required: true,
+  })));
+}
+
+function mergeSkuAttributeValues(
+  generatedValues: ProductSkuAttributeValue[],
+  currentValues: ProductSkuAttributeValue[],
+): ProductSkuAttributeValue[] {
+  const currentByKey = new Map(currentValues.map((value) => [skuAttributeValueKey(value), value]));
+  return generatedValues.map((generatedValue) => {
+    const currentValue = currentByKey.get(skuAttributeValueKey(generatedValue));
+    return currentValue
+      ? {
+        ...generatedValue,
+        value: currentValue.value || generatedValue.value,
+        displayValue: currentValue.displayValue || generatedValue.displayValue,
+        required: currentValue.required,
+      }
+      : generatedValue;
+  });
+}
+
+function skuAttributeValueKey(value: ProductSkuAttributeValue): string {
+  return `${value.specKey || value.skuDraftId}:${value.attributeId || value.attributeName}`;
+}
+
+function createDefaultDetailConfig(): ProductDetailConfig {
+  return {
+    ...DEFAULT_PRODUCT_DETAIL_CONFIG,
+    mainImageUrl: 'https://assets.sdkwork.local/products/ai-assistant/main.png',
+    galleryImageUrls: [
+      'https://assets.sdkwork.local/products/ai-assistant/gallery-1.png',
+      'https://assets.sdkwork.local/products/ai-assistant/gallery-2.png',
+    ],
+    detailImageUrls: [
+      'https://assets.sdkwork.local/products/ai-assistant/detail-1.png',
+      'https://assets.sdkwork.local/products/ai-assistant/detail-2.png',
+      'https://assets.sdkwork.local/products/ai-assistant/detail-3.png',
+    ],
+    sellingPoints: [
+      'Knowledge base question answering',
+      'Workflow automation',
+      'Multi-device collaboration',
+    ],
+    parameterRows: PARAMETER_ROWS.map((parameter) => ({
+      id: parameter.id,
+      label: parameter.label,
+      value: parameter.value,
+    })),
+    servicePromises: ['Invoice support', 'Online activation', 'Enterprise after-sale support'],
+    shippingPolicy: 'Online activation after payment confirmation.',
+    afterSalePolicy: 'Enterprise support team handles renewal, change, and service issues.',
+    seoTitle: 'Enterprise AI assistant subscription',
+    seoDescription: 'AI assistant subscription for knowledge base, automation, analytics, and collaboration.',
+    seoKeywords: ['AI assistant', 'subscription', 'enterprise'],
+    shareTitle: 'Enterprise AI assistant',
+    shareDescription: 'Knowledge, automation, analytics, and collaboration in one subscription.',
+    shareImageUrl: 'https://assets.sdkwork.local/products/ai-assistant/share.png',
+    customSections: [
+      {
+        id: 'detail-section-capability',
+        title: 'Capability',
+        body: 'Knowledge Q&A, workflow automation, data insight, and team collaboration.',
+      },
+    ],
+  };
+}
+
+function createDefaultStoreVisibility(): ProductStoreVisibility {
+  return {
+    ...DEFAULT_STORE_VISIBILITY,
+    storeIds: [...DEFAULT_STORE_VISIBILITY.storeIds],
+    channelCodes: [...DEFAULT_STORE_VISIBILITY.channelCodes],
+  };
+}
+
+function createDefaultInventoryPolicy(productType: string): ProductInventoryPolicy {
+  if (productType !== 'physical_good') {
+    return {
+      ...DEFAULT_INVENTORY_POLICY,
+      managed: false,
+      readinessMode: 'not_required',
+      sourceIds: [],
+    };
+  }
+  return {
+    ...DEFAULT_INVENTORY_POLICY,
+    sourceIds: [...DEFAULT_INVENTORY_POLICY.sourceIds],
+  };
+}
+
+function createDefaultCategoryAttributeValues(): ProductCategoryAttributeValue[] {
+  return [
+    {
+      id: 'category-attribute-brand',
+      attributeId: 'brand',
+      attributeNo: 'ATTR-BRAND',
+      attributeName: 'Brand',
+      valueType: 'text',
+      value: 'SdkWork',
+      displayValue: 'SdkWork',
+      required: true,
+    },
+    {
+      id: 'category-attribute-scenario',
+      attributeId: 'scenario',
+      attributeNo: 'ATTR-SCENARIO',
+      attributeName: 'Scenario',
+      valueType: 'text',
+      value: 'Enterprise collaboration / AI tools',
+      displayValue: 'Enterprise collaboration / AI tools',
+      required: true,
+    },
+  ];
+}
+
+function cloneDetailConfig(detailConfig: ProductDetailConfig): ProductDetailConfig {
+  return {
+    ...detailConfig,
+    galleryImageUrls: [...detailConfig.galleryImageUrls],
+    detailImageUrls: [...detailConfig.detailImageUrls],
+    sellingPoints: [...detailConfig.sellingPoints],
+    parameterRows: detailConfig.parameterRows.map((row) => ({ ...row })),
+    servicePromises: [...detailConfig.servicePromises],
+    seoKeywords: [...detailConfig.seoKeywords],
+    customSections: detailConfig.customSections.map((section) => ({ ...section })),
+  };
+}
+
+function cloneStoreVisibility(storeVisibility: ProductStoreVisibility): ProductStoreVisibility {
+  return {
+    ...storeVisibility,
+    storeIds: [...storeVisibility.storeIds],
+    channelCodes: [...storeVisibility.channelCodes],
+  };
+}
+
+function cloneInventoryPolicy(inventoryPolicy: ProductInventoryPolicy): ProductInventoryPolicy {
+  return {
+    ...inventoryPolicy,
+    sourceIds: [...inventoryPolicy.sourceIds],
+  };
 }
 
 function productSkuBaseTitle(title: string): string {
@@ -2240,7 +2551,7 @@ function findCategoryPath(categoryId: string, nodes = PRODUCT_CATEGORY_TREE, cur
   return [];
 }
 
-function normalizeRecordId(value: string | number | null | undefined): string | null {
+function normalizeRecordId(value: unknown): string | null {
   if (value === null || value === undefined) {
     return null;
   }

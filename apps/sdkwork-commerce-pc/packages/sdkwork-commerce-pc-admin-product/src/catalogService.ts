@@ -13,6 +13,7 @@ export interface CommerceProductAdminService {
   deleteCategory(categoryId: string): Promise<unknown>;
   initializeCategorySeeds(body: Record<string, unknown>): Promise<unknown>;
   listProducts(params?: Record<string, unknown>): Promise<unknown>;
+  retrieveProduct(productId: string): Promise<unknown>;
   createProduct(body: Record<string, unknown>): Promise<unknown>;
   updateProduct(productId: string, body: Record<string, unknown>): Promise<unknown>;
   deleteProduct(productId: string): Promise<unknown>;
@@ -35,12 +36,13 @@ export function createCommerceProductAdminService(
 ): CommerceProductAdminService {
   const catalog = resolveCatalogService(options.commerceService);
   return {
-    listCategories: (params) => catalog.categories.list(params),
+    listCategories: (params) => catalog.categories.management.list(params),
     createCategory: (body) => catalog.categories.create(body),
     updateCategory: (categoryId, body) => catalog.categories.update(categoryId, body),
     deleteCategory: (categoryId) => catalog.categories.delete(categoryId),
     initializeCategorySeeds: (body) => catalog.categorySeeds.create(body),
-    listProducts: (params) => catalog.products.list(params),
+    listProducts: (params) => catalog.products.management.list(params),
+    retrieveProduct: (productId) => catalog.products.management.retrieve(productId),
     createProduct: (body) => catalog.products.create(body),
     updateProduct: (productId, body) => catalog.products.update(productId, body),
     deleteProduct: (productId) => catalog.products.delete(productId),
@@ -48,7 +50,7 @@ export function createCommerceProductAdminService(
     createSku: (body) => catalog.skus.create(body),
     updateSku: (skuId, body) => catalog.skus.update(skuId, body),
     deleteSku: (skuId) => catalog.skus.delete(skuId),
-    listAttributes: (params) => catalog.attributes.list(params),
+    listAttributes: (params) => catalog.attributes.management.list(params),
     createAttribute: (body) => catalog.attributes.create(body),
     listCategoryAttributes: (params) => catalog.categoryAttributes.list(params),
     createCategoryAttribute: (body) => catalog.categoryAttributes.create(body),
@@ -82,6 +84,10 @@ export async function listCommerceCategories(params?: Record<string, unknown>) {
 
 export async function listCommerceProducts(params?: Record<string, unknown>) {
   return defaultService().listProducts(params);
+}
+
+export async function retrieveCommerceProduct(productId: string) {
+  return defaultService().retrieveProduct(productId);
 }
 
 export async function listCommerceSkus(params?: Record<string, unknown>) {
