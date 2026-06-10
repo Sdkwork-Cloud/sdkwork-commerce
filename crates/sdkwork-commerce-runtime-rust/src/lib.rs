@@ -543,6 +543,7 @@ pub fn first_slice_capability_manifest() -> Vec<&'static str> {
     vec![
         "commerce.shop.profile",
         "commerce.shop.selfService",
+        "commerce.shop.readiness",
         "commerce.shop.onboarding",
         "commerce.shop.verification",
         "commerce.shop.channel",
@@ -679,6 +680,7 @@ pub fn first_slice_service_contracts() -> Vec<CommerceServiceContract> {
                 "shops.retrieve",
                 "shops.current.retrieve",
                 "shops.current.dashboard.retrieve",
+                "shops.current.readiness.retrieve",
                 "shops.current.applications.list",
                 "shops.current.categoryBindings.list",
                 "shops.current.brandAuthorizations.list",
@@ -706,6 +708,7 @@ pub fn first_slice_service_contracts() -> Vec<CommerceServiceContract> {
                 "shops.policies.list",
                 "shops.depositAccount.retrieve",
                 "shops.riskSignals.list",
+                "shops.readiness.retrieve",
                 "shops.categoryBindings.list",
                 "shops.brandAuthorizations.list",
                 "shops.qualifications.list",
@@ -762,6 +765,11 @@ pub fn operation_contracts() -> Vec<CommerceOperationContract> {
             "shops.current.dashboard.retrieve",
             "commerce.shop",
             "commerce.shop.selfService",
+        ),
+        read(
+            "shops.current.readiness.retrieve",
+            "commerce.shop",
+            "commerce.shop.readiness",
         ),
         read(
             "shops.current.applications.list",
@@ -1174,6 +1182,11 @@ pub fn operation_contracts() -> Vec<CommerceOperationContract> {
             "shops.riskSignals.resolve",
             "commerce.shop",
             "commerce.shop.risk",
+        ),
+        read(
+            "shops.readiness.retrieve",
+            "commerce.shop",
+            "commerce.shop.readiness",
         ),
         write(
             "catalog.attributes.create",

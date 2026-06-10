@@ -173,6 +173,23 @@ CREATE TABLE IF NOT EXISTS commerce_shop_metric_snapshot (
   UNIQUE (tenant_id, shop_id, snapshot_date)
 );
 
+CREATE TABLE IF NOT EXISTS commerce_shop_readiness (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  readiness_scope TEXT NOT NULL,
+  readiness_status TEXT NOT NULL,
+  blocking_count INTEGER NOT NULL DEFAULT 0,
+  warning_count INTEGER NOT NULL DEFAULT 0,
+  checklist_json TEXT NOT NULL DEFAULT '[]',
+  evaluated_at TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  version INTEGER NOT NULL DEFAULT 0,
+  UNIQUE (tenant_id, shop_id, readiness_scope)
+);
+
 CREATE TABLE IF NOT EXISTS commerce_shop_business_hour (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
@@ -1838,6 +1855,9 @@ CREATE INDEX IF NOT EXISTS idx_commerce_shop_settlement_profile_status
 
 CREATE INDEX IF NOT EXISTS idx_commerce_shop_metric_snapshot_shop_date
   ON commerce_shop_metric_snapshot (tenant_id, shop_id, snapshot_date);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_readiness_status
+  ON commerce_shop_readiness (tenant_id, shop_id, readiness_status, evaluated_at);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_shop_business_hour_shop
   ON commerce_shop_business_hour (tenant_id, shop_id, status, effective_from);

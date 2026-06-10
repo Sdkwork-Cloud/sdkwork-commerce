@@ -107,6 +107,11 @@ fn canonical_app_route_specs() -> Vec<(HttpMethod, &'static str, &'static str)> 
         ),
         (
             HttpMethod::Get,
+            "/app/v3/api/shops/current/readiness",
+            "shops.current.readiness.retrieve",
+        ),
+        (
+            HttpMethod::Get,
             "/app/v3/api/shops/current/category_bindings",
             "shops.current.categoryBindings.list",
         ),
@@ -652,6 +657,11 @@ fn canonical_backend_route_specs() -> Vec<(HttpMethod, &'static str, &'static st
             HttpMethod::Get,
             "/backend/v3/api/shops/{shopId}",
             "shops.management.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/readiness",
+            "shops.readiness.retrieve",
         ),
         (
             HttpMethod::Patch,

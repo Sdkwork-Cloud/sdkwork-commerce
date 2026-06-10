@@ -351,6 +351,56 @@ function createShopSchemas() {
       "createdAt",
     ],
   );
+  const shopReadinessItem = objectSchema(
+    {
+      code: stringSchema,
+      title: stringSchema,
+      status: stringSchema,
+      severity: stringSchema,
+      sourceType: stringSchema,
+      sourceId: stringSchema,
+      blocking: booleanSchema,
+      message: stringSchema,
+      actionHint: stringSchema,
+      evaluatedAt: stringSchema,
+    },
+    ["code", "title", "status", "severity", "blocking", "evaluatedAt"],
+  );
+  const shopReadiness = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      readinessScope: stringSchema,
+      readinessStatus: stringSchema,
+      blockingCount: nonNegativeIntegerSchema,
+      warningCount: nonNegativeIntegerSchema,
+      checklist: {
+        type: "array",
+        items: { $ref: "#/components/schemas/ShopReadinessItem" },
+      },
+      evaluatedAt: stringSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+      version: integerSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "readinessScope",
+      "readinessStatus",
+      "blockingCount",
+      "warningCount",
+      "checklist",
+      "evaluatedAt",
+      "createdAt",
+      "updatedAt",
+      "version",
+    ],
+  );
   const shopBusinessHour = objectSchema(
     {
       id: stringSchema,
@@ -742,6 +792,8 @@ function createShopSchemas() {
     ShopFulfillmentProfile: shopFulfillmentProfile,
     ShopSettlementProfile: shopSettlementProfile,
     ShopMetricSnapshot: shopMetricSnapshot,
+    ShopReadiness: shopReadiness,
+    ShopReadinessItem: shopReadinessItem,
     ShopBusinessHour: shopBusinessHour,
     ShopServiceArea: shopServiceArea,
     ShopPolicy: shopPolicy,
@@ -778,6 +830,9 @@ function createShopSchemas() {
         ],
       ),
     ),
+    ShopReadinessResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopReadiness",
+    }),
     ShopApplicationListResponse: apiResultSchema(
       pagedListSchema({ $ref: "#/components/schemas/ShopApplication" }, pageInfoSchema),
     ),

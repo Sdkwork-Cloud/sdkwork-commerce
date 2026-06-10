@@ -24,7 +24,7 @@ use sdkwork_commerce_storage_sqlx::{
 fn exposes_first_slice_commerce_table_catalog() {
     let tables = commerce_database_tables();
 
-    assert_eq!(tables.len(), 91);
+    assert_eq!(tables.len(), 92);
     assert!(tables.contains(&"commerce_idempotency_key"));
     assert!(tables.contains(&"commerce_shop"));
     assert!(tables.contains(&"commerce_shop_application"));
@@ -34,6 +34,7 @@ fn exposes_first_slice_commerce_table_catalog() {
     assert!(tables.contains(&"commerce_shop_fulfillment_profile"));
     assert!(tables.contains(&"commerce_shop_settlement_profile"));
     assert!(tables.contains(&"commerce_shop_metric_snapshot"));
+    assert!(tables.contains(&"commerce_shop_readiness"));
     assert!(tables.contains(&"commerce_shop_business_hour"));
     assert!(tables.contains(&"commerce_shop_service_area"));
     assert!(tables.contains(&"commerce_shop_policy"));
@@ -195,6 +196,14 @@ fn initial_migration_declares_first_slice_tables_and_columns() {
                 .next()
         })
         .expect("shipping template table must be declared before account table");
+    let readiness_table = sql
+        .split("CREATE TABLE IF NOT EXISTS commerce_shop_readiness")
+        .nth(1)
+        .and_then(|tail| {
+            tail.split("CREATE TABLE IF NOT EXISTS commerce_shop_business_hour")
+                .next()
+        })
+        .expect("shop readiness table must be declared before business hour table");
 
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_idempotency_key"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop"));
@@ -207,6 +216,15 @@ fn initial_migration_declares_first_slice_tables_and_columns() {
     assert!(sql.contains("operation_status TEXT NOT NULL"));
     assert!(sql.contains("default_currency_code TEXT NOT NULL"));
     assert!(sql.contains("UNIQUE (tenant_id, shop_no)"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_readiness"));
+    assert!(readiness_table.contains("readiness_scope TEXT NOT NULL"));
+    assert!(readiness_table.contains("readiness_status TEXT NOT NULL"));
+    assert!(readiness_table.contains("blocking_count INTEGER NOT NULL DEFAULT 0"));
+    assert!(readiness_table.contains("warning_count INTEGER NOT NULL DEFAULT 0"));
+    assert!(readiness_table.contains("checklist_json TEXT NOT NULL DEFAULT '[]'"));
+    assert!(readiness_table.contains("evaluated_at TEXT NOT NULL"));
+    assert!(readiness_table.contains("version INTEGER NOT NULL DEFAULT 0"));
+    assert!(readiness_table.contains("UNIQUE (tenant_id, shop_id, readiness_scope)"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_business_hour"));
     assert!(sql.contains("schedule_type TEXT NOT NULL"));
     assert!(sql.contains("weekly_schedule_json TEXT NOT NULL"));
@@ -502,6 +520,7 @@ fn initial_migration_declares_standard_query_indexes() {
         "idx_commerce_idempotency_key_tenant_key",
         "idx_commerce_shop_organization",
         "idx_commerce_shop_status",
+        "idx_commerce_shop_readiness_status",
         "idx_commerce_shop_business_hour_shop",
         "uk_commerce_shop_service_area_scope",
         "idx_commerce_shop_service_area_region",
@@ -734,6 +753,7 @@ fn repository_bindings_cover_first_slice_storage_boundaries() {
             "commerce_shop_fulfillment_profile",
             "commerce_shop_settlement_profile",
             "commerce_shop_metric_snapshot",
+            "commerce_shop_readiness",
             "commerce_shop_business_hour",
             "commerce_shop_service_area",
             "commerce_shop_policy",
@@ -1304,6 +1324,7 @@ fn business_repository_sql_catalogs_cover_every_first_slice_business_repository(
             "commerce_shop_fulfillment_profile",
             "commerce_shop_settlement_profile",
             "commerce_shop_metric_snapshot",
+            "commerce_shop_readiness",
             "commerce_shop_business_hour",
             "commerce_shop_service_area",
             "commerce_shop_policy",
@@ -1392,6 +1413,8 @@ fn business_repository_sql_catalogs_cover_every_first_slice_business_repository(
                 "commerce_shop_business_hour",
                 true
             ),
+            ("shop.find_readiness", "commerce_shop_readiness", false),
+            ("shop.upsert_readiness", "commerce_shop_readiness", true),
             (
                 "shop.list_service_areas",
                 "commerce_shop_service_area",
@@ -3422,8 +3445,8 @@ fn migration_runner_failure_recovery_rejects_recorded_failed_migration() {
 fn storage_capability_manifest_is_complete_for_first_slice_runtime_bootstrap() {
     let manifest = commerce_storage_capability_manifest();
 
-    assert_eq!(manifest.tables.len(), 91);
-    assert_eq!(manifest.indexes.len(), 115);
+    assert_eq!(manifest.tables.len(), 92);
+    assert_eq!(manifest.indexes.len(), 116);
     assert_eq!(manifest.migration_plan.len(), 14);
     assert_eq!(manifest.repository_bindings.len(), 16);
     assert_eq!(manifest.business_repositories.len(), 15);
@@ -3622,6 +3645,7 @@ fn migration_plan_covers_first_slice_tables_by_domain() {
             "commerce_shop_fulfillment_profile",
             "commerce_shop_settlement_profile",
             "commerce_shop_metric_snapshot",
+            "commerce_shop_readiness",
             "commerce_shop_business_hour",
             "commerce_shop_service_area",
             "commerce_shop_policy",

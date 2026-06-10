@@ -58,6 +58,7 @@ fn exposes_first_slice_capabilities_and_service_names() {
     let manifest = first_slice_capability_manifest();
     assert!(manifest.contains(&"commerce.shop.profile"));
     assert!(manifest.contains(&"commerce.shop.selfService"));
+    assert!(manifest.contains(&"commerce.shop.readiness"));
     assert!(manifest.contains(&"commerce.shop.onboarding"));
     assert!(manifest.contains(&"commerce.shop.verification"));
     assert!(manifest.contains(&"commerce.shop.channel"));
@@ -177,6 +178,28 @@ fn runtime_capability_manifest_is_complete_for_first_slice_local_private_host() 
         .any(
             |contract| contract.operation_id == "shops.settlementProfile.approve"
                 && contract.service_name == "commerce.shop"
+        ));
+    assert!(manifest
+        .operation_contracts
+        .iter()
+        .any(
+            |contract| contract.operation_id == "shops.current.readiness.retrieve"
+                && contract.service_name == "commerce.shop"
+                && contract.capability_name == "commerce.shop.readiness"
+                && contract.execution_policy == OperationExecutionPolicy::ReadOnly
+                && !contract.requires_idempotency()
+                && !contract.requires_transaction()
+        ));
+    assert!(manifest
+        .operation_contracts
+        .iter()
+        .any(
+            |contract| contract.operation_id == "shops.readiness.retrieve"
+                && contract.service_name == "commerce.shop"
+                && contract.capability_name == "commerce.shop.readiness"
+                && contract.execution_policy == OperationExecutionPolicy::ReadOnly
+                && !contract.requires_idempotency()
+                && !contract.requires_transaction()
         ));
     assert!(manifest
         .operation_contracts

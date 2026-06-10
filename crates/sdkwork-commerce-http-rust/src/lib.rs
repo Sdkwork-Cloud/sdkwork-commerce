@@ -252,6 +252,12 @@ pub fn app_routes() -> Vec<CommerceHttpRoute> {
         ),
         CommerceHttpRoute::new(
             HttpMethod::Get,
+            "/app/v3/api/shops/current/readiness",
+            "commerce",
+            "shops.current.readiness.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
             "/app/v3/api/shops/current/category_bindings",
             "commerce",
             "shops.current.categoryBindings.list",
@@ -992,6 +998,12 @@ pub fn backend_routes() -> Vec<CommerceHttpRoute> {
             "/backend/v3/api/shops/{shopId}",
             "shops",
             "shops.management.retrieve",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/readiness",
+            "shops",
+            "shops.readiness.retrieve",
         ),
         route(
             HttpMethod::Patch,

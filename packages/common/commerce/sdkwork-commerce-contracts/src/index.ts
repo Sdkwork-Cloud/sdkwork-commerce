@@ -38,6 +38,7 @@ export const SDKWORK_COMMERCE_TABLES = {
   shopFulfillmentProfile: "commerce_shop_fulfillment_profile",
   shopSettlementProfile: "commerce_shop_settlement_profile",
   shopMetricSnapshot: "commerce_shop_metric_snapshot",
+  shopReadiness: "commerce_shop_readiness",
   shopBusinessHour: "commerce_shop_business_hour",
   shopServiceArea: "commerce_shop_service_area",
   shopPolicy: "commerce_shop_policy",
@@ -245,6 +246,12 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
         retrieve: operation("GET", `${app}/shops/current/dashboard`, "shops.current.dashboard.retrieve", undefined, {
           permission: "commerce.shops.self.read",
           responseSchema: "ShopDashboardResponse",
+        }),
+      },
+      readiness: {
+        retrieve: operation("GET", `${app}/shops/current/readiness`, "shops.current.readiness.retrieve", undefined, {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopReadinessResponse",
         }),
       },
       categoryBindings: {
@@ -1073,6 +1080,12 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
           responseSchema: "ShopRiskSignalResponse",
         }),
       },
+      readiness: {
+        retrieve: operation("GET", `${backend}/shops/{shopId}/readiness`, "shops.readiness.retrieve", undefined, {
+          permission: "commerce.shops.read",
+          responseSchema: "ShopReadinessResponse",
+        }),
+      },
       submitReview: operation("POST", `${backend}/shops/{shopId}/submit_review`, "shops.submitReview", undefined, {
         auditEvent: "commerce.shop.review.submitted",
         idempotent: true,
@@ -1433,6 +1446,7 @@ export const SDKWORK_COMMERCE_DOMAIN_MODELS = [
   model("shopFulfillmentProfile", ["shops", "fulfillments"], ["id", "tenant_id", "organization_id", "shop_id", "fulfillment_mode", "shipping_origin_region_code", "service_level_code", "after_sales_policy_json", "service_config_json", "created_at", "updated_at"]),
   model("shopSettlementProfile", ["shops", "payments"], ["id", "tenant_id", "organization_id", "shop_id", "settlement_status", "settlement_cycle", "settlement_currency_code", "account_ref", "risk_hold_days", "settlement_config_json", "reviewed_by", "reviewed_at", "created_at", "updated_at"]),
   model("shopMetricSnapshot", ["shops", "commerceReports"], ["id", "tenant_id", "organization_id", "shop_id", "snapshot_date", "gross_sales_amount", "currency_code", "paid_order_count", "refund_order_count", "fulfillment_pending_count", "settlement_pending_amount", "created_at"]),
+  model("shopReadiness", ["shops"], ["id", "tenant_id", "organization_id", "shop_id", "readiness_scope", "readiness_status", "blocking_count", "warning_count", "checklist_json", "evaluated_at", "created_at", "updated_at", "version"]),
   model("shopBusinessHour", ["shops"], ["id", "tenant_id", "organization_id", "shop_id", "schedule_type", "timezone", "weekly_schedule_json", "holiday_schedule_json", "effective_from", "effective_to", "status", "version", "created_at", "updated_at"]),
   model("shopServiceArea", ["shops", "fulfillments"], ["id", "tenant_id", "organization_id", "shop_id", "area_type", "country_code", "region_code", "city_code", "area_key", "postal_code_pattern", "delivery_radius_meters", "service_status", "service_config_json", "sort_order", "created_at", "updated_at"]),
   model("shopPolicy", ["shops"], ["id", "tenant_id", "organization_id", "shop_id", "policy_type", "policy_status", "policy_version", "policy_json", "published_at", "reviewed_by", "reviewed_at", "created_at", "updated_at"]),
@@ -1539,6 +1553,7 @@ const APP_CURRENT_SHOP_OPERATION_RESOURCE_ORDER = [
   "orders",
   "policies",
   "products",
+  "readiness",
   "retrieve",
   "returnAddresses",
   "riskSignals",
@@ -1565,6 +1580,7 @@ const BACKEND_SHOP_OPERATION_RESOURCE_ORDER = [
   "management",
   "policies",
   "qualifications",
+  "readiness",
   "reject",
   "resume",
   "returnAddresses",
@@ -1581,7 +1597,7 @@ const BACKEND_SHOP_OPERATION_RESOURCE_ORDER = [
 
 export const SDKWORK_COMMERCE_CAPABILITIES = [
   capability("accounts", ["account", "accountLedgerEntry"], operationsForRoot("accounts")),
-  capability("shops", ["shop", "shopApplication", "shopVerification", "shopStatusEvent", "shopChannel", "shopFulfillmentProfile", "shopSettlementProfile", "shopMetricSnapshot", "shopBusinessHour", "shopServiceArea", "shopPolicy", "shopDepositAccount", "shopRiskSignal", "shopCategoryBinding", "shopBrandAuthorization", "shopQualification", "shopCustomerService", "shopReturnAddress", "shopShippingTemplate"], operationsForRoot("shops")),
+  capability("shops", ["shop", "shopApplication", "shopVerification", "shopStatusEvent", "shopChannel", "shopFulfillmentProfile", "shopSettlementProfile", "shopMetricSnapshot", "shopReadiness", "shopBusinessHour", "shopServiceArea", "shopPolicy", "shopDepositAccount", "shopRiskSignal", "shopCategoryBinding", "shopBrandAuthorization", "shopQualification", "shopCustomerService", "shopReturnAddress", "shopShippingTemplate"], operationsForRoot("shops")),
   capability("catalog", ["productCategory", "productSpu", "productSpuCategory", "productSku", "productAttribute", "productAttributeValue", "productSkuAttribute", "productMedia", "priceList", "priceListItem"], operationsForRoot("catalog")),
   capability("inventory", ["inventoryStock", "inventoryReservation", "inventoryMovement"], operationsForRoot("inventory")),
   capability("cart", ["cart", "cartItem"], operationsForRoot("cart")),

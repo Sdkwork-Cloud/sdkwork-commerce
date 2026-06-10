@@ -26,6 +26,7 @@ export const APP_COMMERCE_METHOD_TREE = {
     current: {
       retrieve: true,
       dashboard: { retrieve: true },
+      readiness: { retrieve: true },
       categoryBindings: {
         list: true,
         upsert: true,
@@ -404,6 +405,9 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
       list: true,
       create: true,
       resolve: true,
+    },
+    readiness: {
+      retrieve: true,
     },
   },
   catalog: {

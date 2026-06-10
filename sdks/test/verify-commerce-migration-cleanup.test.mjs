@@ -25,6 +25,7 @@ const requiredCommerceDatabaseTables = [
   "commerce_shop_fulfillment_profile",
   "commerce_shop_settlement_profile",
   "commerce_shop_metric_snapshot",
+  "commerce_shop_readiness",
   "commerce_product_category",
   "commerce_product_spu",
   "commerce_product_sku",
@@ -342,6 +343,15 @@ test("commerce owns the migrated product, order, and payment Rust persistence su
       "paid_order_count INTEGER NOT NULL DEFAULT 0",
       "fulfillment_pending_count INTEGER NOT NULL DEFAULT 0",
     ],
+    commerce_shop_readiness: [
+      "readiness_scope TEXT NOT NULL",
+      "readiness_status TEXT NOT NULL",
+      "blocking_count INTEGER NOT NULL DEFAULT 0",
+      "warning_count INTEGER NOT NULL DEFAULT 0",
+      "checklist_json TEXT NOT NULL DEFAULT '[]'",
+      "evaluated_at TEXT NOT NULL",
+      "version INTEGER NOT NULL DEFAULT 0",
+    ],
   })) {
     assert.ok(
       migrationSource.includes(`CREATE TABLE IF NOT EXISTS ${tableName}`),
@@ -364,6 +374,7 @@ test("commerce owns the migrated product, order, and payment Rust persistence su
     "idx_commerce_shop_fulfillment_profile_shop",
     "idx_commerce_shop_settlement_profile_status",
     "idx_commerce_shop_metric_snapshot_shop_date",
+    "idx_commerce_shop_readiness_status",
   ]) {
     assert.ok(
       migrationSource.includes(`CREATE INDEX IF NOT EXISTS ${indexName}`),
