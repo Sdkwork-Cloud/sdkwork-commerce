@@ -47,7 +47,7 @@ fn bootstrap_manifest_is_complete_for_first_slice_host_startup() {
         manifest.runtime.operation_contracts.len(),
         operation_contracts().len()
     );
-    assert_eq!(manifest.storage.tables.len(), 104);
+    assert_eq!(manifest.storage.tables.len(), 108);
     assert!(manifest.storage.tables.contains(&"commerce_shop"));
     assert!(manifest
         .storage
@@ -107,12 +107,17 @@ fn bootstrap_manifest_is_complete_for_first_slice_host_startup() {
         .storage
         .tables
         .contains(&"commerce_product_spu_category"));
-    assert_eq!(manifest.storage.business_repositories.len(), 15);
+    assert_eq!(manifest.storage.business_repositories.len(), 16);
     assert!(manifest
         .storage
         .business_repositories
         .iter()
         .any(|repository| repository.repository_name == "shop.repository"));
+    assert!(manifest
+        .storage
+        .business_repositories
+        .iter()
+        .any(|repository| repository.repository_name == "after_sales.repository"));
     assert_eq!(
         manifest.http.execution_metadata.len(),
         manifest.http.app_routes.len()
@@ -580,8 +585,8 @@ fn bootstrap_preflight_exposes_host_startup_plan_after_validation() {
         preflight.runtime_operations,
         manifest.runtime.operation_contracts.len()
     );
-    assert_eq!(preflight.storage_tables, 104);
-    assert_eq!(preflight.storage_repositories, 16);
+    assert_eq!(preflight.storage_tables, 108);
+    assert_eq!(preflight.storage_repositories, 17);
     assert_eq!(
         preflight.storage_migration_lock_table,
         "commerce_schema_migration_lock"

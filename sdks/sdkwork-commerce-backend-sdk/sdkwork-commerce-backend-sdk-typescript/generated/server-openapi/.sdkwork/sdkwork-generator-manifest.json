@@ -44,11 +44,15 @@
     },
     {
       "path": "README.md",
-      "sha256": "966ff9fe83b48e5b68406986a105355d98faae465d7631b5843b41040d57bbac"
+      "sha256": "1064a6cfa6c56847d51d2cdf574d5ba1895bb68ab6ceeeaac3e6e769ec74f156"
     },
     {
       "path": "sdkwork-sdk.json",
       "sha256": "a89942124a9c0a31aa79b182da3947d6e0af5bc604fb7db92959121d1de186f1"
+    },
+    {
+      "path": "src/api/after-sales.ts",
+      "sha256": "79ccb6d2a9ebf14b640e6a9f21e72ca0205d3fd472c23804b3097a5c4aee5c78"
     },
     {
       "path": "src/api/audit.ts",
@@ -76,7 +80,7 @@
     },
     {
       "path": "src/api/index.ts",
-      "sha256": "f6138cc5a0b27abe2e8506744f6e2c18e3cac5138689984c77295dfbb7534212"
+      "sha256": "b834ddbd07958f39dbc0e138f7a73b6b0b333be26d9caadf9f743a9abd873b52"
     },
     {
       "path": "src/api/inventory.ts",
@@ -120,7 +124,7 @@
     },
     {
       "path": "src/api/shipments.ts",
-      "sha256": "07e55e4fc2c8df20eb20eb79a09445ac59f79b1ced371a5184cac23e27f15af6"
+      "sha256": "7c7ebe38701ae4e2516d3e8ef5172b320e41b2eac79648d811d4e60c47a265e8"
     },
     {
       "path": "src/api/shops.ts",
@@ -148,7 +152,39 @@
     },
     {
       "path": "src/sdk.ts",
-      "sha256": "3e698171238f3597a1a737756b033da39497a0b3f75dfbb5b1e9c059cae0b75e"
+      "sha256": "a79539823c4ba65dab2b68323217bffd71bcfbb307983a2c45519b349d985a12"
+    },
+    {
+      "path": "src/types/after-sales-event-list-response.ts",
+      "sha256": "f2c4e08e78976b11b9bf4132d128d0800b94f34069344865e4c01d84d8e28ad8"
+    },
+    {
+      "path": "src/types/after-sales-event.ts",
+      "sha256": "f8f269dd029f46471eb983f25681e624f301213a8d17ed63ba990e89b8b91a9f"
+    },
+    {
+      "path": "src/types/after-sales-item.ts",
+      "sha256": "947addc3816ca11cb3561bd899d39c35f0ae4a2968d086a83a012d3ef568e44b"
+    },
+    {
+      "path": "src/types/after-sales-request-list-response.ts",
+      "sha256": "41a2d91018fc2cb3d814cd625e25fc9fd43a9cdd8a4b0d605be2dbb96d2dedb8"
+    },
+    {
+      "path": "src/types/after-sales-request-response.ts",
+      "sha256": "7da829f74ead62e44643c217a573df89c4a52fb516ff949be8a5a548607ccdd5"
+    },
+    {
+      "path": "src/types/after-sales-request.ts",
+      "sha256": "7af797896337bca1a3f0c5e2d78f70ea25d0cb505583239d7686cea53e2f2e26"
+    },
+    {
+      "path": "src/types/after-sales-return-shipment-list-response.ts",
+      "sha256": "03c5871accf3887e68e4ccc7b6eb93972a758bd4911439249cd8c016c9d4d47e"
+    },
+    {
+      "path": "src/types/after-sales-return-shipment.ts",
+      "sha256": "e65e8ae0d7cdb5a6c07f866c7858f44d961825670f6f8da3c1a866337a41682e"
     },
     {
       "path": "src/types/approve-shop-request.ts",
@@ -200,7 +236,7 @@
     },
     {
       "path": "src/types/index.ts",
-      "sha256": "563f0936951702cf44b993aca95027522e2c4ab590e59caa28040972f7e507fc"
+      "sha256": "125d5ac66e0d61f98f0289f48e7147fecdc634b66a41f2dfe27001750064d941"
     },
     {
       "path": "src/types/problem-detail.ts",
@@ -221,6 +257,10 @@
     {
       "path": "src/types/resume-shop-request.ts",
       "sha256": "45c325c00ec3ed854f8c666520530d8a8eb932f88dbbdc48c00866f88aa434ee"
+    },
+    {
+      "path": "src/types/review-after-sales-request.ts",
+      "sha256": "1f25069345028c420c8ecfb538dcb5198fb5e5096c42a1d7dab74bb2c0677444"
     },
     {
       "path": "src/types/review-shop-deposit-account-request.ts",

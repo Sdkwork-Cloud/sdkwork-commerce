@@ -13,6 +13,7 @@ export type CommerceSdkNamespace =
   | "orders"
   | "payments"
   | "refunds"
+  | "afterSales"
   | "fulfillments"
   | "shipments"
   | "entitlements"
@@ -94,6 +95,10 @@ export const SDKWORK_COMMERCE_TABLES = {
   refund: "commerce_refund",
   refundItem: "commerce_refund_item",
   refundAttempt: "commerce_refund_attempt",
+  afterSalesRequest: "commerce_after_sales_request",
+  afterSalesItem: "commerce_after_sales_item",
+  afterSalesReturnShipment: "commerce_after_sales_return_shipment",
+  afterSalesEvent: "commerce_after_sales_event",
   benefitDefinition: "benefit_definition",
   entitlementGrant: "entitlement_grant",
   entitlementAccount: "entitlement_account",
@@ -202,6 +207,7 @@ export const SDKWORK_COMMERCE_STANDARD = {
     "orders",
     "payments",
     "refunds",
+    "afterSales",
     "fulfillments",
     "shipments",
     "entitlements",
@@ -599,12 +605,53 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
     list: operation("GET", `${app}/refunds`, "refunds.list", ["status", "page", "page_size"]),
     retrieve: operation("GET", `${app}/refunds/{refundId}`, "refunds.retrieve"),
   },
+  afterSales: {
+    requests: {
+      list: operation("GET", `${app}/after_sales/requests`, "afterSales.requests.list", ["status", "order_id", "page", "page_size"], {
+        permission: "commerce.afterSales.read",
+        responseSchema: "AfterSalesRequestListResponse",
+      }),
+      create: operation("POST", `${app}/after_sales/requests`, "afterSales.requests.create", undefined, {
+        auditEvent: "commerce.afterSales.request.created",
+        idempotent: true,
+        permission: "commerce.afterSales.write",
+        requestSchema: "CreateAfterSalesRequest",
+        responseSchema: "AfterSalesRequestResponse",
+      }),
+      retrieve: operation("GET", `${app}/after_sales/requests/{afterSalesRequestId}`, "afterSales.requests.retrieve", undefined, {
+        permission: "commerce.afterSales.read",
+        responseSchema: "AfterSalesRequestResponse",
+      }),
+    },
+    returnShipments: {
+      list: operation("GET", `${app}/after_sales/requests/{afterSalesRequestId}/return_shipments`, "afterSales.returnShipments.list", ["status", "page", "page_size"], {
+        permission: "commerce.afterSales.read",
+        responseSchema: "AfterSalesReturnShipmentListResponse",
+      }),
+      create: operation("POST", `${app}/after_sales/requests/{afterSalesRequestId}/return_shipments`, "afterSales.returnShipments.create", undefined, {
+        auditEvent: "commerce.afterSales.returnShipment.created",
+        idempotent: true,
+        permission: "commerce.afterSales.write",
+        requestSchema: "CreateAfterSalesReturnShipmentRequest",
+        responseSchema: "AfterSalesReturnShipmentResponse",
+      }),
+    },
+    events: {
+      list: operation("GET", `${app}/after_sales/requests/{afterSalesRequestId}/events`, "afterSales.events.list", ["page", "page_size"], {
+        permission: "commerce.afterSales.read",
+        responseSchema: "AfterSalesEventListResponse",
+      }),
+    },
+  },
   fulfillments: {
     list: operation("GET", `${app}/fulfillments`, "fulfillments.list", ["status", "page", "page_size"]),
     retrieve: operation("GET", `${app}/fulfillments/{fulfillmentId}`, "fulfillments.retrieve"),
   },
   shipments: {
     retrieve: operation("GET", `${app}/shipments/{shipmentId}`, "shipments.retrieve"),
+    packages: {
+      list: operation("GET", `${app}/shipments/{shipmentId}/packages`, "shipments.packages.list"),
+    },
     trackingEvents: {
       list: operation("GET", `${app}/shipments/{shipmentId}/tracking_events`, "shipments.trackingEvents.list"),
     },
@@ -1265,6 +1312,39 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
         list: operation("GET", `${backend}/refunds/{refundId}/attempts`, "refunds.attempts.list"),
       },
     },
+    afterSales: {
+      management: {
+        list: operation("GET", `${backend}/after_sales/requests`, "afterSales.management.list", ["status", "after_sales_type", "order_id", "shop_id", "page", "page_size"], {
+          permission: "commerce.afterSales.read",
+          responseSchema: "AfterSalesRequestListResponse",
+        }),
+        retrieve: operation("GET", `${backend}/after_sales/requests/{afterSalesRequestId}`, "afterSales.management.retrieve", undefined, {
+          permission: "commerce.afterSales.read",
+          responseSchema: "AfterSalesRequestResponse",
+        }),
+      },
+      reviews: {
+        create: operation("POST", `${backend}/after_sales/requests/{afterSalesRequestId}/reviews`, "afterSales.reviews.create", undefined, {
+          auditEvent: "commerce.afterSales.request.reviewed",
+          idempotent: true,
+          permission: "commerce.afterSales.review",
+          requestSchema: "ReviewAfterSalesRequest",
+          responseSchema: "AfterSalesRequestResponse",
+        }),
+      },
+      returnShipments: {
+        list: operation("GET", `${backend}/after_sales/requests/{afterSalesRequestId}/return_shipments`, "afterSales.returnShipments.list", ["status", "page", "page_size"], {
+          permission: "commerce.afterSales.read",
+          responseSchema: "AfterSalesReturnShipmentListResponse",
+        }),
+      },
+      events: {
+        list: operation("GET", `${backend}/after_sales/requests/{afterSalesRequestId}/events`, "afterSales.events.list", ["page", "page_size"], {
+          permission: "commerce.afterSales.read",
+          responseSchema: "AfterSalesEventListResponse",
+        }),
+      },
+    },
     fulfillments: {
       list: operation("GET", `${backend}/fulfillments`, "fulfillments.management.list", ["status", "page", "page_size"]),
       retrieve: operation("GET", `${backend}/fulfillments/{fulfillmentId}`, "fulfillments.management.retrieve"),
@@ -1273,6 +1353,11 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
     shipments: {
       list: operation("GET", `${backend}/shipments`, "shipments.list", ["status", "page", "page_size"]),
       retrieve: operation("GET", `${backend}/shipments/{shipmentId}`, "shipments.management.retrieve"),
+      packages: {
+        list: operation("GET", `${backend}/shipments/{shipmentId}/packages`, "shipments.packages.management.list"),
+        create: operation("POST", `${backend}/shipments/{shipmentId}/packages`, "shipments.packages.create"),
+        update: operation("PATCH", `${backend}/shipments/{shipmentId}/packages/{packageId}`, "shipments.packages.update"),
+      },
       trackingEvents: {
         list: operation("GET", `${backend}/shipments/{shipmentId}/tracking_events`, "shipments.trackingEvents.list"),
       },
@@ -1506,6 +1591,10 @@ export const SDKWORK_COMMERCE_DOMAIN_MODELS = [
   model("refund", ["refunds"], ["id", "tenant_id", "organization_id", "refund_no", "order_id", "payment_intent_id", "amount", "currency_code", "status", "idempotency_key", "created_at", "updated_at"]),
   model("refundItem", ["refunds"], ["id", "tenant_id", "organization_id", "refund_id", "order_item_id", "quantity", "amount", "currency_code", "created_at", "updated_at"]),
   model("refundAttempt", ["refunds", "payments"], ["id", "tenant_id", "organization_id", "refund_attempt_no", "refund_id", "provider_account_id", "amount", "currency_code", "status", "created_at", "updated_at"]),
+  model("afterSalesRequest", ["afterSales", "orders", "refunds"], ["id", "tenant_id", "organization_id", "after_sales_no", "order_id", "owner_user_id", "shop_id", "refund_id", "replacement_order_id", "after_sales_type", "status", "refund_status", "return_status", "exchange_status", "reason_code", "requested_amount", "approved_amount", "currency_code", "requested_by_type", "reviewer_type", "reviewer_id", "reviewed_at", "closed_at", "request_no", "idempotency_key", "created_at", "updated_at"]),
+  model("afterSalesItem", ["afterSales", "orders", "refunds"], ["id", "tenant_id", "organization_id", "after_sales_id", "order_item_id", "sku_id", "sku_snapshot_json", "requested_quantity", "approved_quantity", "received_quantity", "refunded_quantity", "refund_amount", "replacement_sku_id", "item_status", "created_at", "updated_at"]),
+  model("afterSalesReturnShipment", ["afterSales", "shipments", "fulfillments"], ["id", "tenant_id", "organization_id", "after_sales_id", "return_shipment_no", "shipment_direction", "carrier_code", "carrier_name", "tracking_no", "package_snapshot_json", "ship_from_address_snapshot_json", "ship_to_address_snapshot_json", "status", "shipped_at", "received_at", "request_no", "idempotency_key", "created_at", "updated_at"]),
+  model("afterSalesEvent", ["afterSales", "audit"], ["id", "tenant_id", "organization_id", "after_sales_id", "event_no", "event_type", "from_status", "to_status", "actor_type", "actor_id", "reason_code", "payload_json", "idempotency_key", "created_at"]),
   model("benefitDefinition", ["entitlements"], ["id", "tenant_id", "organization_id", "benefit_code", "name", "benefit_type", "unit_code", "status", "created_at", "updated_at"]),
   model("entitlementGrant", ["entitlements"], ["id", "tenant_id", "organization_id", "grant_no", "subject_type", "subject_id", "benefit_id", "source_type", "source_id", "status", "created_at", "updated_at"]),
   model("entitlementAccount", ["entitlements"], ["id", "tenant_id", "organization_id", "account_no", "subject_type", "subject_id", "benefit_id", "available_amount", "frozen_amount", "status", "created_at", "updated_at"]),
@@ -1539,7 +1628,7 @@ export const SDKWORK_COMMERCE_DOMAIN_MODELS = [
   model("invoiceEvent", ["invoices", "audit"], ["id", "tenant_id", "organization_id", "invoice_id", "event_type", "from_status", "to_status", "created_at"]),
   model("invoiceProviderAttempt", ["invoices"], ["id", "tenant_id", "organization_id", "invoice_id", "provider_code", "status", "created_at", "updated_at"]),
   model("usageStatement", ["commerceReports"], ["id", "tenant_id", "organization_id", "statement_no", "owner_user_id", "period_start", "period_end", "total_credit", "total_debit", "closing_balance", "status", "created_at", "updated_at"]),
-  model("idempotencyKey", ["checkout", "orders", "payments", "refunds", "wallet", "promotions", "invoices"], ["id", "tenant_id", "organization_id", "scope", "operation_id", "idempotency_key", "request_hash", "response_json", "status", "expires_at", "created_at", "updated_at"]),
+  model("idempotencyKey", ["checkout", "orders", "payments", "refunds", "afterSales", "wallet", "promotions", "invoices"], ["id", "tenant_id", "organization_id", "scope", "operation_id", "idempotency_key", "request_hash", "response_json", "status", "expires_at", "created_at", "updated_at"]),
   model("auditLog", ["audit"], ["id", "tenant_id", "organization_id", "audit_no", "actor_type", "actor_id", "operation_id", "source_type", "source_id", "created_at"]),
   model("outboxEvent", ["audit"], ["id", "tenant_id", "organization_id", "event_no", "aggregate_type", "aggregate_id", "event_type", "payload_json", "published_at", "created_at"]),
 ] as const satisfies readonly CommerceDomainModelContract[];
@@ -1611,6 +1700,7 @@ export const SDKWORK_COMMERCE_CAPABILITIES = [
   capability("orders", ["order", "orderItem", "orderAmountBreakdown", "orderEvent", "orderCancellation", "idempotencyKey"], operationsForRoot("orders")),
   capability("payments", ["paymentProvider", "paymentProviderAccount", "paymentMethod", "paymentChannel", "paymentRouteRule", "paymentIntent", "paymentAttempt", "paymentWebhookEvent", "paymentReconciliationRun", "paymentDispute", "idempotencyKey"], operationsForRoot("payments")),
   capability("refunds", ["refund", "refundItem", "refundAttempt", "idempotencyKey"], operationsForRoot("refunds")),
+  capability("afterSales", ["afterSalesRequest", "afterSalesItem", "afterSalesReturnShipment", "afterSalesEvent", "refund", "refundItem", "shipment", "shipmentTrackingEvent", "idempotencyKey"], operationsForRoot("afterSales")),
   capability("fulfillments", ["fulfillmentOrder", "fulfillmentItem", "digitalDelivery"], operationsForRoot("fulfillments")),
   capability("shipments", ["shipment", "shipmentPackage", "shipmentTrackingEvent"], operationsForRoot("shipments")),
   capability("entitlements", ["benefitDefinition", "entitlementGrant", "entitlementAccount", "entitlementLedgerEntry"], operationsForRoot("entitlements")),

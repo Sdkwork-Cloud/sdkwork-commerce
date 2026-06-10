@@ -39,6 +39,9 @@ describe("SDKWork commerce service", () => {
       "commerce.addresses.defaultSelection.create": { addressId: "addr-1", selected: true },
       "commerce.checkout.sessions.orders.create": { orderNo: "order-1" },
       "commerce.payments.intents.attempts.create": { attemptId: "attempt-1" },
+      "commerce.afterSales.requests.create": { afterSalesNo: "as-1" },
+      "commerce.afterSales.returnShipments.create": { returnShipmentNo: "rs-1" },
+      "commerce.afterSales.events.list": [{ eventNo: "ase-1" }],
       "commerce.wallet.accounts.points.retrieve": { balance: "5200" },
       "commerce.memberships.purchases.create": { orderId: "membership-order-1" },
       "commerce.memberships.current.retrieve": { membershipId: "membership-1" },
@@ -51,6 +54,7 @@ describe("SDKWork commerce service", () => {
       "commerce.promotions.discountApplications.settle": { applicationId: "application-1", status: "settled" },
       "commerce.promotions.discountApplications.release": { applicationId: "application-1", status: "released" },
       "commerce.invoices.create": { invoiceId: "invoice-1" },
+      "commerce.shipments.packages.list": [{ packageNo: "pkg-1" }],
     });
     const service = createSdkworkCommerceService({ appClient });
 
@@ -67,6 +71,13 @@ describe("SDKWork commerce service", () => {
     await expect(service.payments.intents.attempts.create("intent-1", {})).resolves.toEqual({
       attemptId: "attempt-1",
     });
+    await expect(service.afterSales.requests.create({ orderId: "order-1", reasonCode: "damaged" })).resolves.toEqual({
+      afterSalesNo: "as-1",
+    });
+    await expect(service.afterSales.returnShipments.create("as-1", { trackingNo: "SF123" })).resolves.toEqual({
+      returnShipmentNo: "rs-1",
+    });
+    await expect(service.afterSales.events.list("as-1")).resolves.toEqual([{ eventNo: "ase-1" }]);
     await expect(service.wallet.accounts.points.retrieve()).resolves.toEqual({ balance: "5200" });
     await expect(service.memberships.current.retrieve()).resolves.toEqual({ membershipId: "membership-1" });
     await expect(service.memberships.packages.list()).resolves.toEqual([{ packageId: "package-1" }]);
@@ -95,9 +106,18 @@ describe("SDKWork commerce service", () => {
       status: "released",
     });
     await expect(service.invoices.create({ orderNo: "order-1" })).resolves.toEqual({ invoiceId: "invoice-1" });
+    await expect(service.shipments.packages.list("shipment-1")).resolves.toEqual([{ packageNo: "pkg-1" }]);
 
     expect(appClient.commerce.cart.items.create).toHaveBeenCalledWith({ skuId: "sku-1", quantity: 1 });
     expect(appClient.commerce.checkout.sessions.orders.create).toHaveBeenCalledWith("session-1", {});
+    expect(appClient.commerce.afterSales.requests.create).toHaveBeenCalledWith({
+      orderId: "order-1",
+      reasonCode: "damaged",
+    });
+    expect(appClient.commerce.afterSales.returnShipments.create).toHaveBeenCalledWith("as-1", {
+      trackingNo: "SF123",
+    });
+    expect(appClient.commerce.afterSales.events.list).toHaveBeenCalledWith("as-1");
     expect(appClient.commerce.promotions.userCoupons.list).toHaveBeenCalledWith({ status: "available" });
     expect(appClient.commerce.promotions.codes.redemptions.create).toHaveBeenCalledWith({
       promotionCode: "WELCOME",
@@ -112,6 +132,7 @@ describe("SDKWork commerce service", () => {
     expect(appClient.commerce.memberships.current.retrieve).toHaveBeenCalledWith();
     expect(appClient.commerce.memberships.packages.list).toHaveBeenCalledWith();
     expect(appClient.commerce.memberships.purchases.create).toHaveBeenCalledWith({ packageId: "package-1" });
+    expect(appClient.commerce.shipments.packages.list).toHaveBeenCalledWith("shipment-1");
     expect(appClient.commerce.wallet.accounts.points.retrieve).toHaveBeenCalledWith();
   });
 
@@ -134,11 +155,18 @@ describe("SDKWork commerce service", () => {
       "commerce.refunds.approvals.create": { refundNo: "refund-1", status: "approved" },
       "commerce.refunds.attempts.create": { refundNo: "refund-1", status: "processing" },
       "commerce.refunds.management.retrieve": { refundNo: "refund-1" },
+      "commerce.afterSales.management.retrieve": { afterSalesNo: "as-1" },
+      "commerce.afterSales.reviews.create": { afterSalesNo: "as-1", status: "approved" },
+      "commerce.afterSales.returnShipments.list": [{ returnShipmentNo: "rs-1" }],
+      "commerce.afterSales.events.list": [{ eventNo: "ase-1" }],
       "commerce.fulfillments.create": { fulfillmentNo: "fulfillment-1" },
       "commerce.fulfillments.update": { fulfillmentNo: "fulfillment-1", status: "packed" },
       "commerce.fulfillments.shipments.create": { shipmentNo: "shipment-1" },
       "commerce.fulfillments.shipments.update": { shipmentNo: "shipment-1", status: "shipped" },
       "commerce.fulfillments.trackingEvents.create": { trackingEventId: "track-1" },
+      "commerce.shipments.packages.management.list": [{ packageNo: "pkg-1" }],
+      "commerce.shipments.packages.create": { packageNo: "pkg-1" },
+      "commerce.shipments.packages.update": { packageNo: "pkg-1", status: "label_printed" },
       "commerce.shipments.trackingEvents.list": [{ shipmentNo: "shipment-1" }],
       "commerce.entitlements.grants.list": [{ grantId: "grant-1" }],
       "commerce.entitlements.accounts.list": [{ accountId: "entitlement-account-1" }],
@@ -218,6 +246,18 @@ describe("SDKWork commerce service", () => {
       reason: "operator-submit",
     })).resolves.toEqual({ refundNo: "refund-1", status: "processing" });
     await expect(service.admin.refunds.management.retrieve("refund-1")).resolves.toEqual({ refundNo: "refund-1" });
+    await expect(service.admin.afterSales.management.retrieve("as-1")).resolves.toEqual({ afterSalesNo: "as-1" });
+    await expect(service.admin.afterSales.reviews.create("as-1", {
+      action: "approve",
+      approvedAmount: "19.90",
+    })).resolves.toEqual({
+      afterSalesNo: "as-1",
+      status: "approved",
+    });
+    await expect(service.admin.afterSales.returnShipments.list("as-1")).resolves.toEqual([
+      { returnShipmentNo: "rs-1" },
+    ]);
+    await expect(service.admin.afterSales.events.list("as-1")).resolves.toEqual([{ eventNo: "ase-1" }]);
     await expect(service.admin.fulfillments.create({ orderId: "order-1" })).resolves.toEqual({
       fulfillmentNo: "fulfillment-1",
     });
@@ -238,6 +278,14 @@ describe("SDKWork commerce service", () => {
     await expect(service.admin.shipments.trackingEvents.list({ shipmentNo: "shipment-1" })).resolves.toEqual([
       { shipmentNo: "shipment-1" },
     ]);
+    await expect(service.admin.shipments.packages.management.list("shipment-1")).resolves.toEqual([{ packageNo: "pkg-1" }]);
+    await expect(service.admin.shipments.packages.create("shipment-1", {
+      packageNo: "pkg-1",
+      weightGram: 1200,
+    })).resolves.toEqual({ packageNo: "pkg-1" });
+    await expect(service.admin.shipments.packages.update("shipment-1", "pkg-1", {
+      status: "label_printed",
+    })).resolves.toEqual({ packageNo: "pkg-1", status: "label_printed" });
     await expect(service.admin.entitlements.grants.list({ subjectId: "user-1" })).resolves.toEqual([
       { grantId: "grant-1" },
     ]);
@@ -310,6 +358,13 @@ describe("SDKWork commerce service", () => {
       providerCode: "wechat_pay",
       reason: "operator-submit",
     });
+    expect(backendClient.commerce.afterSales.management.retrieve).toHaveBeenCalledWith("as-1");
+    expect(backendClient.commerce.afterSales.reviews.create).toHaveBeenCalledWith("as-1", {
+      action: "approve",
+      approvedAmount: "19.90",
+    });
+    expect(backendClient.commerce.afterSales.returnShipments.list).toHaveBeenCalledWith("as-1");
+    expect(backendClient.commerce.afterSales.events.list).toHaveBeenCalledWith("as-1");
     expect(backendClient.commerce.fulfillments.create).toHaveBeenCalledWith({ orderId: "order-1" });
     expect(backendClient.commerce.fulfillments.update).toHaveBeenCalledWith("fulfillment-1", {
       status: "packed",
@@ -328,6 +383,14 @@ describe("SDKWork commerce service", () => {
       "shipment-1",
       { status: "in_transit" },
     );
+    expect(backendClient.commerce.shipments.packages.management.list).toHaveBeenCalledWith("shipment-1");
+    expect(backendClient.commerce.shipments.packages.create).toHaveBeenCalledWith("shipment-1", {
+      packageNo: "pkg-1",
+      weightGram: 1200,
+    });
+    expect(backendClient.commerce.shipments.packages.update).toHaveBeenCalledWith("shipment-1", "pkg-1", {
+      status: "label_printed",
+    });
     expect(backendClient.commerce.entitlements.grants.list).toHaveBeenCalledWith({ subjectId: "user-1" });
     expect(backendClient.commerce.entitlements.accounts.list).toHaveBeenCalledWith({ subjectId: "user-1" });
     expect(backendClient.commerce.entitlements.ledgerEntries.list).toHaveBeenCalledWith({

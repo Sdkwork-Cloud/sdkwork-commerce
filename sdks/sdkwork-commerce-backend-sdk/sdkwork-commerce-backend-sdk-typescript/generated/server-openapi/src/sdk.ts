@@ -8,6 +8,7 @@ import { InventoryApi, createInventoryApi } from './api/inventory';
 import { OrdersApi, createOrdersApi } from './api/orders';
 import { PaymentsApi, createPaymentsApi } from './api/payments';
 import { RefundsApi, createRefundsApi } from './api/refunds';
+import { AfterSalesApi, createAfterSalesApi } from './api/after-sales';
 import { FulfillmentsApi, createFulfillmentsApi } from './api/fulfillments';
 import { ShipmentsApi, createShipmentsApi } from './api/shipments';
 import { EntitlementsApi, createEntitlementsApi } from './api/entitlements';
@@ -29,6 +30,7 @@ export class SdkworkBackendClient {
   public readonly orders: OrdersApi;
   public readonly payments: PaymentsApi;
   public readonly refunds: RefundsApi;
+  public readonly afterSales: AfterSalesApi;
   public readonly fulfillments: FulfillmentsApi;
   public readonly shipments: ShipmentsApi;
   public readonly entitlements: EntitlementsApi;
@@ -54,6 +56,8 @@ export class SdkworkBackendClient {
     this.payments = createPaymentsApi(this.httpClient);
 
     this.refunds = createRefundsApi(this.httpClient);
+
+    this.afterSales = createAfterSalesApi(this.httpClient);
 
     this.fulfillments = createFulfillmentsApi(this.httpClient);
 

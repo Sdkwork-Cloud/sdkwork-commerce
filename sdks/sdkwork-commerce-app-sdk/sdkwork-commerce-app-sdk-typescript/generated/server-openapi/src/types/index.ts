@@ -1,6 +1,18 @@
 export * from './common';
+export type { AfterSalesEvent } from './after-sales-event';
+export type { AfterSalesEventListResponse } from './after-sales-event-list-response';
+export type { AfterSalesItem } from './after-sales-item';
+export type { AfterSalesRequest } from './after-sales-request';
+export type { AfterSalesRequestListResponse } from './after-sales-request-list-response';
+export type { AfterSalesRequestResponse } from './after-sales-request-response';
+export type { AfterSalesReturnShipment } from './after-sales-return-shipment';
+export type { AfterSalesReturnShipmentListResponse } from './after-sales-return-shipment-list-response';
+export type { AfterSalesReturnShipmentResponse } from './after-sales-return-shipment-response';
 export type { CommerceApiResult } from './commerce-api-result';
 export type { CommerceOperationCommand } from './commerce-operation-command';
+export type { CreateAfterSalesRequest } from './create-after-sales-request';
+export type { CreateAfterSalesRequestItem } from './create-after-sales-request-item';
+export type { CreateAfterSalesReturnShipmentRequest } from './create-after-sales-return-shipment-request';
 export type { CreateShopServiceAreaRequest } from './create-shop-service-area-request';
 export type { CurrentShopResponse } from './current-shop-response';
 export type { FieldError } from './field-error';

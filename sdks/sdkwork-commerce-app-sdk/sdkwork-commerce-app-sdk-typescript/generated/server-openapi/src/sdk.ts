@@ -11,6 +11,7 @@ import { CheckoutApi, createCheckoutApi } from './api/checkout';
 import { OrdersApi, createOrdersApi } from './api/orders';
 import { PaymentsApi, createPaymentsApi } from './api/payments';
 import { RefundsApi, createRefundsApi } from './api/refunds';
+import { AfterSalesApi, createAfterSalesApi } from './api/after-sales';
 import { FulfillmentsApi, createFulfillmentsApi } from './api/fulfillments';
 import { ShipmentsApi, createShipmentsApi } from './api/shipments';
 import { MembershipsApi, createMembershipsApi } from './api/memberships';
@@ -32,6 +33,7 @@ export class SdkworkAppClient {
   public readonly orders: OrdersApi;
   public readonly payments: PaymentsApi;
   public readonly refunds: RefundsApi;
+  public readonly afterSales: AfterSalesApi;
   public readonly fulfillments: FulfillmentsApi;
   public readonly shipments: ShipmentsApi;
   public readonly memberships: MembershipsApi;
@@ -60,6 +62,8 @@ export class SdkworkAppClient {
     this.payments = createPaymentsApi(this.httpClient);
 
     this.refunds = createRefundsApi(this.httpClient);
+
+    this.afterSales = createAfterSalesApi(this.httpClient);
 
     this.fulfillments = createFulfillmentsApi(this.httpClient);
 

@@ -53,6 +53,8 @@ const REQUIRED_APP_OPERATION_IDS = [
   "invoices.list",
   "recharges.orders.create",
   "refunds.create",
+  "afterSales.requests.create",
+  "afterSales.returnShipments.create",
 ];
 const REQUIRED_BACKEND_OPERATION_IDS = [
   "catalog.products.management.list",
@@ -84,6 +86,8 @@ const REQUIRED_BACKEND_OPERATION_IDS = [
   "commerceReports.paymentReconciliation.retrieve",
   "reports.commerceOverview.retrieve",
   "refunds.management.list",
+  "afterSales.management.list",
+  "afterSales.reviews.create",
 ];
 const REQUIRED_DATABASE_MARKERS = [
   "commerce_shop",

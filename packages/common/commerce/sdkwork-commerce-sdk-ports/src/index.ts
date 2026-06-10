@@ -192,12 +192,25 @@ export const APP_COMMERCE_METHOD_TREE = {
     list: true,
     retrieve: true,
   },
+  afterSales: {
+    requests: {
+      list: true,
+      create: true,
+      retrieve: true,
+    },
+    returnShipments: {
+      list: true,
+      create: true,
+    },
+    events: { list: true },
+  },
   fulfillments: {
     list: true,
     retrieve: true,
   },
   shipments: {
     retrieve: true,
+    packages: { list: true },
     trackingEvents: { list: true },
   },
   memberships: {
@@ -596,9 +609,23 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
       retrieve: true,
     },
   },
+  afterSales: {
+    management: {
+      list: true,
+      retrieve: true,
+    },
+    reviews: { create: true },
+    returnShipments: { list: true },
+    events: { list: true },
+  },
   shipments: {
     list: true,
     management: { retrieve: true },
+    packages: {
+      management: { list: true },
+      create: true,
+      update: true,
+    },
     trackingEvents: { list: true },
   },
   wallet: {

@@ -23,6 +23,7 @@ const APP_DOMAINS = [
   "orders",
   "payments",
   "refunds",
+  "afterSales",
   "fulfillments",
   "shipments",
   "memberships",
@@ -40,6 +41,7 @@ const BACKEND_DOMAINS = [
   "orders",
   "payments",
   "refunds",
+  "afterSales",
   "fulfillments",
   "shipments",
   "entitlements",
@@ -69,6 +71,7 @@ describe("SDKWork commerce standard contracts", () => {
       "orders",
       "payments",
       "refunds",
+      "afterSales",
       "fulfillments",
       "shipments",
       "entitlements",
@@ -133,8 +136,13 @@ describe("SDKWork commerce standard contracts", () => {
         "/app/v3/api/orders/{orderId}/cancellations",
         "/app/v3/api/payments/intents/{paymentIntentId}/attempts",
         "/app/v3/api/refunds/{refundId}",
+        "/app/v3/api/after_sales/requests",
+        "/app/v3/api/after_sales/requests/{afterSalesRequestId}",
+        "/app/v3/api/after_sales/requests/{afterSalesRequestId}/return_shipments",
+        "/app/v3/api/after_sales/requests/{afterSalesRequestId}/events",
         "/app/v3/api/fulfillments/{fulfillmentId}",
         "/app/v3/api/shipments/{shipmentId}",
+        "/app/v3/api/shipments/{shipmentId}/packages",
         "/app/v3/api/shipments/{shipmentId}/tracking_events",
         "/app/v3/api/memberships/current",
         "/app/v3/api/billing/history",
@@ -178,8 +186,15 @@ describe("SDKWork commerce standard contracts", () => {
         "/backend/v3/api/payments/runtime/snapshot",
         "/backend/v3/api/payments/webhook_events/{eventId}/replays",
         "/backend/v3/api/refunds/{refundId}/attempts",
+        "/backend/v3/api/after_sales/requests",
+        "/backend/v3/api/after_sales/requests/{afterSalesRequestId}",
+        "/backend/v3/api/after_sales/requests/{afterSalesRequestId}/reviews",
+        "/backend/v3/api/after_sales/requests/{afterSalesRequestId}/return_shipments",
+        "/backend/v3/api/after_sales/requests/{afterSalesRequestId}/events",
         "/backend/v3/api/fulfillments/{fulfillmentId}",
         "/backend/v3/api/shipments",
+        "/backend/v3/api/shipments/{shipmentId}/packages",
+        "/backend/v3/api/shipments/{shipmentId}/packages/{packageId}",
         "/backend/v3/api/shipments/{shipmentId}/tracking_events",
         "/backend/v3/api/entitlements/grants",
         "/backend/v3/api/entitlements/accounts",
@@ -277,8 +292,11 @@ describe("SDKWork commerce standard contracts", () => {
         "payments.methods.list",
         "payments.intents.attempts.create",
         "refunds.create",
+        "afterSales.requests.create",
+        "afterSales.returnShipments.create",
         "fulfillments.retrieve",
         "shipments.retrieve",
+        "shipments.packages.list",
         "shipments.trackingEvents.list",
         "entitlements.grants.list",
         "entitlements.accounts.list",
@@ -418,6 +436,10 @@ describe("SDKWork commerce standard contracts", () => {
         paymentAttempt: "commerce_payment_attempt",
         refund: "commerce_refund",
         refundAttempt: "commerce_refund_attempt",
+        afterSalesRequest: "commerce_after_sales_request",
+        afterSalesItem: "commerce_after_sales_item",
+        afterSalesReturnShipment: "commerce_after_sales_return_shipment",
+        afterSalesEvent: "commerce_after_sales_event",
         benefitDefinition: "benefit_definition",
         entitlementAccount: "entitlement_account",
         entitlementLedgerEntry: "entitlement_ledger_entry",
@@ -459,6 +481,81 @@ describe("SDKWork commerce standard contracts", () => {
     }
   });
 
+  it("models after-sales as the post-payment return and exchange segment of the transaction loop", () => {
+    const afterSalesModels = SDKWORK_COMMERCE_DOMAIN_MODELS.filter((model) =>
+      model.capabilities.includes("afterSales"),
+    );
+    const afterSalesTableModels = afterSalesModels.filter((model) => model.name !== "idempotencyKey");
+    const afterSalesCapability = SDKWORK_COMMERCE_CAPABILITIES.find(
+      (capability) => capability.name === "afterSales",
+    );
+
+    expect(afterSalesTableModels.map((model) => model.name)).toEqual([
+      "afterSalesRequest",
+      "afterSalesItem",
+      "afterSalesReturnShipment",
+      "afterSalesEvent",
+    ]);
+    expect(afterSalesCapability?.models).toEqual([
+      "afterSalesRequest",
+      "afterSalesItem",
+      "afterSalesReturnShipment",
+      "afterSalesEvent",
+      "refund",
+      "refundItem",
+      "shipment",
+      "shipmentTrackingEvent",
+      "idempotencyKey",
+    ]);
+    expect(afterSalesCapability?.operations).toEqual([
+      "app.afterSales.events.list",
+      "app.afterSales.requests.create",
+      "app.afterSales.requests.list",
+      "app.afterSales.requests.retrieve",
+      "app.afterSales.returnShipments.create",
+      "app.afterSales.returnShipments.list",
+      "backend.afterSales.events.list",
+      "backend.afterSales.management.list",
+      "backend.afterSales.management.retrieve",
+      "backend.afterSales.returnShipments.list",
+      "backend.afterSales.reviews.create",
+    ]);
+    expect(SDKWORK_COMMERCE_DOMAIN_MODELS).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "afterSalesRequest",
+          table: "commerce_after_sales_request",
+          fields: expect.arrayContaining([
+            "after_sales_no",
+            "order_id",
+            "refund_id",
+            "replacement_order_id",
+            "after_sales_type",
+            "refund_status",
+            "return_status",
+            "exchange_status",
+            "requested_amount",
+            "approved_amount",
+            "idempotency_key",
+          ]),
+        }),
+        expect.objectContaining({
+          name: "afterSalesReturnShipment",
+          table: "commerce_after_sales_return_shipment",
+          fields: expect.arrayContaining([
+            "return_shipment_no",
+            "shipment_direction",
+            "carrier_code",
+            "tracking_no",
+            "ship_from_address_snapshot_json",
+            "ship_to_address_snapshot_json",
+            "idempotency_key",
+          ]),
+        }),
+      ]),
+    );
+  });
+
   it("assigns every route to a composable capability and model set", () => {
     const operationIds = Object.keys(SDKWORK_COMMERCE_OPERATION_IDS).sort();
     const capabilityOperationIds = SDKWORK_COMMERCE_CAPABILITIES.flatMap((capability) => capability.operations).sort();
@@ -474,6 +571,7 @@ describe("SDKWork commerce standard contracts", () => {
       "orders",
       "payments",
       "refunds",
+      "afterSales",
       "fulfillments",
       "shipments",
       "entitlements",
@@ -742,6 +840,10 @@ describe("SDKWork commerce standard contracts", () => {
       "fulfillments.management.list",
       "fulfillments.management.retrieve",
       "shipments.management.retrieve",
+      "shipments.packages.management.list",
+      "shipments.packages.create",
+      "shipments.packages.update",
+      "shipments.trackingEvents.list",
       "memberships.packageGroups.management.list",
       "memberships.packages.management.list",
       "recharges.packages.management.list",
@@ -770,6 +872,7 @@ describe("SDKWork commerce standard contracts", () => {
       "fulfillments.list",
       "fulfillments.retrieve",
       "shipments.retrieve",
+      "shipments.packages.list",
       "memberships.packageGroups.list",
       "memberships.packages.list",
       "recharges.packages.list",

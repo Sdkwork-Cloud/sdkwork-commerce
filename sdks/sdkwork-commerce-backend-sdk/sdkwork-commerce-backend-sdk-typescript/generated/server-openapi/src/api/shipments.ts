@@ -1,7 +1,7 @@
 import { backendApiPath } from './paths';
 import type { HttpClient } from '../http/client';
 
-import type { CommerceApiResult } from '../types';
+import type { CommerceApiResult, CommerceOperationCommand } from '../types';
 
 
 export class ShipmentsTrackingEventsApi {
@@ -15,6 +15,41 @@ export class ShipmentsTrackingEventsApi {
 /** Shipments tracking Events list. */
   async list(shipmentId: string): Promise<CommerceApiResult> {
     return this.client.get<CommerceApiResult>(backendApiPath(`/shipments/${serializePathParameter(shipmentId, { name: 'shipmentId', style: 'simple', explode: false })}/tracking_events`));
+  }
+}
+
+export class ShipmentsPackagesManagementApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Shipments packages management list. */
+  async list(shipmentId: string): Promise<CommerceApiResult> {
+    return this.client.get<CommerceApiResult>(backendApiPath(`/shipments/${serializePathParameter(shipmentId, { name: 'shipmentId', style: 'simple', explode: false })}/packages`));
+  }
+}
+
+export class ShipmentsPackagesApi {
+  private client: HttpClient;
+  public readonly management: ShipmentsPackagesManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new ShipmentsPackagesManagementApi(client);
+  }
+
+
+/** Shipments packages create. */
+  async create(shipmentId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/shipments/${serializePathParameter(shipmentId, { name: 'shipmentId', style: 'simple', explode: false })}/packages`), body, undefined, undefined, 'application/json');
+  }
+
+/** Shipments packages update. */
+  async update(shipmentId: string, packageId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.patch<CommerceApiResult>(backendApiPath(`/shipments/${serializePathParameter(shipmentId, { name: 'shipmentId', style: 'simple', explode: false })}/packages/${serializePathParameter(packageId, { name: 'packageId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
   }
 }
 
@@ -41,11 +76,13 @@ export interface ShipmentsListParams {
 export class ShipmentsApi {
   private client: HttpClient;
   public readonly management: ShipmentsManagementApi;
+  public readonly packages: ShipmentsPackagesApi;
   public readonly trackingEvents: ShipmentsTrackingEventsApi;
 
   constructor(client: HttpClient) {
     this.client = client;
     this.management = new ShipmentsManagementApi(client);
+    this.packages = new ShipmentsPackagesApi(client);
     this.trackingEvents = new ShipmentsTrackingEventsApi(client);
   }
 

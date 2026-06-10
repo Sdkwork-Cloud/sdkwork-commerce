@@ -60,6 +60,7 @@ const client = new SdkworkBackendClient({
 - `client.orders` - orders API
 - `client.payments` - payments API
 - `client.refunds` - refunds API
+- `client.afterSales` - after_sales API
 - `client.fulfillments` - fulfillments API
 - `client.shipments` - shipments API
 - `client.entitlements` - entitlements API
@@ -148,6 +149,21 @@ const params = {
   page_size: 3,
 };
 const result = await client.refunds.management.list(params);
+```
+
+### after_sales
+
+```typescript
+// After Sales management list.
+const params = {
+  status: 'status',
+  after_sales_type: 'after_sales_type',
+  order_id: 'order_id',
+  shop_id: 'shop_id',
+  page: 5,
+  page_size: 6,
+};
+const result = await client.afterSales.management.list(params);
 ```
 
 ### fulfillments

@@ -63,6 +63,7 @@ const client = new SdkworkAppClient({
 - `client.orders` - orders API
 - `client.payments` - payments API
 - `client.refunds` - refunds API
+- `client.afterSales` - after_sales API
 - `client.fulfillments` - fulfillments API
 - `client.shipments` - shipments API
 - `client.memberships` - memberships API
@@ -148,6 +149,19 @@ const params = {
   page_size: 3,
 };
 const result = await client.refunds.list(params);
+```
+
+### after_sales
+
+```typescript
+// After Sales requests list.
+const params = {
+  status: 'status',
+  order_id: 'order_id',
+  page: 3,
+  page_size: 4,
+};
+const result = await client.afterSales.requests.list(params);
 ```
 
 ### fulfillments

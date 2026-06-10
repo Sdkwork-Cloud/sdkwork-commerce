@@ -1,6 +1,7 @@
 use sdkwork_commerce_core::CommerceMoney;
 use sdkwork_commerce_order::{
-    OrderAmountBreakdown, OrderItemDraft, OrderStatus, OrderTransition, PaidOrderReference,
+    order_service_contract, OrderAmountBreakdown, OrderItemDraft, OrderStatus, OrderTransition,
+    PaidOrderReference,
 };
 
 #[test]
@@ -72,4 +73,56 @@ fn paid_order_reference_requires_payment_id_before_invoice_linking() {
     assert_eq!(reference.order_id, "order-1");
     assert_eq!(reference.payment_id, "payment-1");
     assert!(PaidOrderReference::new("order-1", "").is_err());
+}
+
+#[test]
+fn order_service_contract_owns_shipment_package_queries_and_commands() {
+    let contract = order_service_contract();
+
+    for operation_id in ["shipments.packages.create", "shipments.packages.update"] {
+        assert!(
+            contract.write_commands.contains(&operation_id),
+            "shipment package command must be owned by order service: {operation_id}",
+        );
+    }
+
+    for operation_id in [
+        "shipments.packages.list",
+        "shipments.packages.management.list",
+    ] {
+        assert!(
+            contract.read_queries.contains(&operation_id),
+            "shipment package reads must be owned by order service: {operation_id}",
+        );
+    }
+}
+
+#[test]
+fn order_service_contract_owns_after_sales_lifecycle_queries_and_commands() {
+    let contract = order_service_contract();
+
+    for operation_id in [
+        "afterSales.requests.create",
+        "afterSales.returnShipments.create",
+        "afterSales.reviews.create",
+    ] {
+        assert!(
+            contract.write_commands.contains(&operation_id),
+            "after-sales command must be owned by order service: {operation_id}",
+        );
+    }
+
+    for operation_id in [
+        "afterSales.requests.list",
+        "afterSales.requests.retrieve",
+        "afterSales.management.list",
+        "afterSales.management.retrieve",
+        "afterSales.returnShipments.list",
+        "afterSales.events.list",
+    ] {
+        assert!(
+            contract.read_queries.contains(&operation_id),
+            "after-sales read must be owned by order service: {operation_id}",
+        );
+    }
 }

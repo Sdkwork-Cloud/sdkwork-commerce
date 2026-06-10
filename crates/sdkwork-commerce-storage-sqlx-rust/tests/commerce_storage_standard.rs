@@ -24,7 +24,7 @@ use sdkwork_commerce_storage_sqlx::{
 fn exposes_first_slice_commerce_table_catalog() {
     let tables = commerce_database_tables();
 
-    assert_eq!(tables.len(), 104);
+    assert_eq!(tables.len(), 108);
     assert!(tables.contains(&"commerce_idempotency_key"));
     assert!(tables.contains(&"commerce_shop"));
     assert!(tables.contains(&"commerce_shop_application"));
@@ -124,6 +124,10 @@ fn exposes_first_slice_commerce_table_catalog() {
     assert!(tables.contains(&"commerce_refund_item"));
     assert!(tables.contains(&"commerce_refund_attempt"));
     assert!(tables.contains(&"commerce_refund_event"));
+    assert!(tables.contains(&"commerce_after_sales_request"));
+    assert!(tables.contains(&"commerce_after_sales_item"));
+    assert!(tables.contains(&"commerce_after_sales_return_shipment"));
+    assert!(tables.contains(&"commerce_after_sales_event"));
     assert!(tables.contains(&"commerce_exchange_rule"));
     assert!(tables.contains(&"commerce_invoice_title"));
     assert!(tables.contains(&"commerce_invoice"));
@@ -537,6 +541,476 @@ fn initial_migration_declares_first_slice_tables_and_columns() {
 }
 
 #[test]
+fn order_tables_separate_lifecycle_and_amount_allocation_facts() {
+    let sql = commerce_initial_migration_sql();
+    let order = table_definition(sql, "commerce_order");
+    let item = table_definition(sql, "commerce_order_item");
+    let breakdown = table_definition(sql, "commerce_order_amount_breakdown");
+
+    for required_column in [
+        "payment_status TEXT NOT NULL",
+        "fulfillment_status TEXT NOT NULL",
+        "refund_status TEXT NOT NULL",
+    ] {
+        assert!(
+            order.contains(required_column),
+            "commerce_order must include {required_column}",
+        );
+    }
+
+    for required_column in [
+        "product_id TEXT",
+        "shop_id TEXT",
+        "sku_snapshot_json TEXT NOT NULL DEFAULT '{}'",
+        "discount_amount TEXT NOT NULL DEFAULT '0'",
+        "tax_amount TEXT NOT NULL DEFAULT '0'",
+        "fulfillment_status TEXT NOT NULL",
+        "refund_status TEXT NOT NULL",
+    ] {
+        assert!(
+            item.contains(required_column),
+            "commerce_order_item must include {required_column}",
+        );
+    }
+
+    assert!(
+        breakdown.contains(
+            "UNIQUE (tenant_id, order_id, allocation_type, order_item_id, source_type, source_id)",
+        ),
+        "commerce_order_amount_breakdown must allow multiple allocation rows per order",
+    );
+    assert!(
+        !breakdown.contains("UNIQUE (tenant_id, order_id)"),
+        "commerce_order_amount_breakdown must not collapse every allocation into one order row",
+    );
+}
+
+#[test]
+fn payment_intent_and_refund_tables_are_auditable_and_idempotent() {
+    let sql = commerce_initial_migration_sql();
+    let intent = table_definition(sql, "commerce_payment_intent");
+    let refund = table_definition(sql, "commerce_refund");
+
+    for required_column in [
+        "payment_intent_no TEXT NOT NULL",
+        "request_no TEXT NOT NULL",
+        "idempotency_key TEXT NOT NULL",
+    ] {
+        assert!(
+            intent.contains(required_column),
+            "commerce_payment_intent must include {required_column}",
+        );
+    }
+    assert!(intent.contains("UNIQUE (tenant_id, payment_intent_no)"));
+    assert!(intent.contains("UNIQUE (tenant_id, order_id, idempotency_key)"));
+
+    for required_column in [
+        "organization_id TEXT",
+        "order_id TEXT NOT NULL",
+        "currency_code TEXT NOT NULL",
+        "refund_reason_code TEXT",
+        "requested_by_type TEXT NOT NULL",
+        "requested_by TEXT",
+        "request_no TEXT NOT NULL",
+        "idempotency_key TEXT NOT NULL",
+    ] {
+        assert!(
+            refund.contains(required_column),
+            "commerce_refund must include {required_column}",
+        );
+    }
+    assert!(refund.contains("UNIQUE (tenant_id, order_id, idempotency_key)"));
+}
+
+#[test]
+fn after_sales_tables_support_request_items_return_logistics_and_events() {
+    let sql = commerce_initial_migration_sql();
+    let request = table_definition(sql, "commerce_after_sales_request");
+    let item = table_definition(sql, "commerce_after_sales_item");
+    let return_shipment = table_definition(sql, "commerce_after_sales_return_shipment");
+    let event = table_definition(sql, "commerce_after_sales_event");
+
+    for required_column in [
+        "after_sales_no TEXT NOT NULL",
+        "order_id TEXT NOT NULL",
+        "refund_id TEXT",
+        "replacement_order_id TEXT",
+        "after_sales_type TEXT NOT NULL",
+        "status TEXT NOT NULL",
+        "refund_status TEXT NOT NULL DEFAULT 'none'",
+        "return_status TEXT NOT NULL DEFAULT 'none'",
+        "exchange_status TEXT NOT NULL DEFAULT 'none'",
+        "reason_code TEXT",
+        "description TEXT",
+        "evidence_snapshot_json TEXT NOT NULL DEFAULT '[]'",
+        "requested_amount TEXT NOT NULL DEFAULT '0'",
+        "approved_amount TEXT NOT NULL DEFAULT '0'",
+        "currency_code TEXT NOT NULL",
+        "requested_by_type TEXT NOT NULL",
+        "requested_by TEXT",
+        "request_no TEXT NOT NULL",
+        "idempotency_key TEXT NOT NULL",
+    ] {
+        assert!(
+            request.contains(required_column),
+            "commerce_after_sales_request must include {required_column}",
+        );
+    }
+    assert!(request.contains("UNIQUE (tenant_id, after_sales_no)"));
+    assert!(request.contains("UNIQUE (tenant_id, order_id, idempotency_key)"));
+
+    for required_column in [
+        "after_sales_id TEXT NOT NULL",
+        "order_item_id TEXT NOT NULL",
+        "sku_id TEXT",
+        "sku_snapshot_json TEXT NOT NULL DEFAULT '{}'",
+        "requested_quantity INTEGER NOT NULL DEFAULT 0",
+        "approved_quantity INTEGER NOT NULL DEFAULT 0",
+        "received_quantity INTEGER NOT NULL DEFAULT 0",
+        "refunded_quantity INTEGER NOT NULL DEFAULT 0",
+        "replacement_sku_id TEXT",
+        "item_status TEXT NOT NULL",
+    ] {
+        assert!(
+            item.contains(required_column),
+            "commerce_after_sales_item must include {required_column}",
+        );
+    }
+    assert!(item.contains("UNIQUE (tenant_id, after_sales_id, order_item_id)"));
+
+    for required_column in [
+        "after_sales_id TEXT NOT NULL",
+        "return_shipment_no TEXT NOT NULL",
+        "shipment_direction TEXT NOT NULL DEFAULT 'buyer_to_merchant'",
+        "carrier_code TEXT",
+        "tracking_no TEXT",
+        "package_snapshot_json TEXT NOT NULL DEFAULT '[]'",
+        "ship_from_address_snapshot_json TEXT NOT NULL DEFAULT '{}'",
+        "ship_to_address_snapshot_json TEXT NOT NULL DEFAULT '{}'",
+        "status TEXT NOT NULL",
+        "shipped_at TEXT",
+        "received_at TEXT",
+        "request_no TEXT NOT NULL",
+        "idempotency_key TEXT NOT NULL",
+    ] {
+        assert!(
+            return_shipment.contains(required_column),
+            "commerce_after_sales_return_shipment must include {required_column}",
+        );
+    }
+    assert!(return_shipment.contains("UNIQUE (tenant_id, return_shipment_no)"));
+    assert!(return_shipment.contains("UNIQUE (tenant_id, after_sales_id, idempotency_key)"));
+
+    for required_column in [
+        "after_sales_id TEXT NOT NULL",
+        "event_no TEXT NOT NULL",
+        "event_type TEXT NOT NULL",
+        "from_status TEXT",
+        "to_status TEXT NOT NULL",
+        "actor_type TEXT NOT NULL",
+        "actor_id TEXT",
+        "payload_json TEXT NOT NULL DEFAULT '{}'",
+        "request_id TEXT",
+        "idempotency_key TEXT NOT NULL",
+    ] {
+        assert!(
+            event.contains(required_column),
+            "commerce_after_sales_event must include {required_column}",
+        );
+    }
+    assert!(event.contains("UNIQUE (tenant_id, event_no)"));
+}
+
+#[test]
+fn cart_tables_support_owner_scope_and_line_snapshots() {
+    let sql = commerce_initial_migration_sql();
+    let cart = table_definition(sql, "commerce_cart");
+    let item = table_definition(sql, "commerce_cart_item");
+
+    for required_column in [
+        "cart_no TEXT NOT NULL",
+        "owner_user_id TEXT",
+        "owner_type TEXT NOT NULL DEFAULT 'user'",
+        "owner_id TEXT NOT NULL",
+        "channel_code TEXT",
+        "currency_code TEXT",
+        "expires_at TEXT",
+    ] {
+        assert!(
+            cart.contains(required_column),
+            "commerce_cart must include {required_column}",
+        );
+    }
+    assert!(cart.contains("UNIQUE (tenant_id, cart_no)"));
+    assert!(cart.contains("UNIQUE (tenant_id, owner_type, owner_id, status)"));
+    assert!(
+        !cart.contains("UNIQUE (tenant_id, owner_user_id, status)"),
+        "commerce_cart must not collapse every owner scope into owner_user_id",
+    );
+
+    for required_column in [
+        "product_id TEXT",
+        "shop_id TEXT",
+        "sku_snapshot_json TEXT NOT NULL DEFAULT '{}'",
+        "selected_options_hash TEXT NOT NULL DEFAULT ''",
+        "selected_options_json TEXT NOT NULL DEFAULT '{}'",
+        "price_amount_snapshot TEXT",
+        "currency_code TEXT",
+        "added_source TEXT",
+    ] {
+        assert!(
+            item.contains(required_column),
+            "commerce_cart_item must include {required_column}",
+        );
+    }
+    assert!(item.contains("UNIQUE (tenant_id, cart_id, sku_id, selected_options_hash)"));
+    assert!(
+        !item.contains("UNIQUE (tenant_id, cart_id, sku_id)"),
+        "commerce_cart_item must allow the same sku with different option selections",
+    );
+}
+
+#[test]
+fn checkout_tables_preserve_submission_snapshots_and_reservations() {
+    let sql = commerce_initial_migration_sql();
+    let session = table_definition(sql, "commerce_checkout_session");
+    let line = table_definition(sql, "commerce_checkout_line");
+    let quote = table_definition(sql, "commerce_checkout_quote");
+
+    for required_column in [
+        "cart_id TEXT",
+        "channel_code TEXT",
+        "shipping_address_snapshot_json TEXT",
+        "billing_address_snapshot_json TEXT",
+        "promotion_snapshot_json TEXT NOT NULL DEFAULT '[]'",
+        "inventory_reservation_id TEXT",
+    ] {
+        assert!(
+            session.contains(required_column),
+            "commerce_checkout_session must include {required_column}",
+        );
+    }
+    assert!(session.contains("UNIQUE (tenant_id, owner_user_id, idempotency_key)"));
+
+    for required_column in [
+        "product_id TEXT",
+        "sku_snapshot_json TEXT NOT NULL DEFAULT '{}'",
+        "selected_options_hash TEXT NOT NULL DEFAULT ''",
+        "selected_options_json TEXT NOT NULL DEFAULT '{}'",
+        "promotion_snapshot_json TEXT NOT NULL DEFAULT '[]'",
+        "inventory_reservation_id TEXT",
+    ] {
+        assert!(
+            line.contains(required_column),
+            "commerce_checkout_line must include {required_column}",
+        );
+    }
+    assert!(line.contains("UNIQUE (tenant_id, checkout_session_id, sku_id, selected_options_hash)"));
+    assert!(
+        !line.contains("UNIQUE (tenant_id, checkout_session_id, sku_id)"),
+        "commerce_checkout_line must allow the same sku with different option selections",
+    );
+
+    for required_column in [
+        "shipping_quote_snapshot_json TEXT NOT NULL DEFAULT '{}'",
+        "tax_quote_snapshot_json TEXT NOT NULL DEFAULT '{}'",
+        "promotion_snapshot_json TEXT NOT NULL DEFAULT '[]'",
+        "inventory_reservation_snapshot_json TEXT NOT NULL DEFAULT '{}'",
+    ] {
+        assert!(
+            quote.contains(required_column),
+            "commerce_checkout_quote must include {required_column}",
+        );
+    }
+}
+
+#[test]
+fn inventory_tables_support_checkout_reservation_and_movement_ledger_facts() {
+    let sql = commerce_initial_migration_sql();
+    let stock = table_definition(sql, "commerce_inventory_stock");
+    let reservation = table_definition(sql, "commerce_inventory_reservation");
+    let movement = table_definition(sql, "commerce_inventory_movement");
+
+    for required_column in [
+        "shop_id TEXT",
+        "fulfillment_node_id TEXT NOT NULL DEFAULT ''",
+        "on_hand_quantity INTEGER NOT NULL DEFAULT 0",
+        "locked_quantity INTEGER NOT NULL DEFAULT 0",
+        "safety_stock_quantity INTEGER NOT NULL DEFAULT 0",
+    ] {
+        assert!(
+            stock.contains(required_column),
+            "commerce_inventory_stock must include {required_column}",
+        );
+    }
+    assert!(stock.contains("UNIQUE (tenant_id, sku_id, warehouse_id, fulfillment_node_id)"));
+
+    for required_column in [
+        "order_id TEXT",
+        "checkout_session_id TEXT",
+        "order_item_id TEXT",
+        "reservation_source_type TEXT NOT NULL DEFAULT 'order'",
+        "reservation_source_id TEXT NOT NULL",
+        "reservation_type TEXT NOT NULL DEFAULT 'stock'",
+        "reserved_quantity INTEGER NOT NULL",
+        "consumed_quantity INTEGER NOT NULL DEFAULT 0",
+        "released_quantity INTEGER NOT NULL DEFAULT 0",
+        "release_reason_code TEXT",
+    ] {
+        assert!(
+            reservation.contains(required_column),
+            "commerce_inventory_reservation must include {required_column}",
+        );
+    }
+    assert!(
+        !reservation.contains("order_id TEXT NOT NULL"),
+        "commerce_inventory_reservation must support checkout reservations before order creation",
+    );
+    assert!(reservation.contains(
+        "UNIQUE (tenant_id, reservation_source_type, reservation_source_id, sku_id, warehouse_id, idempotency_key)",
+    ));
+
+    for required_column in [
+        "source_type TEXT NOT NULL",
+        "direction TEXT NOT NULL",
+        "quantity_before INTEGER",
+        "quantity_after INTEGER",
+        "occurred_at TEXT NOT NULL",
+    ] {
+        assert!(
+            movement.contains(required_column),
+            "commerce_inventory_movement must include {required_column}",
+        );
+    }
+    assert!(movement
+        .contains("UNIQUE (tenant_id, source_type, source_id, movement_type, idempotency_key)"));
+}
+
+#[test]
+fn fulfillment_tables_support_split_execution_quantities() {
+    let sql = commerce_initial_migration_sql();
+    let fulfillment = table_definition(sql, "commerce_fulfillment_order");
+    let item = table_definition(sql, "commerce_fulfillment_item");
+
+    for required_column in [
+        "fulfillment_source_type TEXT NOT NULL DEFAULT 'order'",
+        "fulfillment_source_id TEXT",
+        "service_level_code TEXT",
+        "ship_from_address_snapshot_json TEXT NOT NULL DEFAULT '{}'",
+        "ship_to_address_snapshot_json TEXT NOT NULL DEFAULT '{}'",
+    ] {
+        assert!(
+            fulfillment.contains(required_column),
+            "commerce_fulfillment_order must include {required_column}",
+        );
+    }
+    assert!(fulfillment.contains("UNIQUE (tenant_id, order_id, idempotency_key)"));
+
+    for required_column in [
+        "requested_quantity INTEGER NOT NULL",
+        "reserved_quantity INTEGER NOT NULL DEFAULT 0",
+        "picked_quantity INTEGER NOT NULL DEFAULT 0",
+        "packed_quantity INTEGER NOT NULL DEFAULT 0",
+        "shipped_quantity INTEGER NOT NULL DEFAULT 0",
+        "delivered_quantity INTEGER NOT NULL DEFAULT 0",
+        "cancelled_quantity INTEGER NOT NULL DEFAULT 0",
+    ] {
+        assert!(
+            item.contains(required_column),
+            "commerce_fulfillment_item must include {required_column}",
+        );
+    }
+}
+
+#[test]
+fn shipment_tables_capture_package_tracking_and_delivery_audit() {
+    let sql = commerce_initial_migration_sql();
+    let shipment = table_definition(sql, "commerce_shipment");
+    let package = table_definition(sql, "commerce_shipment_package");
+    let event = table_definition(sql, "commerce_shipment_tracking_event");
+    let delivery = table_definition(sql, "commerce_digital_delivery");
+
+    for required_column in [
+        "shipping_method TEXT",
+        "carrier_account_ref TEXT",
+        "tracking_url TEXT",
+        "ship_from_address_snapshot_json TEXT NOT NULL DEFAULT '{}'",
+        "ship_to_address_snapshot_json TEXT NOT NULL DEFAULT '{}'",
+        "request_no TEXT NOT NULL DEFAULT ''",
+        "idempotency_key TEXT NOT NULL DEFAULT ''",
+    ] {
+        assert!(
+            shipment.contains(required_column),
+            "commerce_shipment must include {required_column}",
+        );
+    }
+    assert!(shipment.contains("UNIQUE (tenant_id, fulfillment_id, idempotency_key)"));
+
+    for required_column in [
+        "tracking_no TEXT",
+        "item_snapshot_json TEXT NOT NULL DEFAULT '[]'",
+        "label_payload_hash TEXT",
+    ] {
+        assert!(
+            package.contains(required_column),
+            "commerce_shipment_package must include {required_column}",
+        );
+    }
+
+    for required_column in [
+        "tracking_event_no TEXT NOT NULL",
+        "event_id TEXT",
+        "ingested_at TEXT NOT NULL",
+        "payload_hash TEXT",
+        "payload_json TEXT NOT NULL DEFAULT '{}'",
+    ] {
+        assert!(
+            event.contains(required_column),
+            "commerce_shipment_tracking_event must include {required_column}",
+        );
+    }
+    assert!(event.contains("UNIQUE (tenant_id, carrier_code, tracking_event_no)"));
+
+    for required_column in [
+        "delivery_type TEXT NOT NULL DEFAULT 'digital_asset'",
+        "recipient_user_id TEXT",
+        "license_key_hash TEXT",
+        "payload_json TEXT NOT NULL DEFAULT '{}'",
+        "request_no TEXT NOT NULL DEFAULT ''",
+        "idempotency_key TEXT NOT NULL DEFAULT ''",
+    ] {
+        assert!(
+            delivery.contains(required_column),
+            "commerce_digital_delivery must include {required_column}",
+        );
+    }
+    assert!(delivery.contains("UNIQUE (tenant_id, fulfillment_id, idempotency_key)"));
+}
+
+#[test]
+fn cart_checkout_and_inventory_indexes_follow_hardened_scope_keys() {
+    let sql = commerce_initial_migration_sql();
+
+    assert!(sql.contains("ON commerce_cart (tenant_id, owner_type, owner_id, status)"));
+    assert!(
+        !sql.contains("ON commerce_cart (tenant_id, owner_user_id, status)"),
+        "commerce_cart owner index must match the owner_type/owner_id scope",
+    );
+    assert!(
+        sql.contains("ON commerce_cart_item (tenant_id, cart_id, sku_id, selected_options_hash)",)
+    );
+    assert!(sql.contains(
+        "ON commerce_checkout_line (tenant_id, checkout_session_id, sku_id, selected_options_hash)",
+    ));
+    assert!(
+        sql.contains("CREATE INDEX IF NOT EXISTS idx_commerce_inventory_reservation_source_status")
+    );
+    assert!(sql.contains(
+        "ON commerce_inventory_reservation (tenant_id, reservation_source_type, reservation_source_id, status)",
+    ));
+}
+
+#[test]
 fn shop_service_area_key_normalizes_nullable_location_scope_for_unique_storage() {
     assert_eq!(
         commerce_shop_service_area_key("CN", Some(" GD "), Some("SZ"), None, None).unwrap(),
@@ -616,6 +1090,7 @@ fn initial_migration_declares_standard_query_indexes() {
         "idx_commerce_recharge_package_amount_status",
         "idx_commerce_inventory_stock_sku_warehouse",
         "idx_commerce_inventory_reservation_order_status",
+        "idx_commerce_inventory_reservation_source_status",
         "idx_commerce_inventory_reservation_expires_at",
         "idx_commerce_inventory_movement_source",
         "idx_commerce_cart_owner_status",
@@ -668,6 +1143,10 @@ fn initial_migration_declares_standard_query_indexes() {
         "idx_commerce_refund_item_refund",
         "idx_commerce_refund_attempt_status",
         "idx_commerce_refund_event_created",
+        "idx_commerce_after_sales_request_order_status",
+        "idx_commerce_after_sales_item_request_status",
+        "idx_commerce_after_sales_return_shipment_request_status",
+        "idx_commerce_after_sales_event_request_created",
         "idx_commerce_exchange_rule_pair_status",
         "idx_membership_plan_status",
         "idx_membership_plan_code",
@@ -788,6 +1267,7 @@ fn repository_bindings_cover_first_slice_storage_boundaries() {
             "buyer_address.repository",
             "order.repository",
             "payment.repository",
+            "after_sales.repository",
             "exchange.repository",
             "invoice.repository",
             "billing.repository",
@@ -984,6 +1464,22 @@ fn repository_bindings_cover_first_slice_storage_boundaries() {
         ],
     );
     assert!(payment.requires_transaction);
+
+    let after_sales = bindings
+        .iter()
+        .find(|binding| binding.repository_name == "after_sales.repository")
+        .unwrap();
+    assert_eq!(after_sales.domain, "after_sales");
+    assert_eq!(
+        after_sales.tables,
+        vec![
+            "commerce_after_sales_request",
+            "commerce_after_sales_item",
+            "commerce_after_sales_return_shipment",
+            "commerce_after_sales_event",
+        ],
+    );
+    assert!(after_sales.requires_transaction);
 
     let exchange = bindings
         .iter()
@@ -1326,6 +1822,9 @@ fn transaction_boundary_contract_covers_every_transactional_repository() {
     assert!(contract
         .covered_repositories
         .contains(&"payment.repository"));
+    assert!(contract
+        .covered_repositories
+        .contains(&"after_sales.repository"));
 }
 
 #[test]
@@ -1350,6 +1849,7 @@ fn business_repository_sql_catalogs_cover_every_first_slice_business_repository(
             "buyer_address.repository",
             "order.repository",
             "payment.repository",
+            "after_sales.repository",
             "exchange.repository",
             "invoice.repository",
             "billing.repository",
@@ -2081,6 +2581,56 @@ fn business_repository_sql_catalogs_standardize_operation_names_and_tables() {
             && operation.table == "commerce_refund_event"
             && operation.is_write
     }));
+
+    let after_sales = catalogs
+        .iter()
+        .find(|catalog| catalog.repository_name == "after_sales.repository")
+        .unwrap();
+    assert_eq!(after_sales.domain, "after_sales");
+    assert_eq!(
+        after_sales.tables,
+        vec![
+            "commerce_after_sales_request",
+            "commerce_after_sales_item",
+            "commerce_after_sales_return_shipment",
+            "commerce_after_sales_event",
+        ],
+    );
+    assert_eq!(
+        after_sales
+            .operations
+            .iter()
+            .map(|operation| (operation.name, operation.table, operation.is_write))
+            .collect::<Vec<_>>(),
+        vec![
+            (
+                "after_sales.find_request",
+                "commerce_after_sales_request",
+                false,
+            ),
+            (
+                "after_sales.create_request",
+                "commerce_after_sales_request",
+                true,
+            ),
+            (
+                "after_sales.update_request_status",
+                "commerce_after_sales_request",
+                true,
+            ),
+            ("after_sales.record_item", "commerce_after_sales_item", true,),
+            (
+                "after_sales.record_return_shipment",
+                "commerce_after_sales_return_shipment",
+                true,
+            ),
+            (
+                "after_sales.record_event",
+                "commerce_after_sales_event",
+                true,
+            ),
+        ],
+    );
 
     let exchange = catalogs
         .iter()
@@ -3510,11 +4060,11 @@ fn migration_runner_failure_recovery_rejects_recorded_failed_migration() {
 fn storage_capability_manifest_is_complete_for_first_slice_runtime_bootstrap() {
     let manifest = commerce_storage_capability_manifest();
 
-    assert_eq!(manifest.tables.len(), 104);
-    assert_eq!(manifest.indexes.len(), 129);
+    assert_eq!(manifest.tables.len(), 108);
+    assert_eq!(manifest.indexes.len(), 134);
     assert_eq!(manifest.migration_plan.len(), 14);
-    assert_eq!(manifest.repository_bindings.len(), 16);
-    assert_eq!(manifest.business_repositories.len(), 15);
+    assert_eq!(manifest.repository_bindings.len(), 17);
+    assert_eq!(manifest.business_repositories.len(), 16);
     assert!(manifest
         .transaction_boundary
         .covered_repositories
@@ -3692,6 +4242,10 @@ fn migration_plan_covers_first_slice_tables_by_domain() {
             "commerce_refund_item",
             "commerce_refund_attempt",
             "commerce_refund_event",
+            "commerce_after_sales_request",
+            "commerce_after_sales_item",
+            "commerce_after_sales_return_shipment",
+            "commerce_after_sales_event",
         ],
     );
 

@@ -442,6 +442,36 @@ fn canonical_app_route_specs() -> Vec<(HttpMethod, &'static str, &'static str)> 
         ),
         (
             HttpMethod::Get,
+            "/app/v3/api/after_sales/requests",
+            "afterSales.requests.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/after_sales/requests",
+            "afterSales.requests.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/after_sales/requests/{afterSalesRequestId}",
+            "afterSales.requests.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/after_sales/requests/{afterSalesRequestId}/return_shipments",
+            "afterSales.returnShipments.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/after_sales/requests/{afterSalesRequestId}/return_shipments",
+            "afterSales.returnShipments.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/after_sales/requests/{afterSalesRequestId}/events",
+            "afterSales.events.list",
+        ),
+        (
+            HttpMethod::Get,
             "/app/v3/api/fulfillments",
             "fulfillments.list",
         ),
@@ -454,6 +484,11 @@ fn canonical_app_route_specs() -> Vec<(HttpMethod, &'static str, &'static str)> 
             HttpMethod::Get,
             "/app/v3/api/shipments/{shipmentId}",
             "shipments.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shipments/{shipmentId}/packages",
+            "shipments.packages.list",
         ),
         (
             HttpMethod::Get,
@@ -965,6 +1000,31 @@ fn canonical_backend_route_specs() -> Vec<(HttpMethod, &'static str, &'static st
         ),
         (
             HttpMethod::Get,
+            "/backend/v3/api/after_sales/requests",
+            "afterSales.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/after_sales/requests/{afterSalesRequestId}",
+            "afterSales.management.retrieve",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/after_sales/requests/{afterSalesRequestId}/reviews",
+            "afterSales.reviews.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/after_sales/requests/{afterSalesRequestId}/return_shipments",
+            "afterSales.returnShipments.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/after_sales/requests/{afterSalesRequestId}/events",
+            "afterSales.events.list",
+        ),
+        (
+            HttpMethod::Get,
             "/backend/v3/api/fulfillments",
             "fulfillments.management.list",
         ),
@@ -975,8 +1035,33 @@ fn canonical_backend_route_specs() -> Vec<(HttpMethod, &'static str, &'static st
         ),
         (
             HttpMethod::Get,
+            "/backend/v3/api/shipments",
+            "shipments.list",
+        ),
+        (
+            HttpMethod::Get,
             "/backend/v3/api/shipments/{shipmentId}",
             "shipments.management.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shipments/{shipmentId}/packages",
+            "shipments.packages.management.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shipments/{shipmentId}/packages",
+            "shipments.packages.create",
+        ),
+        (
+            HttpMethod::Patch,
+            "/backend/v3/api/shipments/{shipmentId}/packages/{packageId}",
+            "shipments.packages.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shipments/{shipmentId}/tracking_events",
+            "shipments.trackingEvents.list",
         ),
         (
             HttpMethod::Get,
@@ -1341,6 +1426,38 @@ fn app_routes_expose_runtime_execution_metadata_for_handler_generation() {
     assert_eq!(cart_update.capability_name, "commerce.catalog.cart");
     assert!(cart_update.requires_idempotency);
     assert!(cart_update.requires_transaction);
+
+    let after_sales_create = metadata
+        .iter()
+        .find(|entry| entry.operation_id == "afterSales.requests.create")
+        .unwrap();
+    assert_eq!(after_sales_create.service_name, "commerce.order");
+    assert_eq!(
+        after_sales_create.execution_policy,
+        OperationExecutionPolicy::TransactionalWrite,
+    );
+    assert_eq!(
+        after_sales_create.capability_name,
+        "commerce.order.afterSales"
+    );
+    assert!(after_sales_create.requires_idempotency);
+    assert!(after_sales_create.requires_transaction);
+
+    let after_sales_events = metadata
+        .iter()
+        .find(|entry| entry.operation_id == "afterSales.events.list")
+        .unwrap();
+    assert_eq!(after_sales_events.service_name, "commerce.order");
+    assert_eq!(
+        after_sales_events.execution_policy,
+        OperationExecutionPolicy::ReadOnly,
+    );
+    assert_eq!(
+        after_sales_events.capability_name,
+        "commerce.order.afterSales"
+    );
+    assert!(!after_sales_events.requires_idempotency);
+    assert!(!after_sales_events.requires_transaction);
 
     let shop_application = metadata
         .iter()

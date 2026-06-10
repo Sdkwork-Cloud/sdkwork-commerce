@@ -18,12 +18,28 @@ export class ShipmentsTrackingEventsApi {
   }
 }
 
+export class ShipmentsPackagesApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Shipments packages list. */
+  async list(shipmentId: string): Promise<CommerceApiResult> {
+    return this.client.get<CommerceApiResult>(appApiPath(`/shipments/${serializePathParameter(shipmentId, { name: 'shipmentId', style: 'simple', explode: false })}/packages`));
+  }
+}
+
 export class ShipmentsApi {
   private client: HttpClient;
+  public readonly packages: ShipmentsPackagesApi;
   public readonly trackingEvents: ShipmentsTrackingEventsApi;
 
   constructor(client: HttpClient) {
     this.client = client;
+    this.packages = new ShipmentsPackagesApi(client);
     this.trackingEvents = new ShipmentsTrackingEventsApi(client);
   }
 

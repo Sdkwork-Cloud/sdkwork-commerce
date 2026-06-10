@@ -975,9 +975,9 @@ async fn insert_order(
     sqlx::query(
         r#"
         INSERT INTO commerce_order
-            (id, tenant_id, organization_id, owner_user_id, order_no, status, subject, currency_code, request_no, idempotency_key, created_at, paid_at, cancelled_at, expired_at, updated_at)
+            (id, tenant_id, organization_id, owner_user_id, order_no, status, payment_status, fulfillment_status, refund_status, subject, currency_code, request_no, idempotency_key, created_at, paid_at, cancelled_at, expired_at, updated_at)
         VALUES
-            ($1, CAST($2 AS TEXT), CAST($3 AS TEXT), CAST($4 AS TEXT), $5, 'pending_payment', 'points_recharge', $6, $7, $8, $9, NULL, NULL, $10, $9)
+            ($1, CAST($2 AS TEXT), CAST($3 AS TEXT), CAST($4 AS TEXT), $5, 'pending_payment', 'pending', 'unfulfilled', 'none', 'points_recharge', $6, $7, $8, $9, NULL, NULL, $10, $9)
         "#,
     )
     .bind(&command.order_id)
@@ -1005,15 +1005,16 @@ async fn insert_order_item(
     sqlx::query(
         r#"
         INSERT INTO commerce_order_item
-            (id, tenant_id, order_id, sku_id, title, quantity, unit_price_amount, total_amount, created_at)
+            (id, tenant_id, order_id, sku_id, sku_snapshot_json, title, quantity, unit_price_amount, total_amount, fulfillment_status, refund_status, created_at)
         VALUES
-            ($1, CAST($2 AS TEXT), $3, $4, $5, 1, $6, $6, $7)
+            ($1, CAST($2 AS TEXT), $3, $4, $5, $6, 1, $7, $7, 'unfulfilled', 'none', $8)
         "#,
     )
     .bind(&command.order_item_id)
     .bind(&command.tenant_id)
     .bind(&command.order_id)
     .bind(&product.sku_id)
+    .bind(recharge_order_item_snapshot_json(product, product_name))
     .bind(product_name)
     .bind(command.amount.as_str())
     .bind(&command.requested_at)
@@ -1056,9 +1057,9 @@ async fn insert_payment(
     sqlx::query(
         r#"
         INSERT INTO commerce_payment_intent
-            (id, tenant_id, organization_id, owner_user_id, order_id, payment_method, provider_code, amount, currency_code, status, request_no, idempotency_key, created_at, updated_at)
+            (id, tenant_id, organization_id, owner_user_id, order_id, payment_intent_no, payment_method, provider_code, amount, currency_code, status, request_no, idempotency_key, created_at, updated_at)
         VALUES
-            ($1, CAST($2 AS TEXT), CAST($3 AS TEXT), CAST($4 AS TEXT), $5, $6, $7, $8, $9, $10, $11, $12, $13, $13)
+            ($1, CAST($2 AS TEXT), CAST($3 AS TEXT), CAST($4 AS TEXT), $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $14)
         "#,
     )
     .bind(&command.payment_intent_id)
@@ -1066,6 +1067,7 @@ async fn insert_payment(
     .bind(command.organization_id.as_deref())
     .bind(&command.owner_user_id)
     .bind(&command.order_id)
+    .bind(format!("PAY-{}", command.order_no))
     .bind(&method.method_key)
     .bind(&method.provider_code)
     .bind(command.amount.as_str())
@@ -1158,6 +1160,14 @@ fn recharge_history_metadata_json(command: &CreatePointsRechargeOrderCommand) ->
         "packageId": command.package_id,
         "source": command.source,
         "currencyCode": command.currency_code,
+    })
+    .to_string()
+}
+
+fn recharge_order_item_snapshot_json(product: &RechargeProductSku, product_name: &str) -> String {
+    serde_json::json!({
+        "skuId": product.sku_id,
+        "productName": product_name,
     })
     .to_string()
 }

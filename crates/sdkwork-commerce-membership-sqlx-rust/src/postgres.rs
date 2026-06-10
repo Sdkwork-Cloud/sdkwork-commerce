@@ -2105,9 +2105,9 @@ async fn insert_order(
     sqlx::query(
         r#"
         INSERT INTO commerce_order
-            (id, tenant_id, organization_id, owner_user_id, order_no, status, subject, currency_code, request_no, idempotency_key, created_at, paid_at, cancelled_at, expired_at, updated_at)
+            (id, tenant_id, organization_id, owner_user_id, order_no, status, payment_status, fulfillment_status, refund_status, subject, currency_code, request_no, idempotency_key, created_at, paid_at, cancelled_at, expired_at, updated_at)
         VALUES
-            ($1, CAST($2 AS TEXT), CAST($3 AS TEXT), CAST($4 AS TEXT), $5, 'pending_payment', 'membership', 'CNY', $6, $7, $8, NULL, NULL, $9, $8)
+            ($1, CAST($2 AS TEXT), CAST($3 AS TEXT), CAST($4 AS TEXT), $5, 'pending_payment', 'pending', 'unfulfilled', 'none', 'membership', 'CNY', $6, $7, $8, NULL, NULL, $9, $8)
         "#,
     )
     .bind(&command.order_uuid)
@@ -2134,15 +2134,16 @@ async fn insert_order_item(
     sqlx::query(
         r#"
         INSERT INTO commerce_order_item
-            (id, tenant_id, order_id, sku_id, title, quantity, unit_price_amount, total_amount, created_at)
+            (id, tenant_id, order_id, sku_id, sku_snapshot_json, title, quantity, unit_price_amount, total_amount, fulfillment_status, refund_status, created_at)
         VALUES
-            ($1, CAST($2 AS TEXT), $3, CAST($4 AS TEXT), $5, 1, $6, $6, $7)
+            ($1, CAST($2 AS TEXT), $3, CAST($4 AS TEXT), $5, $6, 1, $7, $7, 'unfulfilled', 'none', $8)
         "#,
     )
     .bind(&command.order_item_uuid)
     .bind(command.subject.tenant_id)
     .bind(&command.order_uuid)
     .bind(package.sku_id.as_deref().unwrap_or(""))
+    .bind(membership_order_item_snapshot_json(package))
     .bind(&package.item.name)
     .bind(&package.item.price)
     .bind(&command.requested_at)
@@ -2186,9 +2187,9 @@ async fn insert_payment(
     sqlx::query(
         r#"
         INSERT INTO commerce_payment_intent
-            (id, tenant_id, organization_id, owner_user_id, order_id, payment_method, provider_code, amount, currency_code, status, request_no, idempotency_key, created_at, updated_at)
+            (id, tenant_id, organization_id, owner_user_id, order_id, payment_intent_no, payment_method, provider_code, amount, currency_code, status, request_no, idempotency_key, created_at, updated_at)
         VALUES
-            ($1, CAST($2 AS TEXT), CAST($3 AS TEXT), CAST($4 AS TEXT), $5, $6, $7, $8, 'CNY', $9, $10, $11, $12, $12)
+            ($1, CAST($2 AS TEXT), CAST($3 AS TEXT), CAST($4 AS TEXT), $5, $6, $7, $8, $9, 'CNY', $10, $11, $12, $13, $13)
         "#,
     )
     .bind(&command.payment_uuid)
@@ -2196,6 +2197,7 @@ async fn insert_payment(
     .bind(command.subject.organization_id)
     .bind(command.subject.user_id)
     .bind(&command.order_uuid)
+    .bind(format!("PAY-{}", command.order_no))
     .bind(&method.method_key)
     .bind(&method.provider_code)
     .bind(&package.item.price)
@@ -2616,6 +2618,17 @@ fn plan_version_id_for_storage(plan: &StoredMembershipPlan) -> String {
 
 fn membership_period_id(command: &SubmitMembershipPurchaseCommand) -> String {
     format!("{}-period-1", command.membership_uuid)
+}
+
+fn membership_order_item_snapshot_json(package: &ParsedMembershipPackage) -> String {
+    serde_json::json!({
+        "skuId": package.sku_id.as_deref().unwrap_or(""),
+        "packageId": package.item.id,
+        "packageName": &package.item.name,
+        "durationDays": package.item.duration_days,
+        "planName": package.item.plan_name.as_deref(),
+    })
+    .to_string()
 }
 
 fn admin_plan_version_id(plan_id: &str) -> String {

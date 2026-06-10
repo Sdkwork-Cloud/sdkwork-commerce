@@ -588,6 +588,7 @@ pub fn first_slice_capability_manifest() -> Vec<&'static str> {
         "commerce.order.lifecycle",
         "commerce.order.detail",
         "commerce.order.fulfillment",
+        "commerce.order.afterSales",
         "commerce.order.report",
         "commerce.order.audit",
         "commerce.payment.method",
@@ -1477,6 +1478,51 @@ pub fn operation_contracts() -> Vec<CommerceOperationContract> {
             "commerce.order.lifecycle",
         ),
         read(
+            "afterSales.requests.list",
+            "commerce.order",
+            "commerce.order.afterSales",
+        ),
+        write(
+            "afterSales.requests.create",
+            "commerce.order",
+            "commerce.order.afterSales",
+        ),
+        read(
+            "afterSales.requests.retrieve",
+            "commerce.order",
+            "commerce.order.afterSales",
+        ),
+        read(
+            "afterSales.management.list",
+            "commerce.order",
+            "commerce.order.afterSales",
+        ),
+        read(
+            "afterSales.management.retrieve",
+            "commerce.order",
+            "commerce.order.afterSales",
+        ),
+        write(
+            "afterSales.reviews.create",
+            "commerce.order",
+            "commerce.order.afterSales",
+        ),
+        read(
+            "afterSales.returnShipments.list",
+            "commerce.order",
+            "commerce.order.afterSales",
+        ),
+        write(
+            "afterSales.returnShipments.create",
+            "commerce.order",
+            "commerce.order.afterSales",
+        ),
+        read(
+            "afterSales.events.list",
+            "commerce.order",
+            "commerce.order.afterSales",
+        ),
+        read(
             "payments.methods.list",
             "commerce.payment",
             "commerce.payment.method",
@@ -1973,6 +2019,26 @@ pub fn operation_contracts() -> Vec<CommerceOperationContract> {
         ),
         read(
             "shipments.list",
+            "commerce.order",
+            "commerce.order.fulfillment",
+        ),
+        read(
+            "shipments.packages.list",
+            "commerce.order",
+            "commerce.order.fulfillment",
+        ),
+        read(
+            "shipments.packages.management.list",
+            "commerce.order",
+            "commerce.order.fulfillment",
+        ),
+        write(
+            "shipments.packages.create",
+            "commerce.order",
+            "commerce.order.fulfillment",
+        ),
+        write(
+            "shipments.packages.update",
             "commerce.order",
             "commerce.order.fulfillment",
         ),

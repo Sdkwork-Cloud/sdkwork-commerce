@@ -1088,16 +1088,21 @@ CREATE TABLE IF NOT EXISTS commerce_inventory_stock (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
   organization_id TEXT,
+  shop_id TEXT,
   sku_id TEXT NOT NULL,
   warehouse_id TEXT,
+  fulfillment_node_id TEXT NOT NULL DEFAULT '',
+  on_hand_quantity INTEGER NOT NULL DEFAULT 0,
   available_quantity INTEGER NOT NULL DEFAULT 0,
+  locked_quantity INTEGER NOT NULL DEFAULT 0,
   reserved_quantity INTEGER NOT NULL DEFAULT 0,
   sold_quantity INTEGER NOT NULL DEFAULT 0,
+  safety_stock_quantity INTEGER NOT NULL DEFAULT 0,
   version INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  UNIQUE (tenant_id, sku_id, warehouse_id)
+  UNIQUE (tenant_id, sku_id, warehouse_id, fulfillment_node_id)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_inventory_reservation (
@@ -1105,11 +1110,21 @@ CREATE TABLE IF NOT EXISTS commerce_inventory_reservation (
   tenant_id TEXT NOT NULL,
   organization_id TEXT,
   reservation_no TEXT NOT NULL,
-  order_id TEXT NOT NULL,
+  order_id TEXT,
+  checkout_session_id TEXT,
+  order_item_id TEXT,
+  reservation_source_type TEXT NOT NULL DEFAULT 'order',
+  reservation_source_id TEXT NOT NULL,
+  reservation_type TEXT NOT NULL DEFAULT 'stock',
   sku_id TEXT NOT NULL,
   warehouse_id TEXT,
+  fulfillment_node_id TEXT NOT NULL DEFAULT '',
   quantity INTEGER NOT NULL,
+  reserved_quantity INTEGER NOT NULL DEFAULT 0,
+  consumed_quantity INTEGER NOT NULL DEFAULT 0,
+  released_quantity INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL,
+  release_reason_code TEXT,
   request_no TEXT NOT NULL,
   idempotency_key TEXT NOT NULL,
   expires_at TEXT NOT NULL,
@@ -1117,7 +1132,8 @@ CREATE TABLE IF NOT EXISTS commerce_inventory_reservation (
   released_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  UNIQUE (tenant_id, reservation_no)
+  UNIQUE (tenant_id, reservation_no),
+  UNIQUE (tenant_id, reservation_source_type, reservation_source_id, sku_id, warehouse_id, idempotency_key)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_inventory_movement (
@@ -1127,37 +1143,59 @@ CREATE TABLE IF NOT EXISTS commerce_inventory_movement (
   movement_no TEXT NOT NULL,
   sku_id TEXT NOT NULL,
   warehouse_id TEXT,
+  fulfillment_node_id TEXT NOT NULL DEFAULT '',
   movement_type TEXT NOT NULL,
+  source_type TEXT NOT NULL,
   quantity INTEGER NOT NULL,
+  direction TEXT NOT NULL,
+  quantity_before INTEGER,
+  quantity_after INTEGER,
   business_type TEXT NOT NULL,
   source_id TEXT NOT NULL,
   request_no TEXT NOT NULL,
   idempotency_key TEXT NOT NULL,
+  occurred_at TEXT NOT NULL,
   created_at TEXT NOT NULL,
-  UNIQUE (tenant_id, movement_no)
+  UNIQUE (tenant_id, movement_no),
+  UNIQUE (tenant_id, source_type, source_id, movement_type, idempotency_key)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_cart (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
   organization_id TEXT,
-  owner_user_id TEXT NOT NULL,
+  cart_no TEXT NOT NULL,
+  owner_user_id TEXT,
+  owner_type TEXT NOT NULL DEFAULT 'user',
+  owner_id TEXT NOT NULL,
+  channel_code TEXT,
+  currency_code TEXT,
   status TEXT NOT NULL,
+  expires_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  UNIQUE (tenant_id, owner_user_id, status)
+  UNIQUE (tenant_id, cart_no),
+  UNIQUE (tenant_id, owner_type, owner_id, status)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_cart_item (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
   cart_id TEXT NOT NULL,
+  product_id TEXT,
+  shop_id TEXT,
   sku_id TEXT NOT NULL,
+  sku_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  selected_options_hash TEXT NOT NULL DEFAULT '',
+  selected_options_json TEXT NOT NULL DEFAULT '{}',
   quantity INTEGER NOT NULL,
   selected INTEGER NOT NULL DEFAULT 1,
+  price_amount_snapshot TEXT,
+  currency_code TEXT,
+  added_source TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  UNIQUE (tenant_id, cart_id, sku_id)
+  UNIQUE (tenant_id, cart_id, sku_id, selected_options_hash)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_user_address (
@@ -1185,10 +1223,16 @@ CREATE TABLE IF NOT EXISTS commerce_checkout_session (
   organization_id TEXT,
   checkout_session_no TEXT NOT NULL,
   owner_user_id TEXT NOT NULL,
+  cart_id TEXT,
+  channel_code TEXT,
   source_type TEXT NOT NULL,
   source_id TEXT,
   status TEXT NOT NULL,
   currency_code TEXT NOT NULL,
+  shipping_address_snapshot_json TEXT,
+  billing_address_snapshot_json TEXT,
+  promotion_snapshot_json TEXT NOT NULL DEFAULT '[]',
+  inventory_reservation_id TEXT,
   request_hash TEXT NOT NULL,
   request_no TEXT NOT NULL,
   idempotency_key TEXT NOT NULL,
@@ -1197,7 +1241,7 @@ CREATE TABLE IF NOT EXISTS commerce_checkout_session (
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   UNIQUE (tenant_id, checkout_session_no),
-  UNIQUE (tenant_id, idempotency_key)
+  UNIQUE (tenant_id, owner_user_id, idempotency_key)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_checkout_line (
@@ -1205,17 +1249,23 @@ CREATE TABLE IF NOT EXISTS commerce_checkout_line (
   tenant_id TEXT NOT NULL,
   organization_id TEXT,
   checkout_session_id TEXT NOT NULL,
+  product_id TEXT,
   sku_id TEXT NOT NULL,
+  sku_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  selected_options_hash TEXT NOT NULL DEFAULT '',
+  selected_options_json TEXT NOT NULL DEFAULT '{}',
   shop_id TEXT,
   quantity INTEGER NOT NULL,
   purchase_type TEXT NOT NULL,
   fulfillment_type TEXT NOT NULL,
   price_amount_snapshot TEXT NOT NULL,
   currency_code TEXT NOT NULL,
+  promotion_snapshot_json TEXT NOT NULL DEFAULT '[]',
+  inventory_reservation_id TEXT,
   selected INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  UNIQUE (tenant_id, checkout_session_id, sku_id)
+  UNIQUE (tenant_id, checkout_session_id, sku_id, selected_options_hash)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_checkout_quote (
@@ -1230,6 +1280,10 @@ CREATE TABLE IF NOT EXISTS commerce_checkout_quote (
   tax_amount TEXT NOT NULL DEFAULT '0',
   payable_amount TEXT NOT NULL,
   currency_code TEXT NOT NULL,
+  shipping_quote_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  tax_quote_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  promotion_snapshot_json TEXT NOT NULL DEFAULT '[]',
+  inventory_reservation_snapshot_json TEXT NOT NULL DEFAULT '{}',
   quote_status TEXT NOT NULL,
   expires_at TEXT NOT NULL,
   created_at TEXT NOT NULL,
@@ -1264,6 +1318,9 @@ CREATE TABLE IF NOT EXISTS commerce_order (
   owner_user_id TEXT NOT NULL,
   order_no TEXT NOT NULL,
   status TEXT NOT NULL,
+  payment_status TEXT NOT NULL,
+  fulfillment_status TEXT NOT NULL,
+  refund_status TEXT NOT NULL,
   subject TEXT NOT NULL,
   currency_code TEXT NOT NULL,
   request_no TEXT NOT NULL,
@@ -1280,11 +1337,18 @@ CREATE TABLE IF NOT EXISTS commerce_order_item (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
   order_id TEXT NOT NULL,
+  product_id TEXT,
+  shop_id TEXT,
   sku_id TEXT NOT NULL,
+  sku_snapshot_json TEXT NOT NULL DEFAULT '{}',
   title TEXT NOT NULL,
   quantity INTEGER NOT NULL,
   unit_price_amount TEXT NOT NULL,
+  discount_amount TEXT NOT NULL DEFAULT '0',
+  tax_amount TEXT NOT NULL DEFAULT '0',
   total_amount TEXT NOT NULL,
+  fulfillment_status TEXT NOT NULL,
+  refund_status TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
 
@@ -1303,7 +1367,7 @@ CREATE TABLE IF NOT EXISTS commerce_order_amount_breakdown (
   amount TEXT,
   currency_code TEXT NOT NULL,
   created_at TEXT NOT NULL,
-  UNIQUE (tenant_id, order_id)
+  UNIQUE (tenant_id, order_id, allocation_type, order_item_id, source_type, source_id)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_order_event (
@@ -1351,11 +1415,16 @@ CREATE TABLE IF NOT EXISTS commerce_fulfillment_order (
   organization_id TEXT,
   fulfillment_no TEXT NOT NULL,
   order_id TEXT NOT NULL,
+  fulfillment_source_type TEXT NOT NULL DEFAULT 'order',
+  fulfillment_source_id TEXT,
   shop_id TEXT,
   warehouse_id TEXT,
   fulfillment_type TEXT NOT NULL,
   delivery_method TEXT,
+  service_level_code TEXT,
   recipient_address_snapshot_id TEXT,
+  ship_from_address_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  ship_to_address_snapshot_json TEXT NOT NULL DEFAULT '{}',
   status TEXT NOT NULL,
   promised_ship_at TEXT,
   shipped_at TEXT,
@@ -1365,7 +1434,8 @@ CREATE TABLE IF NOT EXISTS commerce_fulfillment_order (
   idempotency_key TEXT NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  UNIQUE (tenant_id, fulfillment_no)
+  UNIQUE (tenant_id, fulfillment_no),
+  UNIQUE (tenant_id, order_id, idempotency_key)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_fulfillment_item (
@@ -1375,7 +1445,14 @@ CREATE TABLE IF NOT EXISTS commerce_fulfillment_item (
   fulfillment_id TEXT NOT NULL,
   order_item_id TEXT NOT NULL,
   sku_id TEXT,
+  requested_quantity INTEGER NOT NULL DEFAULT 0,
+  reserved_quantity INTEGER NOT NULL DEFAULT 0,
   quantity INTEGER NOT NULL,
+  picked_quantity INTEGER NOT NULL DEFAULT 0,
+  packed_quantity INTEGER NOT NULL DEFAULT 0,
+  shipped_quantity INTEGER NOT NULL DEFAULT 0,
+  delivered_quantity INTEGER NOT NULL DEFAULT 0,
+  cancelled_quantity INTEGER NOT NULL DEFAULT 0,
   fulfilled_quantity INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL,
   created_at TEXT NOT NULL,
@@ -1391,20 +1468,28 @@ CREATE TABLE IF NOT EXISTS commerce_shipment (
   fulfillment_id TEXT NOT NULL,
   carrier_code TEXT NOT NULL,
   carrier_name TEXT,
+  shipping_method TEXT,
   service_level_code TEXT,
+  carrier_account_ref TEXT,
   tracking_no TEXT,
+  tracking_url TEXT,
   ship_from_address_snapshot_id TEXT,
   ship_to_address_snapshot_id TEXT,
+  ship_from_address_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  ship_to_address_snapshot_json TEXT NOT NULL DEFAULT '{}',
   status TEXT NOT NULL,
   label_ref TEXT,
   label_status TEXT,
   shipped_at TEXT,
   delivered_at TEXT,
   exception_at TEXT,
+  request_no TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   UNIQUE (tenant_id, shipment_no),
-  UNIQUE (tenant_id, carrier_code, tracking_no)
+  UNIQUE (tenant_id, carrier_code, tracking_no),
+  UNIQUE (tenant_id, fulfillment_id, idempotency_key)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_shipment_package (
@@ -1414,13 +1499,16 @@ CREATE TABLE IF NOT EXISTS commerce_shipment_package (
   shipment_id TEXT NOT NULL,
   package_no TEXT NOT NULL,
   package_type TEXT NOT NULL,
+  tracking_no TEXT,
   weight_gram INTEGER,
   length_mm INTEGER,
   width_mm INTEGER,
   height_mm INTEGER,
   declared_value_amount TEXT,
   currency_code TEXT,
+  item_snapshot_json TEXT NOT NULL DEFAULT '[]',
   label_ref TEXT,
+  label_payload_hash TEXT,
   status TEXT NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
@@ -1433,13 +1521,18 @@ CREATE TABLE IF NOT EXISTS commerce_shipment_tracking_event (
   organization_id TEXT,
   shipment_id TEXT NOT NULL,
   carrier_code TEXT NOT NULL,
+  tracking_event_no TEXT NOT NULL,
+  event_id TEXT,
   tracking_no TEXT,
   event_type TEXT NOT NULL,
   event_status TEXT,
   event_time TEXT NOT NULL,
   location_text TEXT,
-  payload_json TEXT,
+  ingested_at TEXT NOT NULL,
+  payload_hash TEXT,
+  payload_json TEXT NOT NULL DEFAULT '{}',
   created_at TEXT NOT NULL,
+  UNIQUE (tenant_id, carrier_code, tracking_event_no),
   UNIQUE (tenant_id, shipment_id, event_time, event_type)
 );
 
@@ -1450,14 +1543,21 @@ CREATE TABLE IF NOT EXISTS commerce_digital_delivery (
   delivery_no TEXT NOT NULL,
   fulfillment_id TEXT NOT NULL,
   order_item_id TEXT,
+  delivery_type TEXT NOT NULL DEFAULT 'digital_asset',
+  recipient_user_id TEXT,
   asset_ref TEXT NOT NULL,
   access_grant_ref TEXT,
+  license_key_hash TEXT,
+  payload_json TEXT NOT NULL DEFAULT '{}',
   status TEXT NOT NULL,
   delivered_at TEXT,
   expires_at TEXT,
+  request_no TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  UNIQUE (tenant_id, delivery_no)
+  UNIQUE (tenant_id, delivery_no),
+  UNIQUE (tenant_id, fulfillment_id, idempotency_key)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_payment_intent (
@@ -1466,6 +1566,7 @@ CREATE TABLE IF NOT EXISTS commerce_payment_intent (
   organization_id TEXT,
   owner_user_id TEXT NOT NULL,
   order_id TEXT NOT NULL,
+  payment_intent_no TEXT NOT NULL,
   payment_method TEXT NOT NULL,
   provider_code TEXT NOT NULL,
   amount TEXT NOT NULL,
@@ -1474,7 +1575,9 @@ CREATE TABLE IF NOT EXISTS commerce_payment_intent (
   request_no TEXT NOT NULL,
   idempotency_key TEXT NOT NULL,
   created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, payment_intent_no),
+  UNIQUE (tenant_id, order_id, idempotency_key)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_payment_attempt (
@@ -1898,15 +2001,22 @@ CREATE TABLE IF NOT EXISTS commerce_payment_dispute_event (
 CREATE TABLE IF NOT EXISTS commerce_refund (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
+  organization_id TEXT,
+  order_id TEXT NOT NULL,
   payment_attempt_id TEXT NOT NULL,
   refund_no TEXT NOT NULL,
   amount TEXT NOT NULL,
+  currency_code TEXT NOT NULL,
   status TEXT NOT NULL,
+  refund_reason_code TEXT,
+  requested_by_type TEXT NOT NULL,
+  requested_by TEXT,
   request_no TEXT NOT NULL,
   idempotency_key TEXT NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  UNIQUE (tenant_id, refund_no)
+  UNIQUE (tenant_id, refund_no),
+  UNIQUE (tenant_id, order_id, idempotency_key)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_refund_item (
@@ -1961,6 +2071,103 @@ CREATE TABLE IF NOT EXISTS commerce_refund_event (
   request_id TEXT,
   idempotency_key TEXT NOT NULL,
   created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS commerce_after_sales_request (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT,
+  after_sales_no TEXT NOT NULL,
+  order_id TEXT NOT NULL,
+  owner_user_id TEXT,
+  shop_id TEXT,
+  refund_id TEXT,
+  replacement_order_id TEXT,
+  after_sales_type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  refund_status TEXT NOT NULL DEFAULT 'none',
+  return_status TEXT NOT NULL DEFAULT 'none',
+  exchange_status TEXT NOT NULL DEFAULT 'none',
+  reason_code TEXT,
+  description TEXT,
+  evidence_snapshot_json TEXT NOT NULL DEFAULT '[]',
+  requested_amount TEXT NOT NULL DEFAULT '0',
+  approved_amount TEXT NOT NULL DEFAULT '0',
+  currency_code TEXT NOT NULL,
+  requested_by_type TEXT NOT NULL,
+  requested_by TEXT,
+  reviewer_type TEXT,
+  reviewer_id TEXT,
+  reviewed_at TEXT,
+  closed_at TEXT,
+  request_no TEXT NOT NULL,
+  idempotency_key TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, after_sales_no),
+  UNIQUE (tenant_id, order_id, idempotency_key)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_after_sales_item (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT,
+  after_sales_id TEXT NOT NULL,
+  order_item_id TEXT NOT NULL,
+  sku_id TEXT,
+  sku_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  requested_quantity INTEGER NOT NULL DEFAULT 0,
+  approved_quantity INTEGER NOT NULL DEFAULT 0,
+  received_quantity INTEGER NOT NULL DEFAULT 0,
+  refunded_quantity INTEGER NOT NULL DEFAULT 0,
+  refund_amount TEXT NOT NULL DEFAULT '0',
+  replacement_sku_id TEXT,
+  item_status TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, after_sales_id, order_item_id)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_after_sales_return_shipment (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT,
+  after_sales_id TEXT NOT NULL,
+  return_shipment_no TEXT NOT NULL,
+  shipment_direction TEXT NOT NULL DEFAULT 'buyer_to_merchant',
+  carrier_code TEXT,
+  carrier_name TEXT,
+  tracking_no TEXT,
+  package_snapshot_json TEXT NOT NULL DEFAULT '[]',
+  ship_from_address_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  ship_to_address_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL,
+  shipped_at TEXT,
+  received_at TEXT,
+  request_no TEXT NOT NULL,
+  idempotency_key TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, return_shipment_no),
+  UNIQUE (tenant_id, after_sales_id, idempotency_key)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_after_sales_event (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT,
+  after_sales_id TEXT NOT NULL,
+  event_no TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  from_status TEXT,
+  to_status TEXT NOT NULL,
+  actor_type TEXT NOT NULL,
+  actor_id TEXT,
+  payload_json TEXT NOT NULL DEFAULT '{}',
+  request_id TEXT,
+  idempotency_key TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  UNIQUE (tenant_id, event_no)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_exchange_rule (
@@ -2182,22 +2389,25 @@ CREATE INDEX IF NOT EXISTS idx_commerce_recharge_package_amount_status
   ON commerce_recharge_package (tenant_id, organization_id, price_amount, currency_code, status);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_inventory_stock_sku_warehouse
-  ON commerce_inventory_stock (tenant_id, sku_id, warehouse_id, status);
+  ON commerce_inventory_stock (tenant_id, sku_id, warehouse_id, fulfillment_node_id, status);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_inventory_reservation_order_status
   ON commerce_inventory_reservation (tenant_id, order_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_inventory_reservation_source_status
+  ON commerce_inventory_reservation (tenant_id, reservation_source_type, reservation_source_id, status);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_inventory_reservation_expires_at
   ON commerce_inventory_reservation (tenant_id, status, expires_at);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_inventory_movement_source
-  ON commerce_inventory_movement (tenant_id, source_id, business_type);
+  ON commerce_inventory_movement (tenant_id, source_type, source_id, movement_type);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_cart_owner_status
-  ON commerce_cart (tenant_id, owner_user_id, status);
+  ON commerce_cart (tenant_id, owner_type, owner_id, status);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_cart_item_cart_sku
-  ON commerce_cart_item (tenant_id, cart_id, sku_id);
+  ON commerce_cart_item (tenant_id, cart_id, sku_id, selected_options_hash);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_user_address_owner_default
   ON commerce_user_address (tenant_id, owner_user_id, is_default, status);
@@ -2206,7 +2416,7 @@ CREATE INDEX IF NOT EXISTS idx_commerce_checkout_session_owner_status
   ON commerce_checkout_session (tenant_id, owner_user_id, status, created_at);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_checkout_line_session_sku
-  ON commerce_checkout_line (tenant_id, checkout_session_id, sku_id);
+  ON commerce_checkout_line (tenant_id, checkout_session_id, sku_id, selected_options_hash);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_checkout_quote_session_status
   ON commerce_checkout_quote (tenant_id, checkout_session_id, quote_status, expires_at);
@@ -2396,6 +2606,18 @@ CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_refund_event_no
 
 CREATE INDEX IF NOT EXISTS idx_commerce_refund_event_created
   ON commerce_refund_event (tenant_id, refund_id, created_at);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_after_sales_request_order_status
+  ON commerce_after_sales_request (tenant_id, order_id, status, created_at);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_after_sales_item_request_status
+  ON commerce_after_sales_item (tenant_id, after_sales_id, item_status);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_after_sales_return_shipment_request_status
+  ON commerce_after_sales_return_shipment (tenant_id, after_sales_id, status, created_at);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_after_sales_event_request_created
+  ON commerce_after_sales_event (tenant_id, after_sales_id, created_at);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_exchange_rule_pair_status
   ON commerce_exchange_rule (tenant_id, organization_id, source_asset_type, target_asset_type, status);

@@ -708,6 +708,42 @@ pub fn app_routes() -> Vec<CommerceHttpRoute> {
         ),
         CommerceHttpRoute::new(
             HttpMethod::Get,
+            "/app/v3/api/after_sales/requests",
+            "commerce",
+            "afterSales.requests.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/after_sales/requests",
+            "commerce",
+            "afterSales.requests.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/after_sales/requests/{afterSalesRequestId}",
+            "commerce",
+            "afterSales.requests.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/after_sales/requests/{afterSalesRequestId}/return_shipments",
+            "commerce",
+            "afterSales.returnShipments.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Post,
+            "/app/v3/api/after_sales/requests/{afterSalesRequestId}/return_shipments",
+            "commerce",
+            "afterSales.returnShipments.create",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/after_sales/requests/{afterSalesRequestId}/events",
+            "commerce",
+            "afterSales.events.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
             "/app/v3/api/fulfillments",
             "commerce",
             "fulfillments.list",
@@ -723,6 +759,12 @@ pub fn app_routes() -> Vec<CommerceHttpRoute> {
             "/app/v3/api/shipments/{shipmentId}",
             "commerce",
             "shipments.retrieve",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
+            "/app/v3/api/shipments/{shipmentId}/packages",
+            "commerce",
+            "shipments.packages.list",
         ),
         CommerceHttpRoute::new(
             HttpMethod::Get,
@@ -1642,6 +1684,36 @@ pub fn backend_routes() -> Vec<CommerceHttpRoute> {
             "refunds.attempts.list",
         ),
         route(
+            HttpMethod::Get,
+            "/backend/v3/api/after_sales/requests",
+            "afterSales",
+            "afterSales.management.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/after_sales/requests/{afterSalesRequestId}",
+            "afterSales",
+            "afterSales.management.retrieve",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/after_sales/requests/{afterSalesRequestId}/reviews",
+            "afterSales",
+            "afterSales.reviews.create",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/after_sales/requests/{afterSalesRequestId}/return_shipments",
+            "afterSales",
+            "afterSales.returnShipments.list",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/after_sales/requests/{afterSalesRequestId}/events",
+            "afterSales",
+            "afterSales.events.list",
+        ),
+        route(
             HttpMethod::Post,
             "/backend/v3/api/refunds/{refundId}/attempts",
             "refunds",
@@ -1694,6 +1766,30 @@ pub fn backend_routes() -> Vec<CommerceHttpRoute> {
             "/backend/v3/api/shipments/{shipmentId}",
             "shipments",
             "shipments.management.retrieve",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/shipments/{shipmentId}/packages",
+            "shipments",
+            "shipments.packages.management.list",
+        ),
+        route(
+            HttpMethod::Post,
+            "/backend/v3/api/shipments/{shipmentId}/packages",
+            "shipments",
+            "shipments.packages.create",
+        ),
+        route(
+            HttpMethod::Patch,
+            "/backend/v3/api/shipments/{shipmentId}/packages/{packageId}",
+            "shipments",
+            "shipments.packages.update",
+        ),
+        route(
+            HttpMethod::Get,
+            "/backend/v3/api/shipments/{shipmentId}/tracking_events",
+            "shipments",
+            "shipments.trackingEvents.list",
         ),
         route(
             HttpMethod::Get,

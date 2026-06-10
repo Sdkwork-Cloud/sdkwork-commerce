@@ -55,6 +55,10 @@ const requiredCommerceDatabaseTables = [
   "commerce_payment_channel",
   "commerce_payment_webhook_event",
   "commerce_refund",
+  "commerce_after_sales_request",
+  "commerce_after_sales_item",
+  "commerce_after_sales_return_shipment",
+  "commerce_after_sales_event",
 ];
 
 const requiredAppCommerceOperations = [
@@ -86,8 +90,11 @@ const requiredAppCommerceOperations = [
   "payments.create",
   "payments.intents.create",
   "payments.methods.list",
+  "shipments.packages.list",
   "shipments.trackingEvents.list",
   "refunds.create",
+  "afterSales.requests.create",
+  "afterSales.returnShipments.create",
 ];
 
 const requiredBackendCommerceOperations = [
@@ -129,6 +136,12 @@ const requiredBackendCommerceOperations = [
   "payments.reconciliationRuns.list",
   "payments.webhookEvents.replays.create",
   "refunds.management.list",
+  "afterSales.management.list",
+  "afterSales.reviews.create",
+  "shipments.packages.management.list",
+  "shipments.packages.create",
+  "shipments.packages.update",
+  "shipments.trackingEvents.list",
   "commerceReports.paymentReconciliation.retrieve",
 ];
 

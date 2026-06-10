@@ -15,6 +15,11 @@ export const sdkMetadata = {
 };
 
 export const operations = {
+  "afterSales.events.list": { method: "GET", path: "/backend/v3/api/after_sales/requests/{afterSalesRequestId}/events" },
+  "afterSales.management.list": { method: "GET", path: "/backend/v3/api/after_sales/requests" },
+  "afterSales.management.retrieve": { method: "GET", path: "/backend/v3/api/after_sales/requests/{afterSalesRequestId}" },
+  "afterSales.returnShipments.list": { method: "GET", path: "/backend/v3/api/after_sales/requests/{afterSalesRequestId}/return_shipments" },
+  "afterSales.reviews.create": { method: "POST", path: "/backend/v3/api/after_sales/requests/{afterSalesRequestId}/reviews" },
   "audit.commerceEvents.list": { method: "GET", path: "/backend/v3/api/audit/commerce_events" },
   "catalog.attributes.create": { method: "POST", path: "/backend/v3/api/catalog/attributes" },
   "catalog.attributes.management.list": { method: "GET", path: "/backend/v3/api/catalog/attributes" },
@@ -139,6 +144,9 @@ export const operations = {
   "reports.sales.list": { method: "GET", path: "/backend/v3/api/reports/sales" },
   "shipments.list": { method: "GET", path: "/backend/v3/api/shipments" },
   "shipments.management.retrieve": { method: "GET", path: "/backend/v3/api/shipments/{shipmentId}" },
+  "shipments.packages.create": { method: "POST", path: "/backend/v3/api/shipments/{shipmentId}/packages" },
+  "shipments.packages.management.list": { method: "GET", path: "/backend/v3/api/shipments/{shipmentId}/packages" },
+  "shipments.packages.update": { method: "PATCH", path: "/backend/v3/api/shipments/{shipmentId}/packages/{packageId}" },
   "shipments.trackingEvents.list": { method: "GET", path: "/backend/v3/api/shipments/{shipmentId}/tracking_events" },
   "shops.approve": { method: "POST", path: "/backend/v3/api/shops/{shopId}/approve" },
   "shops.brandAuthorizations.list": { method: "GET", path: "/backend/v3/api/shops/{shopId}/brand_authorizations" },

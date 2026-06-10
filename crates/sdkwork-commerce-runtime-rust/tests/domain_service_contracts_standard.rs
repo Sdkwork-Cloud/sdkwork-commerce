@@ -239,6 +239,36 @@ fn app_operation_ids_are_bound_to_their_runtime_services() {
             .map(|binding| binding.service_name),
         Some("commerce.order"),
     );
+    for operation_id in [
+        "afterSales.requests.create",
+        "afterSales.returnShipments.create",
+        "afterSales.reviews.create",
+        "afterSales.events.list",
+    ] {
+        assert_eq!(
+            bindings
+                .iter()
+                .find(|binding| binding.operation_id == operation_id)
+                .map(|binding| binding.service_name),
+            Some("commerce.order"),
+            "after-sales operation must be bound to commerce.order: {operation_id}",
+        );
+    }
+    for operation_id in [
+        "shipments.packages.list",
+        "shipments.packages.management.list",
+        "shipments.packages.create",
+        "shipments.packages.update",
+    ] {
+        assert_eq!(
+            bindings
+                .iter()
+                .find(|binding| binding.operation_id == operation_id)
+                .map(|binding| binding.service_name),
+            Some("commerce.order"),
+            "shipment package operation must be bound to commerce.order: {operation_id}",
+        );
+    }
     assert_eq!(
         bindings
             .iter()
@@ -304,8 +334,16 @@ fn runtime_exposes_operation_contracts_for_every_app_operation() {
 fn runtime_marks_write_operations_as_idempotent_transactional_boundaries() {
     let create_order = resolve_operation_contract("checkout.sessions.orders.create").unwrap();
     let create_payment = resolve_operation_contract("payments.intents.create").unwrap();
+    let create_after_sales = resolve_operation_contract("afterSales.requests.create").unwrap();
+    let review_after_sales = resolve_operation_contract("afterSales.reviews.create").unwrap();
+    let list_after_sales_events = resolve_operation_contract("afterSales.events.list").unwrap();
     let publish_shop_product =
         resolve_operation_contract("shops.current.products.publish").unwrap();
+    let create_shipment_package = resolve_operation_contract("shipments.packages.create").unwrap();
+    let update_shipment_package = resolve_operation_contract("shipments.packages.update").unwrap();
+    let list_shipment_packages = resolve_operation_contract("shipments.packages.list").unwrap();
+    let list_managed_shipment_packages =
+        resolve_operation_contract("shipments.packages.management.list").unwrap();
     let account_summary = resolve_operation_contract("accounts.current.summary.retrieve").unwrap();
 
     assert_eq!(
@@ -320,6 +358,27 @@ fn runtime_marks_write_operations_as_idempotent_transactional_boundaries() {
     assert!(create_order.requires_transaction());
     assert!(create_payment.requires_idempotency());
     assert!(create_payment.requires_transaction());
+    for contract in [&create_after_sales, &review_after_sales] {
+        assert_eq!(
+            contract.execution_policy,
+            OperationExecutionPolicy::TransactionalWrite,
+        );
+        assert!(contract.requires_idempotency());
+        assert!(contract.requires_transaction());
+        assert_eq!(contract.service_name, "commerce.order");
+        assert_eq!(contract.capability_name, "commerce.order.afterSales");
+    }
+    assert_eq!(
+        list_after_sales_events.execution_policy,
+        OperationExecutionPolicy::ReadOnly
+    );
+    assert!(!list_after_sales_events.requires_idempotency());
+    assert!(!list_after_sales_events.requires_transaction());
+    assert_eq!(list_after_sales_events.service_name, "commerce.order");
+    assert_eq!(
+        list_after_sales_events.capability_name,
+        "commerce.order.afterSales"
+    );
     assert_eq!(
         publish_shop_product.execution_policy,
         OperationExecutionPolicy::TransactionalWrite,
@@ -330,6 +389,27 @@ fn runtime_marks_write_operations_as_idempotent_transactional_boundaries() {
         publish_shop_product.capability_name,
         "commerce.shop.catalog"
     );
+    for contract in [&create_shipment_package, &update_shipment_package] {
+        assert_eq!(
+            contract.execution_policy,
+            OperationExecutionPolicy::TransactionalWrite,
+        );
+        assert!(contract.requires_idempotency());
+        assert!(contract.requires_transaction());
+        assert_eq!(contract.service_name, "commerce.order");
+        assert_eq!(contract.capability_name, "commerce.order.fulfillment");
+    }
+
+    for contract in [&list_shipment_packages, &list_managed_shipment_packages] {
+        assert_eq!(
+            contract.execution_policy,
+            OperationExecutionPolicy::ReadOnly
+        );
+        assert!(!contract.requires_idempotency());
+        assert!(!contract.requires_transaction());
+        assert_eq!(contract.service_name, "commerce.order");
+        assert_eq!(contract.capability_name, "commerce.order.fulfillment");
+    }
 
     assert_eq!(
         account_summary.execution_policy,

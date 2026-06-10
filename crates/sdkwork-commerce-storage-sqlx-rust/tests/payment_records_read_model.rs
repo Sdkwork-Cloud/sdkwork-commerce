@@ -68,11 +68,11 @@ async fn seed_payment_records(pool: &sqlx::SqlitePool) {
     sqlx::query(
         r#"
         INSERT INTO commerce_order
-            (id, tenant_id, organization_id, owner_user_id, order_no, status, subject, currency_code, request_no, idempotency_key, created_at, paid_at, cancelled_at, expired_at, updated_at)
+            (id, tenant_id, organization_id, owner_user_id, order_no, status, payment_status, fulfillment_status, refund_status, subject, currency_code, request_no, idempotency_key, created_at, paid_at, cancelled_at, expired_at, updated_at)
         VALUES
-            ('order-1', 'tenant-1', 'org-1', 'user-1', 'ORD-1', 'paid', 'points_recharge', 'CNY', 'req-order-1', 'idem-order-1', '2026-05-20 10:00:00', '2026-05-20 10:03:00', NULL, NULL, '2026-05-20 10:03:00'),
-            ('order-other-user', 'tenant-1', 'org-1', 'user-2', 'ORD-OTHER-USER', 'paid', 'points_recharge', 'CNY', 'req-order-2', 'idem-order-2', '2026-05-20 11:00:00', '2026-05-20 11:03:00', NULL, NULL, '2026-05-20 11:03:00'),
-            ('order-other-org', 'tenant-1', 'org-2', 'user-1', 'ORD-OTHER-ORG', 'paid', 'points_recharge', 'CNY', 'req-order-3', 'idem-order-3', '2026-05-20 12:00:00', '2026-05-20 12:03:00', NULL, NULL, '2026-05-20 12:03:00')
+            ('order-1', 'tenant-1', 'org-1', 'user-1', 'ORD-1', 'paid', 'paid', 'fulfilled', 'none', 'points_recharge', 'CNY', 'req-order-1', 'idem-order-1', '2026-05-20 10:00:00', '2026-05-20 10:03:00', NULL, NULL, '2026-05-20 10:03:00'),
+            ('order-other-user', 'tenant-1', 'org-1', 'user-2', 'ORD-OTHER-USER', 'paid', 'paid', 'fulfilled', 'none', 'points_recharge', 'CNY', 'req-order-2', 'idem-order-2', '2026-05-20 11:00:00', '2026-05-20 11:03:00', NULL, NULL, '2026-05-20 11:03:00'),
+            ('order-other-org', 'tenant-1', 'org-2', 'user-1', 'ORD-OTHER-ORG', 'paid', 'paid', 'fulfilled', 'none', 'points_recharge', 'CNY', 'req-order-3', 'idem-order-3', '2026-05-20 12:00:00', '2026-05-20 12:03:00', NULL, NULL, '2026-05-20 12:03:00')
         "#,
     )
     .execute(pool)
@@ -82,11 +82,11 @@ async fn seed_payment_records(pool: &sqlx::SqlitePool) {
     sqlx::query(
         r#"
         INSERT INTO commerce_payment_intent
-            (id, tenant_id, organization_id, owner_user_id, order_id, payment_method, provider_code, amount, currency_code, status, request_no, idempotency_key, created_at, updated_at)
+            (id, tenant_id, organization_id, owner_user_id, order_id, payment_intent_no, payment_method, provider_code, amount, currency_code, status, request_no, idempotency_key, created_at, updated_at)
         VALUES
-            ('payment-intent-1', 'tenant-1', 'org-1', 'user-1', 'order-1', 'wechat_pay', 'wechat_pay', '29.90', 'CNY', 'succeeded', 'req-pay-1', 'idem-pay-1', '2026-05-20 10:01:00', '2026-05-20 10:03:00'),
-            ('payment-intent-other-user', 'tenant-1', 'org-1', 'user-2', 'order-other-user', 'wechat_pay', 'wechat_pay', '39.90', 'CNY', 'succeeded', 'req-pay-2', 'idem-pay-2', '2026-05-20 11:01:00', '2026-05-20 11:03:00'),
-            ('payment-intent-other-org', 'tenant-1', 'org-2', 'user-1', 'order-other-org', 'wechat_pay', 'wechat_pay', '49.90', 'CNY', 'succeeded', 'req-pay-3', 'idem-pay-3', '2026-05-20 12:01:00', '2026-05-20 12:03:00')
+            ('payment-intent-1', 'tenant-1', 'org-1', 'user-1', 'order-1', 'PAY-INTENT-1', 'wechat_pay', 'wechat_pay', '29.90', 'CNY', 'succeeded', 'req-pay-1', 'idem-pay-1', '2026-05-20 10:01:00', '2026-05-20 10:03:00'),
+            ('payment-intent-other-user', 'tenant-1', 'org-1', 'user-2', 'order-other-user', 'PAY-INTENT-OTHER-USER', 'wechat_pay', 'wechat_pay', '39.90', 'CNY', 'succeeded', 'req-pay-2', 'idem-pay-2', '2026-05-20 11:01:00', '2026-05-20 11:03:00'),
+            ('payment-intent-other-org', 'tenant-1', 'org-2', 'user-1', 'order-other-org', 'PAY-INTENT-OTHER-ORG', 'wechat_pay', 'wechat_pay', '49.90', 'CNY', 'succeeded', 'req-pay-3', 'idem-pay-3', '2026-05-20 12:01:00', '2026-05-20 12:03:00')
         "#,
     )
     .execute(pool)
