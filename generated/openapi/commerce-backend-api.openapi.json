@@ -5582,6 +5582,110 @@
         }
       }
     },
+    "/backend/v3/api/shops/{shopId}/readiness": {
+      "get": {
+        "tags": [
+          "shops"
+        ],
+        "summary": "Shops readiness retrieve.",
+        "operationId": "shops.readiness.retrieve",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopReadinessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "x-sdkwork-owner": "sdkwork-commerce",
+        "x-sdkwork-api-authority": "sdkwork-commerce.backend",
+        "x-sdkwork-domain": "commerce",
+        "x-sdkwork-resource": "shops.readiness",
+        "x-sdkwork-request-context": "AppRequestContext",
+        "x-sdkwork-server-request-id": true,
+        "x-sdkwork-permission": "commerce.shops.read"
+      }
+    },
     "/backend/v3/api/shops/{shopId}/submit_review": {
       "post": {
         "tags": [
@@ -23545,6 +23649,141 @@
           },
           "data": {
             "$ref": "#/components/schemas/ShopQualification"
+          }
+        }
+      },
+      "ShopReadiness": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "tenantId",
+          "organizationId",
+          "shopId",
+          "readinessScope",
+          "readinessStatus",
+          "blockingCount",
+          "warningCount",
+          "checklist",
+          "evaluatedAt",
+          "createdAt",
+          "updatedAt",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "tenantId": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "shopId": {
+            "type": "string"
+          },
+          "readinessScope": {
+            "type": "string"
+          },
+          "readinessStatus": {
+            "type": "string"
+          },
+          "blockingCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "warningCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopReadinessItem"
+            }
+          },
+          "evaluatedAt": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        }
+      },
+      "ShopReadinessItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "title",
+          "status",
+          "severity",
+          "blocking",
+          "evaluatedAt"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "sourceType": {
+            "type": "string"
+          },
+          "sourceId": {
+            "type": "string"
+          },
+          "blocking": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "actionHint": {
+            "type": "string"
+          },
+          "evaluatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "ShopReadinessResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message",
+          "requestId",
+          "data"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Server-owned request correlation id."
+          },
+          "data": {
+            "$ref": "#/components/schemas/ShopReadiness"
           }
         }
       },

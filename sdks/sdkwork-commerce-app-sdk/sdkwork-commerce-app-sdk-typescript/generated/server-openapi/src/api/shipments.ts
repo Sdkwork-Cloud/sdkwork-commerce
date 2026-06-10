@@ -4,11 +4,27 @@ import type { HttpClient } from '../http/client';
 import type { CommerceApiResult } from '../types';
 
 
-export class ShipmentsApi {
+export class ShipmentsTrackingEventsApi {
   private client: HttpClient;
 
   constructor(client: HttpClient) {
     this.client = client;
+  }
+
+
+/** Shipments tracking Events list. */
+  async list(shipmentId: string): Promise<CommerceApiResult> {
+    return this.client.get<CommerceApiResult>(appApiPath(`/shipments/${serializePathParameter(shipmentId, { name: 'shipmentId', style: 'simple', explode: false })}/tracking_events`));
+  }
+}
+
+export class ShipmentsApi {
+  private client: HttpClient;
+  public readonly trackingEvents: ShipmentsTrackingEventsApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.trackingEvents = new ShipmentsTrackingEventsApi(client);
   }
 
 

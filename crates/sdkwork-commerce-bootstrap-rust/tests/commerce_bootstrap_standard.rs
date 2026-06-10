@@ -47,7 +47,7 @@ fn bootstrap_manifest_is_complete_for_first_slice_host_startup() {
         manifest.runtime.operation_contracts.len(),
         operation_contracts().len()
     );
-    assert_eq!(manifest.storage.tables.len(), 92);
+    assert_eq!(manifest.storage.tables.len(), 104);
     assert!(manifest.storage.tables.contains(&"commerce_shop"));
     assert!(manifest
         .storage
@@ -580,7 +580,7 @@ fn bootstrap_preflight_exposes_host_startup_plan_after_validation() {
         preflight.runtime_operations,
         manifest.runtime.operation_contracts.len()
     );
-    assert_eq!(preflight.storage_tables, 92);
+    assert_eq!(preflight.storage_tables, 104);
     assert_eq!(preflight.storage_repositories, 16);
     assert_eq!(
         preflight.storage_migration_lock_table,

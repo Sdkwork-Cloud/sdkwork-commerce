@@ -457,6 +457,11 @@ fn canonical_app_route_specs() -> Vec<(HttpMethod, &'static str, &'static str)> 
         ),
         (
             HttpMethod::Get,
+            "/app/v3/api/shipments/{shipmentId}/tracking_events",
+            "shipments.trackingEvents.list",
+        ),
+        (
+            HttpMethod::Get,
             "/app/v3/api/recharges/packages",
             "recharges.packages.list",
         ),

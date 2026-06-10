@@ -1,7 +1,7 @@
 import { appApiPath } from './paths';
 import type { HttpClient } from '../http/client';
 
-import type { CommerceApiResult, CommerceOperationCommand, CreateShopServiceAreaRequest, CurrentShopResponse, ShopApplicationListResponse, ShopApplicationResponse, ShopBrandAuthorizationListResponse, ShopBrandAuthorizationResponse, ShopBusinessHourResponse, ShopCategoryBindingListResponse, ShopCategoryBindingResponse, ShopChannelListResponse, ShopChannelResponse, ShopCustomerServiceListResponse, ShopCustomerServiceResponse, ShopDashboardResponse, ShopDepositAccountResponse, ShopDetailResponse, ShopFulfillmentProfileResponse, ShopListResponse, ShopPolicyListResponse, ShopPolicyResponse, ShopQualificationListResponse, ShopQualificationResponse, ShopReturnAddressListResponse, ShopReturnAddressResponse, ShopRiskSignalListResponse, ShopServiceAreaListResponse, ShopServiceAreaResponse, ShopSettlementProfileResponse, ShopShippingTemplateListResponse, ShopShippingTemplateResponse, ShopStatusEventListResponse, ShopVerificationListResponse, SubmitShopApplicationRequest, UpdateShopBusinessHourRequest, UpdateShopChannelRequest, UpdateShopFulfillmentProfileRequest, UpdateShopPolicyRequest, UpdateShopServiceAreaRequest, UpdateShopSettlementProfileRequest, UpsertShopBrandAuthorizationRequest, UpsertShopCategoryBindingRequest, UpsertShopCustomerServiceRequest, UpsertShopQualificationRequest, UpsertShopReturnAddressRequest, UpsertShopShippingTemplateRequest } from '../types';
+import type { CommerceApiResult, CommerceOperationCommand, CreateShopServiceAreaRequest, CurrentShopResponse, ShopApplicationListResponse, ShopApplicationResponse, ShopBrandAuthorizationListResponse, ShopBrandAuthorizationResponse, ShopBusinessHourResponse, ShopCategoryBindingListResponse, ShopCategoryBindingResponse, ShopChannelListResponse, ShopChannelResponse, ShopCustomerServiceListResponse, ShopCustomerServiceResponse, ShopDashboardResponse, ShopDepositAccountResponse, ShopDetailResponse, ShopFulfillmentProfileResponse, ShopListResponse, ShopPolicyListResponse, ShopPolicyResponse, ShopQualificationListResponse, ShopQualificationResponse, ShopReadinessResponse, ShopReturnAddressListResponse, ShopReturnAddressResponse, ShopRiskSignalListResponse, ShopServiceAreaListResponse, ShopServiceAreaResponse, ShopSettlementProfileResponse, ShopShippingTemplateListResponse, ShopShippingTemplateResponse, ShopStatusEventListResponse, ShopVerificationListResponse, SubmitShopApplicationRequest, UpdateShopBusinessHourRequest, UpdateShopChannelRequest, UpdateShopFulfillmentProfileRequest, UpdateShopPolicyRequest, UpdateShopServiceAreaRequest, UpdateShopSettlementProfileRequest, UpsertShopBrandAuthorizationRequest, UpsertShopCategoryBindingRequest, UpsertShopCustomerServiceRequest, UpsertShopQualificationRequest, UpsertShopReturnAddressRequest, UpsertShopShippingTemplateRequest } from '../types';
 
 
 export interface ShopsCurrentSettlementsListParams {
@@ -809,6 +809,20 @@ export class ShopsCurrentCategoryBindingsApi {
   }
 }
 
+export class ShopsCurrentReadinessApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Shops current readiness retrieve. */
+  async retrieve(): Promise<ShopReadinessResponse> {
+    return this.client.get<ShopReadinessResponse>(appApiPath(`/shops/current/readiness`));
+  }
+}
+
 export class ShopsCurrentDashboardApi {
   private client: HttpClient;
 
@@ -826,6 +840,7 @@ export class ShopsCurrentDashboardApi {
 export class ShopsCurrentApi {
   private client: HttpClient;
   public readonly dashboard: ShopsCurrentDashboardApi;
+  public readonly readiness: ShopsCurrentReadinessApi;
   public readonly categoryBindings: ShopsCurrentCategoryBindingsApi;
   public readonly brandAuthorizations: ShopsCurrentBrandAuthorizationsApi;
   public readonly qualifications: ShopsCurrentQualificationsApi;
@@ -851,6 +866,7 @@ export class ShopsCurrentApi {
   constructor(client: HttpClient) {
     this.client = client;
     this.dashboard = new ShopsCurrentDashboardApi(client);
+    this.readiness = new ShopsCurrentReadinessApi(client);
     this.categoryBindings = new ShopsCurrentCategoryBindingsApi(client);
     this.brandAuthorizations = new ShopsCurrentBrandAuthorizationsApi(client);
     this.qualifications = new ShopsCurrentQualificationsApi(client);

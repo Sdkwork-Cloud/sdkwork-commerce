@@ -726,6 +726,12 @@ pub fn app_routes() -> Vec<CommerceHttpRoute> {
         ),
         CommerceHttpRoute::new(
             HttpMethod::Get,
+            "/app/v3/api/shipments/{shipmentId}/tracking_events",
+            "commerce",
+            "shipments.trackingEvents.list",
+        ),
+        CommerceHttpRoute::new(
+            HttpMethod::Get,
             "/app/v3/api/recharges/packages",
             "commerce",
             "recharges.packages.list",

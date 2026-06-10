@@ -24,7 +24,7 @@ use sdkwork_commerce_storage_sqlx::{
 fn exposes_first_slice_commerce_table_catalog() {
     let tables = commerce_database_tables();
 
-    assert_eq!(tables.len(), 92);
+    assert_eq!(tables.len(), 104);
     assert!(tables.contains(&"commerce_idempotency_key"));
     assert!(tables.contains(&"commerce_shop"));
     assert!(tables.contains(&"commerce_shop_application"));
@@ -85,9 +85,21 @@ fn exposes_first_slice_commerce_table_catalog() {
     assert!(tables.contains(&"commerce_cart"));
     assert!(tables.contains(&"commerce_cart_item"));
     assert!(tables.contains(&"commerce_user_address"));
+    assert!(tables.contains(&"commerce_checkout_session"));
+    assert!(tables.contains(&"commerce_checkout_line"));
+    assert!(tables.contains(&"commerce_checkout_quote"));
+    assert!(tables.contains(&"commerce_order_address_snapshot"));
     assert!(tables.contains(&"commerce_order"));
     assert!(tables.contains(&"commerce_order_item"));
     assert!(tables.contains(&"commerce_order_amount_breakdown"));
+    assert!(tables.contains(&"commerce_order_event"));
+    assert!(tables.contains(&"commerce_order_cancellation"));
+    assert!(tables.contains(&"commerce_fulfillment_order"));
+    assert!(tables.contains(&"commerce_fulfillment_item"));
+    assert!(tables.contains(&"commerce_shipment"));
+    assert!(tables.contains(&"commerce_shipment_package"));
+    assert!(tables.contains(&"commerce_shipment_tracking_event"));
+    assert!(tables.contains(&"commerce_digital_delivery"));
     assert!(tables.contains(&"commerce_payment_intent"));
     assert!(tables.contains(&"commerce_payment_attempt"));
     assert!(tables.contains(&"commerce_payment_webhook_event"));
@@ -444,9 +456,49 @@ fn initial_migration_declares_first_slice_tables_and_columns() {
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_cart"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_cart_item"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_user_address"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_checkout_session"));
+    assert!(sql.contains("checkout_session_no"));
+    assert!(sql.contains("request_hash TEXT NOT NULL"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_checkout_line"));
+    assert!(sql.contains("purchase_type TEXT NOT NULL"));
+    assert!(sql.contains("fulfillment_type TEXT NOT NULL"));
+    assert!(sql.contains("price_amount_snapshot TEXT NOT NULL"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_checkout_quote"));
+    assert!(sql.contains("quote_no TEXT NOT NULL"));
+    assert!(sql.contains("shipping_amount TEXT NOT NULL DEFAULT '0'"));
+    assert!(sql.contains("tax_amount TEXT NOT NULL DEFAULT '0'"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_order_address_snapshot"));
+    assert!(sql.contains("address_type TEXT NOT NULL"));
+    assert!(sql.contains("phone_hash TEXT"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_order"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_order_item"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_order_amount_breakdown"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_order_event"));
+    assert!(sql.contains("event_no TEXT NOT NULL"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_order_cancellation"));
+    assert!(sql.contains("cancellation_no TEXT NOT NULL"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_fulfillment_order"));
+    assert!(sql.contains("fulfillment_no TEXT NOT NULL"));
+    assert!(sql.contains("shop_id TEXT"));
+    assert!(sql.contains("warehouse_id TEXT"));
+    assert!(sql.contains("delivery_method TEXT"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_fulfillment_item"));
+    assert!(sql.contains("fulfilled_quantity INTEGER NOT NULL DEFAULT 0"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shipment"));
+    assert!(sql.contains("shipment_no TEXT NOT NULL"));
+    assert!(sql.contains("carrier_code TEXT NOT NULL"));
+    assert!(sql.contains("tracking_no TEXT"));
+    assert!(sql.contains("label_ref TEXT"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shipment_package"));
+    assert!(sql.contains("package_no TEXT NOT NULL"));
+    assert!(sql.contains("weight_gram INTEGER"));
+    assert!(sql.contains("length_mm INTEGER"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shipment_tracking_event"));
+    assert!(sql.contains("event_time TEXT NOT NULL"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_digital_delivery"));
+    assert!(sql.contains("delivery_no TEXT NOT NULL"));
+    assert!(sql.contains("asset_ref TEXT NOT NULL"));
+    assert!(sql.contains("access_grant_ref TEXT"));
     assert!(sql.contains("UNIQUE (tenant_id, order_no)"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_payment_intent"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_payment_attempt"));
@@ -569,8 +621,21 @@ fn initial_migration_declares_standard_query_indexes() {
         "idx_commerce_cart_owner_status",
         "idx_commerce_cart_item_cart_sku",
         "idx_commerce_user_address_owner_default",
+        "idx_commerce_checkout_session_owner_status",
+        "idx_commerce_checkout_line_session_sku",
+        "idx_commerce_checkout_quote_session_status",
         "idx_commerce_order_owner_status_created_at",
         "idx_commerce_order_no",
+        "idx_commerce_order_address_snapshot_order_type",
+        "idx_commerce_order_event_order_created",
+        "idx_commerce_order_cancellation_order_status",
+        "idx_commerce_fulfillment_order_order_status",
+        "idx_commerce_fulfillment_item_fulfillment_status",
+        "idx_commerce_shipment_fulfillment_status",
+        "idx_commerce_shipment_tracking_no",
+        "idx_commerce_shipment_package_shipment",
+        "idx_commerce_shipment_tracking_event_shipment_time",
+        "idx_commerce_digital_delivery_fulfillment_status",
         "idx_commerce_payment_intent_order",
         "idx_commerce_payment_attempt_provider_code_trade_no",
         "idx_commerce_payment_webhook_event_provider_code_event",
@@ -3445,8 +3510,8 @@ fn migration_runner_failure_recovery_rejects_recorded_failed_migration() {
 fn storage_capability_manifest_is_complete_for_first_slice_runtime_bootstrap() {
     let manifest = commerce_storage_capability_manifest();
 
-    assert_eq!(manifest.tables.len(), 92);
-    assert_eq!(manifest.indexes.len(), 116);
+    assert_eq!(manifest.tables.len(), 104);
+    assert_eq!(manifest.indexes.len(), 129);
     assert_eq!(manifest.migration_plan.len(), 14);
     assert_eq!(manifest.repository_bindings.len(), 16);
     assert_eq!(manifest.business_repositories.len(), 15);

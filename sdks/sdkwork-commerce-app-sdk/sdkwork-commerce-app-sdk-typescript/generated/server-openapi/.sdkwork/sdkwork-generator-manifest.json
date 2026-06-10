@@ -120,11 +120,11 @@
     },
     {
       "path": "src/api/shipments.ts",
-      "sha256": "2af9874fbf3a922baad9f8784b72d99edeb6c52186c5e062d90ff308294a0963"
+      "sha256": "2897db973e6c9bdd7aa5d467e51ac7b470b1dff4a018e3cab166448fcd0fe4d2"
     },
     {
       "path": "src/api/shops.ts",
-      "sha256": "36829e00fa36adac3908458b5bedfcc4fdff69e660ae679160a68022ae457dd5"
+      "sha256": "0380c3e9e7a50c2dd22963e2b2584b27768108d5412a28527e901f7e13e57163"
     },
     {
       "path": "src/api/wallet.ts",
@@ -176,7 +176,7 @@
     },
     {
       "path": "src/types/index.ts",
-      "sha256": "14ece307be30654120f9955fa8ca385aa4e78080d2bbbfde57122d052e96ddcf"
+      "sha256": "ab4843d63898fad28877750cdba486339260b33fe53c10df9e47107e83be7c59"
     },
     {
       "path": "src/types/problem-detail.ts",
@@ -309,6 +309,18 @@
     {
       "path": "src/types/shop-qualification.ts",
       "sha256": "a489e936f55e6795eb689cb22cf84c15d8c2f31e294301fdb2154b1a396705b1"
+    },
+    {
+      "path": "src/types/shop-readiness-item.ts",
+      "sha256": "dc675c8498cdc41c500a5d8ea0a4a820bab0a6af7daaff18f0c3276024d13707"
+    },
+    {
+      "path": "src/types/shop-readiness-response.ts",
+      "sha256": "80c5ac9e2260dac83e9a3b9602b8fedf1a2f80d76acfa42ad59569e1de7eae0c"
+    },
+    {
+      "path": "src/types/shop-readiness.ts",
+      "sha256": "e34578164207c3b220ea50f14da70649ebbb7ca275b6f69b781220de87ca0b1d"
     },
     {
       "path": "src/types/shop-return-address-list-response.ts",

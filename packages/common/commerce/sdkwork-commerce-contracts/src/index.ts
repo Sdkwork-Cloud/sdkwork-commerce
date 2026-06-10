@@ -78,6 +78,7 @@ export const SDKWORK_COMMERCE_TABLES = {
   fulfillmentOrder: "commerce_fulfillment_order",
   fulfillmentItem: "commerce_fulfillment_item",
   shipment: "commerce_shipment",
+  shipmentPackage: "commerce_shipment_package",
   shipmentTrackingEvent: "commerce_shipment_tracking_event",
   digitalDelivery: "commerce_digital_delivery",
   paymentProvider: "commerce_payment_provider",
@@ -604,6 +605,9 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
   },
   shipments: {
     retrieve: operation("GET", `${app}/shipments/{shipmentId}`, "shipments.retrieve"),
+    trackingEvents: {
+      list: operation("GET", `${app}/shipments/{shipmentId}/tracking_events`, "shipments.trackingEvents.list"),
+    },
   },
   memberships: {
     current: {
@@ -1486,6 +1490,7 @@ export const SDKWORK_COMMERCE_DOMAIN_MODELS = [
   model("fulfillmentOrder", ["fulfillments"], ["id", "tenant_id", "organization_id", "fulfillment_no", "order_id", "fulfillment_type", "status", "created_at", "updated_at"]),
   model("fulfillmentItem", ["fulfillments"], ["id", "tenant_id", "organization_id", "fulfillment_id", "order_item_id", "quantity", "status", "created_at", "updated_at"]),
   model("shipment", ["shipments", "fulfillments"], ["id", "tenant_id", "organization_id", "shipment_no", "fulfillment_id", "carrier_code", "tracking_no", "status", "created_at", "updated_at"]),
+  model("shipmentPackage", ["shipments", "fulfillments"], ["id", "tenant_id", "organization_id", "shipment_id", "package_no", "package_type", "weight_gram", "label_ref", "status", "created_at", "updated_at"]),
   model("shipmentTrackingEvent", ["shipments"], ["id", "tenant_id", "organization_id", "shipment_id", "event_type", "event_time", "payload_json", "created_at"]),
   model("digitalDelivery", ["fulfillments"], ["id", "tenant_id", "organization_id", "delivery_no", "fulfillment_id", "asset_ref", "status", "created_at", "updated_at"]),
   model("paymentProvider", ["payments"], ["id", "tenant_id", "organization_id", "provider_code", "display_name", "provider_type", "status", "created_at", "updated_at"]),
@@ -1607,7 +1612,7 @@ export const SDKWORK_COMMERCE_CAPABILITIES = [
   capability("payments", ["paymentProvider", "paymentProviderAccount", "paymentMethod", "paymentChannel", "paymentRouteRule", "paymentIntent", "paymentAttempt", "paymentWebhookEvent", "paymentReconciliationRun", "paymentDispute", "idempotencyKey"], operationsForRoot("payments")),
   capability("refunds", ["refund", "refundItem", "refundAttempt", "idempotencyKey"], operationsForRoot("refunds")),
   capability("fulfillments", ["fulfillmentOrder", "fulfillmentItem", "digitalDelivery"], operationsForRoot("fulfillments")),
-  capability("shipments", ["shipment", "shipmentTrackingEvent"], operationsForRoot("shipments")),
+  capability("shipments", ["shipment", "shipmentPackage", "shipmentTrackingEvent"], operationsForRoot("shipments")),
   capability("entitlements", ["benefitDefinition", "entitlementGrant", "entitlementAccount", "entitlementLedgerEntry"], operationsForRoot("entitlements")),
   capability("memberships", ["membershipPlan", "membershipPlanVersion", "membershipPlanBenefit", "membershipPackageGroup", "membershipPackage", "membershipSubscription", "membershipPeriod"], operationsForRoot("memberships")),
   capability("billing", ["billingHistory"], operationsForRoot("billing")),

@@ -1,8 +1,22 @@
 import { backendApiPath } from './paths';
 import type { HttpClient } from '../http/client';
 
-import type { ApproveShopRequest, ApproveShopSettlementProfileRequest, CloseShopRequest, CreateShopChannelRequest, CreateShopPolicyRequest, CreateShopRequest, CreateShopRiskSignalRequest, CreateShopServiceAreaRequest, RejectShopRequest, RejectShopSettlementProfileRequest, ResolveShopRiskSignalRequest, ResumeShopRequest, ReviewShopDepositAccountRequest, ShopBrandAuthorizationListResponse, ShopBrandAuthorizationResponse, ShopBusinessHourResponse, ShopCategoryBindingListResponse, ShopCategoryBindingResponse, ShopChannelListResponse, ShopChannelResponse, ShopCustomerServiceListResponse, ShopCustomerServiceResponse, ShopDepositAccountResponse, ShopFulfillmentProfileResponse, ShopManagementDetailResponse, ShopManagementListResponse, ShopPolicyListResponse, ShopPolicyResponse, ShopQualificationListResponse, ShopQualificationResponse, ShopReturnAddressListResponse, ShopReturnAddressResponse, ShopRiskSignalListResponse, ShopRiskSignalResponse, ShopServiceAreaListResponse, ShopServiceAreaResponse, ShopSettlementProfileResponse, ShopShippingTemplateListResponse, ShopShippingTemplateResponse, ShopStatusEventListResponse, ShopVerificationListResponse, SubmitShopReviewRequest, SuspendShopRequest, UpdateShopBusinessHourRequest, UpdateShopChannelRequest, UpdateShopDepositAccountRequest, UpdateShopFulfillmentProfileRequest, UpdateShopPolicyRequest, UpdateShopRequest, UpdateShopServiceAreaRequest, UpdateShopSettlementProfileRequest, UpdateShopVerificationRequest, UpsertShopBrandAuthorizationRequest, UpsertShopCategoryBindingRequest, UpsertShopCustomerServiceRequest, UpsertShopQualificationRequest, UpsertShopReturnAddressRequest, UpsertShopShippingTemplateRequest } from '../types';
+import type { ApproveShopRequest, ApproveShopSettlementProfileRequest, CloseShopRequest, CreateShopChannelRequest, CreateShopPolicyRequest, CreateShopRequest, CreateShopRiskSignalRequest, CreateShopServiceAreaRequest, RejectShopRequest, RejectShopSettlementProfileRequest, ResolveShopRiskSignalRequest, ResumeShopRequest, ReviewShopDepositAccountRequest, ShopBrandAuthorizationListResponse, ShopBrandAuthorizationResponse, ShopBusinessHourResponse, ShopCategoryBindingListResponse, ShopCategoryBindingResponse, ShopChannelListResponse, ShopChannelResponse, ShopCustomerServiceListResponse, ShopCustomerServiceResponse, ShopDepositAccountResponse, ShopFulfillmentProfileResponse, ShopManagementDetailResponse, ShopManagementListResponse, ShopPolicyListResponse, ShopPolicyResponse, ShopQualificationListResponse, ShopQualificationResponse, ShopReadinessResponse, ShopReturnAddressListResponse, ShopReturnAddressResponse, ShopRiskSignalListResponse, ShopRiskSignalResponse, ShopServiceAreaListResponse, ShopServiceAreaResponse, ShopSettlementProfileResponse, ShopShippingTemplateListResponse, ShopShippingTemplateResponse, ShopStatusEventListResponse, ShopVerificationListResponse, SubmitShopReviewRequest, SuspendShopRequest, UpdateShopBusinessHourRequest, UpdateShopChannelRequest, UpdateShopDepositAccountRequest, UpdateShopFulfillmentProfileRequest, UpdateShopPolicyRequest, UpdateShopRequest, UpdateShopServiceAreaRequest, UpdateShopSettlementProfileRequest, UpdateShopVerificationRequest, UpsertShopBrandAuthorizationRequest, UpsertShopCategoryBindingRequest, UpsertShopCustomerServiceRequest, UpsertShopQualificationRequest, UpsertShopReturnAddressRequest, UpsertShopShippingTemplateRequest } from '../types';
 
+
+export class ShopsReadinessApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Shops readiness retrieve. */
+  async retrieve(shopId: string): Promise<ShopReadinessResponse> {
+    return this.client.get<ShopReadinessResponse>(backendApiPath(`/shops/${serializePathParameter(shopId, { name: 'shopId', style: 'simple', explode: false })}/readiness`));
+  }
+}
 
 export interface ShopsRiskSignalsListParams {
   signalType?: string;
@@ -817,6 +831,7 @@ export class ShopsApi {
   public readonly policies: ShopsPoliciesApi;
   public readonly depositAccount: ShopsDepositAccountApi;
   public readonly riskSignals: ShopsRiskSignalsApi;
+  public readonly readiness: ShopsReadinessApi;
 
   constructor(client: HttpClient) {
     this.client = client;
@@ -837,6 +852,7 @@ export class ShopsApi {
     this.policies = new ShopsPoliciesApi(client);
     this.depositAccount = new ShopsDepositAccountApi(client);
     this.riskSignals = new ShopsRiskSignalsApi(client);
+    this.readiness = new ShopsReadinessApi(client);
   }
 
 

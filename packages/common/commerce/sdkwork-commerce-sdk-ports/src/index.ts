@@ -196,7 +196,10 @@ export const APP_COMMERCE_METHOD_TREE = {
     list: true,
     retrieve: true,
   },
-  shipments: { retrieve: true },
+  shipments: {
+    retrieve: true,
+    trackingEvents: { list: true },
+  },
   memberships: {
     benefits: { list: true },
     current: {

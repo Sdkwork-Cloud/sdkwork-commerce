@@ -85,6 +85,7 @@ describe("SDKWork commerce SDK port contracts", () => {
       "commerce.refunds.create",
       "commerce.fulfillments.retrieve",
       "commerce.shipments.retrieve",
+      "commerce.shipments.trackingEvents.list",
       "commerce.memberships.purchases.create",
       "commerce.billing.history.list",
       "commerce.recharges.orders.create",

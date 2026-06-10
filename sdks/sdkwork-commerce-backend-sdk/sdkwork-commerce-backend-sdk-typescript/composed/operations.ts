@@ -166,6 +166,7 @@ export const operations = {
   "shops.policies.update": { method: "PATCH", path: "/backend/v3/api/shops/{shopId}/policies/{policyId}" },
   "shops.qualifications.list": { method: "GET", path: "/backend/v3/api/shops/{shopId}/qualifications" },
   "shops.qualifications.upsert": { method: "PUT", path: "/backend/v3/api/shops/{shopId}/qualifications" },
+  "shops.readiness.retrieve": { method: "GET", path: "/backend/v3/api/shops/{shopId}/readiness" },
   "shops.reject": { method: "POST", path: "/backend/v3/api/shops/{shopId}/reject" },
   "shops.resume": { method: "POST", path: "/backend/v3/api/shops/{shopId}/resume" },
   "shops.returnAddresses.list": { method: "GET", path: "/backend/v3/api/shops/{shopId}/return_addresses" },
