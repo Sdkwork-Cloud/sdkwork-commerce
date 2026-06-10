@@ -2,9 +2,9 @@ use sdkwork_commerce_core::{CommerceServiceError, CommerceSurfaceProfile};
 use sdkwork_commerce_membership::{
     membership_service_contract, EntitlementGrantDraft, MembershipActivationDraft,
     MembershipBillingCycle, MembershipPackageDraft, MembershipPackageGroupDraft,
-    MembershipPackageGroupListQuery, MembershipPackageListQuery, MembershipPlanDraft,
-    MembershipPortRequirement, MembershipPurchaseDraft, MembershipRepositoryCommand,
-    MembershipStatus, MembershipTransition,
+    MembershipPackageGroupDraftInput, MembershipPackageGroupListQuery, MembershipPackageListQuery,
+    MembershipPlanDraft, MembershipPortRequirement, MembershipPurchaseDraft,
+    MembershipRepositoryCommand, MembershipStatus, MembershipTransition,
 };
 
 #[test]
@@ -170,47 +170,51 @@ fn membership_repository_contract_exposes_required_commands() {
 
 #[test]
 fn validates_membership_package_group_catalog_shape() {
-    let group = MembershipPackageGroupDraft::new(
-        "tenant-1",
-        "org-1",
-        1,
-        "membership-month",
-        "Monthly purchase",
-        Some("Monthly membership packages"),
-        MembershipBillingCycle::Month,
-        30,
-        10,
-    )
+    let group = MembershipPackageGroupDraft::from_input(MembershipPackageGroupDraftInput {
+        tenant_id: "tenant-1".to_string(),
+        organization_id: "org-1".to_string(),
+        external_id: 1,
+        package_group_no: "membership-month".to_string(),
+        name: "Monthly purchase".to_string(),
+        description: Some("Monthly membership packages".to_string()),
+        billing_cycle: MembershipBillingCycle::Month,
+        duration_days: 30,
+        sort_weight: 10,
+    })
     .unwrap();
 
     assert_eq!(group.external_id, 1);
     assert_eq!(group.package_group_no, "membership-month");
     assert_eq!(group.billing_cycle.as_storage_str(), "month");
     assert_eq!(group.duration_days, 30);
-    assert!(MembershipPackageGroupDraft::new(
-        "tenant-1",
-        "org-1",
-        0,
-        "membership-month",
-        "Monthly purchase",
-        None,
-        MembershipBillingCycle::Month,
-        30,
-        10,
-    )
-    .is_err());
-    assert!(MembershipPackageGroupDraft::new(
-        "tenant-1",
-        "org-1",
-        1,
-        "",
-        "Monthly purchase",
-        None,
-        MembershipBillingCycle::Month,
-        30,
-        10,
-    )
-    .is_err());
+    assert!(
+        MembershipPackageGroupDraft::from_input(MembershipPackageGroupDraftInput {
+            tenant_id: "tenant-1".to_string(),
+            organization_id: "org-1".to_string(),
+            external_id: 0,
+            package_group_no: "membership-month".to_string(),
+            name: "Monthly purchase".to_string(),
+            description: None,
+            billing_cycle: MembershipBillingCycle::Month,
+            duration_days: 30,
+            sort_weight: 10,
+        })
+        .is_err()
+    );
+    assert!(
+        MembershipPackageGroupDraft::from_input(MembershipPackageGroupDraftInput {
+            tenant_id: "tenant-1".to_string(),
+            organization_id: "org-1".to_string(),
+            external_id: 1,
+            package_group_no: String::new(),
+            name: "Monthly purchase".to_string(),
+            description: None,
+            billing_cycle: MembershipBillingCycle::Month,
+            duration_days: 30,
+            sort_weight: 10,
+        })
+        .is_err()
+    );
 }
 
 #[test]
@@ -312,15 +316,34 @@ fn membership_package_queries_keep_group_and_region_independent() {
 #[test]
 fn membership_purchase_uses_package_id_and_payment_method_only() {
     let purchase =
-        MembershipPurchaseDraft::new("tenant-1", "org-1", "user-1", 303, Some("wechat"), None)
+        MembershipPurchaseDraft::new("tenant-1", "org-1", "user-1", 303, Some("wechat_pay"), None)
             .unwrap();
 
     assert_eq!(purchase.package_id, 303);
-    assert_eq!(purchase.payment_method.as_deref(), Some("wechat"));
-    assert!(
-        MembershipPurchaseDraft::new("tenant-1", "org-1", "user-1", 0, Some("wechat"), None)
-            .is_err()
-    );
+    assert_eq!(purchase.payment_method.as_deref(), Some("wechat_pay"));
+    assert!(MembershipPurchaseDraft::new(
+        "tenant-1",
+        "org-1",
+        "user-1",
+        0,
+        Some("wechat_pay"),
+        None
+    )
+    .is_err());
+    for legacy_method in ["wechat", "wechatpay", "stripe"] {
+        assert!(
+            MembershipPurchaseDraft::new(
+                "tenant-1",
+                "org-1",
+                "user-1",
+                303,
+                Some(legacy_method),
+                None
+            )
+            .is_err(),
+            "membership purchase must reject legacy payment method alias {legacy_method}"
+        );
+    }
 }
 
 #[test]

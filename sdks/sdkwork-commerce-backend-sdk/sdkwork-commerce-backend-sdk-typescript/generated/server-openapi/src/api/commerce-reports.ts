@@ -4,35 +4,6 @@ import type { HttpClient } from '../http/client';
 import type { CommerceApiResult } from '../types';
 
 
-export interface CommerceReportsUsageStatementsListParams {
-  userId?: string;
-  periodStart?: string;
-  periodEnd?: string;
-  page?: number;
-  pageSize?: number;
-}
-
-export class CommerceReportsUsageStatementsApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Commerce Reports usage Statements list. */
-  async list(params?: CommerceReportsUsageStatementsListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'user_id', value: params?.userId, style: 'form', explode: true, allowReserved: false },
-      { name: 'period_start', value: params?.periodStart, style: 'form', explode: true, allowReserved: false },
-      { name: 'period_end', value: params?.periodEnd, style: 'form', explode: true, allowReserved: false },
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/commerce_reports/usage_statements`), query));
-  }
-}
-
 export interface CommerceReportsRefundsListParams {
   startTime?: string;
   endTime?: string;
@@ -57,31 +28,6 @@ export class CommerceReportsRefundsApi {
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
     ]);
     return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/commerce_reports/refunds`), query));
-  }
-}
-
-export interface CommerceReportsPaymentReconciliationRetrieveParams {
-  provider?: string;
-  startTime?: string;
-  endTime?: string;
-}
-
-export class CommerceReportsPaymentReconciliationApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Commerce Reports payment Reconciliation retrieve. */
-  async retrieve(params?: CommerceReportsPaymentReconciliationRetrieveParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'provider', value: params?.provider, style: 'form', explode: true, allowReserved: false },
-      { name: 'start_time', value: params?.startTime, style: 'form', explode: true, allowReserved: false },
-      { name: 'end_time', value: params?.endTime, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/commerce_reports/payment_reconciliation`), query));
   }
 }
 
@@ -112,19 +58,73 @@ export class CommerceReportsOrderRevenueApi {
   }
 }
 
-export class CommerceReportsApi {
+export interface CommerceReportsPaymentReconciliationRetrieveParams {
+  providerCode?: string;
+  startTime?: string;
+  endTime?: string;
+}
+
+export class CommerceReportsPaymentReconciliationApi {
   private client: HttpClient;
-  public readonly orderRevenue: CommerceReportsOrderRevenueApi;
-  public readonly paymentReconciliation: CommerceReportsPaymentReconciliationApi;
-  public readonly refunds: CommerceReportsRefundsApi;
-  public readonly usageStatements: CommerceReportsUsageStatementsApi;
 
   constructor(client: HttpClient) {
     this.client = client;
-    this.orderRevenue = new CommerceReportsOrderRevenueApi(client);
-    this.paymentReconciliation = new CommerceReportsPaymentReconciliationApi(client);
-    this.refunds = new CommerceReportsRefundsApi(client);
+  }
+
+
+/** Commerce Reports payment Reconciliation retrieve. */
+  async retrieve(params?: CommerceReportsPaymentReconciliationRetrieveParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'provider_code', value: params?.providerCode, style: 'form', explode: true, allowReserved: false },
+      { name: 'start_time', value: params?.startTime, style: 'form', explode: true, allowReserved: false },
+      { name: 'end_time', value: params?.endTime, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/commerce_reports/payment_reconciliation`), query));
+  }
+}
+
+export interface CommerceReportsUsageStatementsListParams {
+  userId?: string;
+  periodStart?: string;
+  periodEnd?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export class CommerceReportsUsageStatementsApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Commerce Reports usage Statements list. */
+  async list(params?: CommerceReportsUsageStatementsListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'user_id', value: params?.userId, style: 'form', explode: true, allowReserved: false },
+      { name: 'period_start', value: params?.periodStart, style: 'form', explode: true, allowReserved: false },
+      { name: 'period_end', value: params?.periodEnd, style: 'form', explode: true, allowReserved: false },
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/commerce_reports/usage_statements`), query));
+  }
+}
+
+export class CommerceReportsApi {
+  private client: HttpClient;
+  public readonly usageStatements: CommerceReportsUsageStatementsApi;
+  public readonly paymentReconciliation: CommerceReportsPaymentReconciliationApi;
+  public readonly orderRevenue: CommerceReportsOrderRevenueApi;
+  public readonly refunds: CommerceReportsRefundsApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
     this.usageStatements = new CommerceReportsUsageStatementsApi(client);
+    this.paymentReconciliation = new CommerceReportsPaymentReconciliationApi(client);
+    this.orderRevenue = new CommerceReportsOrderRevenueApi(client);
+    this.refunds = new CommerceReportsRefundsApi(client);
   }
 
 }

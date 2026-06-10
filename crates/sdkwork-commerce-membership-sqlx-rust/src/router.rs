@@ -639,6 +639,7 @@ async fn create_speed_up(
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn resolve_membership_subject(
     state: &AppMembershipState,
     runtime_context: Option<Extension<IamAppContext>>,
@@ -650,6 +651,7 @@ fn resolve_membership_subject(
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn resolve_required_membership_subject(
     state: &AppMembershipState,
     runtime_context: Option<Extension<IamAppContext>>,

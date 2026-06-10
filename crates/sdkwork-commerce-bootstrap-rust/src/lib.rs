@@ -171,8 +171,8 @@ pub struct CommercePaymentMethodSeed {
     pub id: &'static str,
     pub method_key: &'static str,
     pub display_name: &'static str,
-    pub provider: &'static str,
-    pub sort_weight: i64,
+    pub provider_code: &'static str,
+    pub sort_order: i64,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -1836,50 +1836,50 @@ pub fn commerce_payment_method_seeds() -> Vec<CommercePaymentMethodSeed> {
             id: "seed-payment-method-wechat-pay",
             method_key: "wechat_pay",
             display_name: "WeChat Pay",
-            provider: "wechat_pay",
-            sort_weight: 10,
+            provider_code: "wechat_pay",
+            sort_order: 10,
         },
         CommercePaymentMethodSeed {
             id: "seed-payment-method-alipay",
             method_key: "alipay",
             display_name: "Alipay",
-            provider: "alipay",
-            sort_weight: 20,
+            provider_code: "alipay",
+            sort_order: 20,
         },
         CommercePaymentMethodSeed {
             id: "seed-payment-method-paypal",
             method_key: "paypal",
             display_name: "PayPal",
-            provider: "paypal",
-            sort_weight: 30,
+            provider_code: "paypal",
+            sort_order: 30,
         },
         CommercePaymentMethodSeed {
             id: "seed-payment-method-card",
             method_key: "card",
             display_name: "Card",
-            provider: "stripe",
-            sort_weight: 40,
+            provider_code: "stripe",
+            sort_order: 40,
         },
         CommercePaymentMethodSeed {
             id: "seed-payment-method-apple-pay",
             method_key: "apple_pay",
             display_name: "Apple Pay",
-            provider: "apple_pay",
-            sort_weight: 50,
+            provider_code: "apple_pay",
+            sort_order: 50,
         },
         CommercePaymentMethodSeed {
             id: "seed-payment-method-google-pay",
             method_key: "google_pay",
             display_name: "Google Pay",
-            provider: "google_pay",
-            sort_weight: 60,
+            provider_code: "google_pay",
+            sort_order: 60,
         },
         CommercePaymentMethodSeed {
             id: "seed-payment-method-wallet-balance",
             method_key: "wallet_balance",
             display_name: "Wallet balance",
-            provider: "wallet_balance",
-            sort_weight: 70,
+            provider_code: "wallet_balance",
+            sort_order: 70,
         },
     ]
 }
@@ -1963,7 +1963,7 @@ pub fn commerce_payment_channel_seeds() -> Vec<CommercePaymentChannelSeed> {
                 .into_iter()
                 .enumerate()
                 .map(move |(index, scene)| {
-                    let provider_code = method.provider;
+                    let provider_code = method.provider_code;
                     let country_code = default_payment_country(provider_code);
                     let currency_code = default_payment_currency(provider_code);
                     CommercePaymentChannelSeed {
@@ -2328,6 +2328,7 @@ fn plan_benefit(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn membership_package(
     external_id: i64,
     package_group_no: &'static str,
@@ -2398,6 +2399,7 @@ fn membership_package(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn recharge_package(
     package_id: &'static str,
     sku_id: &'static str,
@@ -2426,6 +2428,7 @@ fn recharge_package(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn commerce_experience_seed_payload(
     benefits: &[CommerceBenefitDefinitionSeed],
     plans: &[CommerceMembershipPlanSeed],

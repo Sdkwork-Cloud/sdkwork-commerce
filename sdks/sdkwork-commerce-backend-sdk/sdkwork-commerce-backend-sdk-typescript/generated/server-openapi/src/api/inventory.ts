@@ -4,15 +4,17 @@ import type { HttpClient } from '../http/client';
 import type { CommerceApiResult, CommerceOperationCommand } from '../types';
 
 
-export interface InventoryStocksListParams {
+export interface InventoryMovementsListParams {
   skuId?: string;
   warehouseId?: string;
-  status?: string;
+  movementType?: string;
+  sourceType?: string;
+  sourceId?: string;
   page?: number;
   pageSize?: number;
 }
 
-export class InventoryStocksApi {
+export class InventoryMovementsApi {
   private client: HttpClient;
 
   constructor(client: HttpClient) {
@@ -20,26 +22,18 @@ export class InventoryStocksApi {
   }
 
 
-/** Inventory stocks list. */
-  async list(params?: InventoryStocksListParams): Promise<CommerceApiResult> {
+/** Inventory movements list. */
+  async list(params?: InventoryMovementsListParams): Promise<CommerceApiResult> {
     const query = buildQueryString([
       { name: 'sku_id', value: params?.skuId, style: 'form', explode: true, allowReserved: false },
       { name: 'warehouse_id', value: params?.warehouseId, style: 'form', explode: true, allowReserved: false },
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+      { name: 'movement_type', value: params?.movementType, style: 'form', explode: true, allowReserved: false },
+      { name: 'source_type', value: params?.sourceType, style: 'form', explode: true, allowReserved: false },
+      { name: 'source_id', value: params?.sourceId, style: 'form', explode: true, allowReserved: false },
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
     ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/inventory/stocks`), query));
-  }
-
-/** Inventory stocks adjust. */
-  async adjust(stockId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/inventory/stocks/${serializePathParameter(stockId, { name: 'stockId', style: 'simple', explode: false })}/adjust`), body, undefined, undefined, 'application/json');
-  }
-
-/** Inventory stocks update. */
-  async update(stockId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.patch<CommerceApiResult>(backendApiPath(`/inventory/stocks/${serializePathParameter(stockId, { name: 'stockId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/inventory/movements`), query));
   }
 }
 
@@ -72,23 +66,17 @@ export class InventoryReservationsApi {
     ]);
     return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/inventory/reservations`), query));
   }
-
-/** Inventory reservations release. */
-  async release(reservationId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/inventory/reservations/${serializePathParameter(reservationId, { name: 'reservationId', style: 'simple', explode: false })}/release`), body, undefined, undefined, 'application/json');
-  }
 }
 
-export interface InventoryLedgerEntriesListParams {
+export interface InventoryStocksListParams {
   skuId?: string;
   warehouseId?: string;
-  sourceType?: string;
-  sourceId?: string;
+  status?: string;
   page?: number;
   pageSize?: number;
 }
 
-export class InventoryLedgerEntriesApi {
+export class InventoryStocksApi {
   private client: HttpClient;
 
   constructor(client: HttpClient) {
@@ -96,62 +84,35 @@ export class InventoryLedgerEntriesApi {
   }
 
 
-/** Inventory ledger Entries list. */
-  async list(params?: InventoryLedgerEntriesListParams): Promise<CommerceApiResult> {
+/** Inventory stocks list. */
+  async list(params?: InventoryStocksListParams): Promise<CommerceApiResult> {
     const query = buildQueryString([
       { name: 'sku_id', value: params?.skuId, style: 'form', explode: true, allowReserved: false },
       { name: 'warehouse_id', value: params?.warehouseId, style: 'form', explode: true, allowReserved: false },
-      { name: 'source_type', value: params?.sourceType, style: 'form', explode: true, allowReserved: false },
-      { name: 'source_id', value: params?.sourceId, style: 'form', explode: true, allowReserved: false },
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
     ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/inventory/ledger_entries`), query));
-  }
-}
-
-export interface InventoryLedgerListParams {
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-  sort?: string;
-  q?: string;
-}
-
-export class InventoryLedgerApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/inventory/stocks`), query));
   }
 
-
-/** Inventory ledger list. */
-  async list(params?: InventoryLedgerListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
-      { name: 'sort', value: params?.sort, style: 'form', explode: true, allowReserved: false },
-      { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/inventory/ledger`), query));
+/** Inventory stocks update. */
+  async update(stockId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.patch<CommerceApiResult>(backendApiPath(`/inventory/stocks/${serializePathParameter(stockId, { name: 'stockId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
   }
 }
 
 export class InventoryApi {
   private client: HttpClient;
-  public readonly ledger: InventoryLedgerApi;
-  public readonly ledgerEntries: InventoryLedgerEntriesApi;
-  public readonly reservations: InventoryReservationsApi;
   public readonly stocks: InventoryStocksApi;
+  public readonly reservations: InventoryReservationsApi;
+  public readonly movements: InventoryMovementsApi;
 
   constructor(client: HttpClient) {
     this.client = client;
-    this.ledger = new InventoryLedgerApi(client);
-    this.ledgerEntries = new InventoryLedgerEntriesApi(client);
-    this.reservations = new InventoryReservationsApi(client);
     this.stocks = new InventoryStocksApi(client);
+    this.reservations = new InventoryReservationsApi(client);
+    this.movements = new InventoryMovementsApi(client);
   }
 
 }

@@ -211,6 +211,7 @@ export const sdkMetadata = {
   baseUrl: "${manifest.baseUrl}",
   apiPrefix: "${manifest.apiPrefix}",
   sdkDependencies: ${JSON.stringify(manifest.sdkDependencies ?? [])},
+  dependencyApiExports: ${JSON.stringify(manifest.dependencyApiExports ?? [])},
 };
 
 export const operations = {
@@ -231,14 +232,17 @@ function writeCommerceFamilyMetadata({
   const openapiDocument = JSON.parse(readFileSync(openapiPath, "utf8"));
   const operations = collectOperations(openapiDocument);
   const relativeOpenapiPath = toPosixPath(path.relative(family.sdkRoot, openapiPath));
-  const generatedPackages = Object.fromEntries(OFFICIAL_LANGUAGE_ORDER.map((language) => [
-    language,
-    {
-      language,
-      packageName: `${family.sdkName}-generated-${language}`,
-      generatedOutput: `${family.sdkName}-${language}/generated/server-openapi`,
-    },
-  ]));
+  const generatedPackages =
+    operations.length === 0
+      ? {}
+      : Object.fromEntries(OFFICIAL_LANGUAGE_ORDER.map((language) => [
+          language,
+          {
+            language,
+            packageName: `${family.sdkName}-generated-${language}`,
+            generatedOutput: `${family.sdkName}-${language}/generated/server-openapi`,
+          },
+        ]));
   const manifest = {
     schemaVersion: 1,
     sdkName: family.sdkName,
@@ -250,6 +254,7 @@ function writeCommerceFamilyMetadata({
     generationInputSpec: relativeOpenapiPath,
     generatedPackages,
     sdkDependencies: family.sdkDependencies || [],
+    dependencyApiExports: family.dependencyApiExports || [],
     generatorName,
     baseUrl,
     standardProfile: family.manifestStandardProfile,
@@ -265,7 +270,9 @@ function writeCommerceFamilyMetadata({
     "utf8",
   );
 
-  writeTypeScriptComposedOperations(family, manifest, operations);
+  if (operations.length > 0) {
+    writeTypeScriptComposedOperations(family, manifest, operations);
+  }
 }
 
 function removeStaleGeneratedTrackingFiles(outputPath) {
@@ -316,6 +323,7 @@ function syncCommerceAssemblyMetadata(family, openapiPath) {
     manualTransports: [],
   };
   assembly.sdkDependencies = family.sdkDependencies || [];
+  assembly.dependencyApiExports = family.dependencyApiExports || [];
 
   writeFileSync(assemblyPath, `${JSON.stringify(assembly, null, 2)}\n`, "utf8");
 }
@@ -334,6 +342,21 @@ export function runCommerceSdkGenerator(family, argv) {
     fail(sdkName, `openapi file not found: ${openapiPath}`);
   }
   syncCommerceAssemblyMetadata(family, openapiPath);
+
+  const openapiDocument = JSON.parse(readFileSync(openapiPath, "utf8"));
+  const operations = collectOperations(openapiDocument);
+  if (operations.length === 0) {
+    writeCommerceFamilyMetadata({
+      openapiPath,
+      family,
+      generatorName: "sdkwork-sdk-generator",
+      baseUrl: args.baseUrl,
+    });
+    process.stdout.write(
+      `[${sdkName}] no owner-only operations; synced SDK family metadata without transport generation\n`,
+    );
+    return;
+  }
 
   const languages = args.allLanguages
     ? OFFICIAL_LANGUAGE_ORDER

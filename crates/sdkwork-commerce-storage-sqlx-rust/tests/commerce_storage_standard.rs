@@ -7,23 +7,44 @@ use sdkwork_commerce_storage_sqlx::{
     commerce_migration_runner_lock_acquire_outcome, commerce_migration_runner_lock_cleanup,
     commerce_migration_runner_lock_lifecycle, commerce_migration_runner_lock_record,
     commerce_migration_runner_preflight, commerce_migration_runner_sql_contract,
-    commerce_repository_bindings, commerce_storage_applied_migration_record,
-    commerce_storage_capability_manifest, commerce_transaction_boundary_sql_contract,
-    validate_commerce_migration_plan, validate_commerce_migration_runner_execution_plan,
+    commerce_repository_bindings, commerce_shop_service_area_key,
+    commerce_storage_applied_migration_record, commerce_storage_capability_manifest,
+    commerce_transaction_boundary_sql_contract, validate_commerce_migration_plan,
+    validate_commerce_migration_runner_execution_plan,
     validate_commerce_migration_runner_execution_result,
     validate_commerce_migration_runner_failure_recovery,
     validate_commerce_migration_runner_final_state,
     validate_commerce_migration_runner_lock_cleanup,
     validate_commerce_migration_runner_lock_lifecycle,
-    validate_commerce_migration_runner_sql_contract,
+    validate_commerce_migration_runner_sql_contract, CommerceShopServiceAreaKeyError,
+    CommerceSqlConflictClassifier,
 };
 
 #[test]
 fn exposes_first_slice_commerce_table_catalog() {
     let tables = commerce_database_tables();
 
-    assert_eq!(tables.len(), 68);
+    assert_eq!(tables.len(), 91);
     assert!(tables.contains(&"commerce_idempotency_key"));
+    assert!(tables.contains(&"commerce_shop"));
+    assert!(tables.contains(&"commerce_shop_application"));
+    assert!(tables.contains(&"commerce_shop_verification"));
+    assert!(tables.contains(&"commerce_shop_status_event"));
+    assert!(tables.contains(&"commerce_shop_channel"));
+    assert!(tables.contains(&"commerce_shop_fulfillment_profile"));
+    assert!(tables.contains(&"commerce_shop_settlement_profile"));
+    assert!(tables.contains(&"commerce_shop_metric_snapshot"));
+    assert!(tables.contains(&"commerce_shop_business_hour"));
+    assert!(tables.contains(&"commerce_shop_service_area"));
+    assert!(tables.contains(&"commerce_shop_policy"));
+    assert!(tables.contains(&"commerce_shop_deposit_account"));
+    assert!(tables.contains(&"commerce_shop_risk_signal"));
+    assert!(tables.contains(&"commerce_shop_category_binding"));
+    assert!(tables.contains(&"commerce_shop_brand_authorization"));
+    assert!(tables.contains(&"commerce_shop_qualification"));
+    assert!(tables.contains(&"commerce_shop_customer_service"));
+    assert!(tables.contains(&"commerce_shop_return_address"));
+    assert!(tables.contains(&"commerce_shop_shipping_template"));
     assert!(tables.contains(&"commerce_account"));
     assert!(tables.contains(&"commerce_account_ledger_entry"));
     assert!(tables.contains(&"commerce_billing_prehold"));
@@ -52,7 +73,10 @@ fn exposes_first_slice_commerce_table_catalog() {
     assert!(tables.contains(&"commerce_product_attribute_value"));
     assert!(tables.contains(&"commerce_product_spu"));
     assert!(tables.contains(&"commerce_product_sku"));
-    assert!(tables.contains(&"commerce_product_sku_attribute_value"));
+    assert!(tables.contains(&"commerce_product_sku_attribute"));
+    assert!(tables.contains(&"commerce_product_media"));
+    assert!(tables.contains(&"commerce_price_list"));
+    assert!(tables.contains(&"commerce_price_list_item"));
     assert!(tables.contains(&"commerce_recharge_package"));
     assert!(tables.contains(&"commerce_inventory_stock"));
     assert!(tables.contains(&"commerce_inventory_reservation"));
@@ -78,6 +102,7 @@ fn exposes_first_slice_commerce_table_catalog() {
     assert!(tables.contains(&"commerce_payment_webhook_delivery"));
     assert!(tables.contains(&"commerce_payment_statement"));
     assert!(tables.contains(&"commerce_payment_statement_item"));
+    assert!(tables.contains(&"commerce_payment_reconciliation_run"));
     assert!(tables.contains(&"commerce_payment_reconciliation_item"));
     assert!(tables.contains(&"commerce_payment_fee"));
     assert!(tables.contains(&"commerce_payment_dispute"));
@@ -102,10 +127,16 @@ fn exposes_first_slice_commerce_table_catalog() {
         "commerce_membership",
         "commerce_membership_entitlement",
         "commerce_membership_entitlement_usage",
+        "commerce_shop_staff",
+        "commerce_shop_member",
+        "commerce_shop_role",
+        "commerce_shop_permission",
+        "commerce_shop_department",
+        "commerce_shop_position",
     ] {
         assert!(
             !tables.contains(&legacy_table),
-            "legacy commerce storage table must be removed: {legacy_table}",
+            "commerce storage must not expose duplicate IAM/shop staff table: {legacy_table}",
         );
     }
 
@@ -140,6 +171,7 @@ fn first_slice_migrations_are_domain_ordered() {
             "0011_exchange.sql",
             "0012_invoice.sql",
             "0013_billing_history.sql",
+            "0014_shop.sql",
         ],
     );
 }
@@ -147,8 +179,117 @@ fn first_slice_migrations_are_domain_ordered() {
 #[test]
 fn initial_migration_declares_first_slice_tables_and_columns() {
     let sql = commerce_initial_migration_sql();
+    let customer_service_table = sql
+        .split("CREATE TABLE IF NOT EXISTS commerce_shop_customer_service")
+        .nth(1)
+        .and_then(|tail| {
+            tail.split("CREATE TABLE IF NOT EXISTS commerce_shop_return_address")
+                .next()
+        })
+        .expect("customer service table must be declared before return address table");
+    let shipping_template_table = sql
+        .split("CREATE TABLE IF NOT EXISTS commerce_shop_shipping_template")
+        .nth(1)
+        .and_then(|tail| {
+            tail.split("CREATE TABLE IF NOT EXISTS commerce_account")
+                .next()
+        })
+        .expect("shipping template table must be declared before account table");
 
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_idempotency_key"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop"));
+    assert!(sql.contains("organization_id TEXT NOT NULL"));
+    assert!(sql.contains("shop_no TEXT NOT NULL"));
+    assert!(sql.contains("shop_name TEXT NOT NULL"));
+    assert!(sql.contains("shop_type TEXT NOT NULL"));
+    assert!(sql.contains("business_model TEXT NOT NULL"));
+    assert!(sql.contains("storefront_status TEXT NOT NULL"));
+    assert!(sql.contains("operation_status TEXT NOT NULL"));
+    assert!(sql.contains("default_currency_code TEXT NOT NULL"));
+    assert!(sql.contains("UNIQUE (tenant_id, shop_no)"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_business_hour"));
+    assert!(sql.contains("schedule_type TEXT NOT NULL"));
+    assert!(sql.contains("weekly_schedule_json TEXT NOT NULL"));
+    assert!(sql.contains("holiday_schedule_json TEXT"));
+    assert!(sql.contains("UNIQUE (tenant_id, shop_id, schedule_type)"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_service_area"));
+    assert!(sql.contains("area_type TEXT NOT NULL"));
+    assert!(sql.contains("region_code TEXT"));
+    assert!(sql.contains("area_key TEXT NOT NULL"));
+    assert!(sql.contains("delivery_radius_meters INTEGER"));
+    assert!(sql.contains("CHECK (delivery_radius_meters IS NULL OR delivery_radius_meters >= 0)"));
+    assert!(sql.contains("service_status TEXT NOT NULL"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_policy"));
+    assert!(sql.contains("policy_type TEXT NOT NULL"));
+    assert!(sql.contains("policy_status TEXT NOT NULL"));
+    assert!(sql.contains("policy_version INTEGER NOT NULL"));
+    assert!(sql.contains("policy_json TEXT NOT NULL"));
+    assert!(sql.contains("UNIQUE (tenant_id, shop_id, policy_type, policy_version)"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_deposit_account"));
+    assert!(sql.contains("deposit_status TEXT NOT NULL"));
+    assert!(sql.contains("required_amount TEXT NOT NULL DEFAULT '0'"));
+    assert!(sql.contains("paid_amount TEXT NOT NULL DEFAULT '0'"));
+    assert!(sql.contains("frozen_amount TEXT NOT NULL DEFAULT '0'"));
+    assert!(sql.contains("account_ref TEXT"));
+    assert!(sql.contains("UNIQUE (tenant_id, shop_id, currency_code)"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_risk_signal"));
+    assert!(sql.contains("signal_no TEXT NOT NULL"));
+    assert!(sql.contains("signal_type TEXT NOT NULL"));
+    assert!(sql.contains("risk_level TEXT NOT NULL"));
+    assert!(sql.contains("signal_status TEXT NOT NULL"));
+    assert!(sql.contains("risk_score INTEGER NOT NULL DEFAULT 0"));
+    assert!(sql.contains("payload_json TEXT NOT NULL"));
+    assert!(sql.contains("UNIQUE (tenant_id, signal_no)"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_category_binding"));
+    assert!(sql.contains("shop_category_code TEXT NOT NULL"));
+    assert!(sql.contains("platform_category_code TEXT"));
+    assert!(sql.contains("category_path TEXT"));
+    assert!(sql.contains("category_status TEXT NOT NULL"));
+    assert!(sql.contains("qualification_required INTEGER NOT NULL DEFAULT 0"));
+    assert!(sql.contains("UNIQUE (tenant_id, shop_id, shop_category_code)"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_brand_authorization"));
+    assert!(sql.contains("brand_code TEXT NOT NULL"));
+    assert!(sql.contains("brand_name TEXT NOT NULL"));
+    assert!(sql.contains("authorization_type TEXT NOT NULL"));
+    assert!(sql.contains("authorization_status TEXT NOT NULL"));
+    assert!(sql.contains("trademark_no_hash TEXT"));
+    assert!(sql.contains("UNIQUE (tenant_id, shop_id, brand_code)"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_qualification"));
+    assert!(sql.contains("qualification_type TEXT NOT NULL"));
+    assert!(sql.contains("qualification_status TEXT NOT NULL"));
+    assert!(sql.contains("subject_type TEXT NOT NULL"));
+    assert!(sql.contains("subject_id TEXT"));
+    assert!(sql.contains("credential_no_hash TEXT"));
+    assert!(
+        sql.contains("UNIQUE (tenant_id, shop_id, qualification_type, subject_type, subject_id)")
+    );
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_customer_service"));
+    assert!(sql.contains("service_channel TEXT NOT NULL"));
+    assert!(sql.contains("contact_ref TEXT NOT NULL"));
+    assert!(customer_service_table.contains("is_default INTEGER NOT NULL DEFAULT 0"));
+    assert!(customer_service_table.contains("CHECK (is_default IN (0, 1))"));
+    assert!(sql.contains("UNIQUE (tenant_id, shop_id, service_channel, contact_ref)"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_return_address"));
+    assert!(sql.contains("address_usage TEXT NOT NULL"));
+    assert!(sql.contains("receiver_name TEXT NOT NULL"));
+    assert!(sql.contains("phone_hash TEXT"));
+    assert!(sql.contains("is_default INTEGER NOT NULL DEFAULT 0"));
+    assert!(sql.contains("UNIQUE (tenant_id, shop_id, address_usage, address_key)"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_shipping_template"));
+    assert!(shipping_template_table.contains("template_code TEXT NOT NULL"));
+    assert!(shipping_template_table.contains("template_name TEXT NOT NULL"));
+    assert!(shipping_template_table.contains("pricing_mode TEXT NOT NULL"));
+    assert!(shipping_template_table.contains("base_fee_amount TEXT NOT NULL DEFAULT '0'"));
+    assert!(shipping_template_table.contains("currency_code TEXT NOT NULL"));
+    assert!(shipping_template_table.contains("is_default INTEGER NOT NULL DEFAULT 0"));
+    assert!(shipping_template_table.contains("CHECK (is_default IN (0, 1))"));
+    assert!(shipping_template_table.contains("UNIQUE (tenant_id, shop_id, template_code)"));
+    assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_staff"));
+    assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_member"));
+    assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_role"));
+    assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_permission"));
+    assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_department"));
+    assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_shop_position"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_account"));
     assert!(sql.contains("tenant_id"));
     assert!(sql.contains("organization_id"));
@@ -230,22 +371,48 @@ fn initial_migration_declares_first_slice_tables_and_columns() {
     assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_coupon_issue_batch"));
     assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_coupon ("));
     assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_coupon_redemption"));
+    let product_catalog_sql = sql
+        .split("CREATE TABLE IF NOT EXISTS commerce_product_category")
+        .nth(1)
+        .unwrap()
+        .split("CREATE TABLE IF NOT EXISTS commerce_recharge_package")
+        .next()
+        .unwrap();
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_product_category"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_product_attribute"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_product_attribute_value"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_product_spu"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_product_spu_category"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_product_sku"));
-    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_product_sku_attribute_value"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_product_sku_attribute"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_product_media"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_price_list"));
+    assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_price_list_item"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_recharge_package"));
     assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_product ("));
     assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_sku ("));
+    assert!(sql.contains("parent_id TEXT"));
+    assert!(product_catalog_sql.contains("parent_id TEXT"));
+    assert!(product_catalog_sql.contains("path TEXT NOT NULL"));
+    assert!(sql.contains("level_no INTEGER NOT NULL"));
+    assert!(sql.contains("sort_order INTEGER NOT NULL DEFAULT 0"));
+    assert!(sql.contains("scope TEXT NOT NULL"));
+    assert!(sql.contains("value_code TEXT NOT NULL"));
+    assert!(sql.contains("custom_value TEXT"));
     assert!(sql.contains("spu_no"));
     assert!(sql.contains("product_type"));
-    assert!(sql.contains("delivery_mode"));
+    assert!(sql.contains("fulfillment_type"));
     assert!(sql.contains("inventory_tracking"));
+    assert!(sql.contains("published_at"));
+    assert!(!product_catalog_sql.contains("parent_category_id"));
+    assert!(!product_catalog_sql.contains("sort_weight"));
+    assert!(!product_catalog_sql.contains("delivery_mode"));
+    assert!(!product_catalog_sql.contains("sales_status"));
+    assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_product_sku_attribute_value"));
     assert!(sql.contains("UNIQUE (tenant_id, spu_no)"));
     assert!(sql.contains("UNIQUE (tenant_id, sku_no)"));
+    assert!(sql.contains("UNIQUE (tenant_id, price_list_no)"));
+    assert!(sql.contains("UNIQUE (tenant_id, price_list_id, sku_id)"));
     assert!(sql.contains("UNIQUE (tenant_id, organization_id, external_id)"));
     assert!(sql.contains("UNIQUE (tenant_id, package_no)"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_inventory_stock"));
@@ -271,9 +438,9 @@ fn initial_migration_declares_first_slice_tables_and_columns() {
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_payment_provider_account"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_payment_channel"));
     assert!(sql.contains("CREATE TABLE IF NOT EXISTS commerce_payment_route_rule"));
-    assert!(sql.contains("UNIQUE (tenant_id, provider, out_trade_no)"));
-    assert!(sql.contains("UNIQUE (tenant_id, provider, event_id)"));
-    assert!(sql.contains("UNIQUE (tenant_id, provider, nonce)"));
+    assert!(sql.contains("UNIQUE (tenant_id, provider_code, out_trade_no)"));
+    assert!(sql.contains("UNIQUE (tenant_id, provider_code, event_id)"));
+    assert!(sql.contains("UNIQUE (tenant_id, provider_code, nonce)"));
     assert!(sql.contains("UNIQUE (tenant_id, organization_id, method_key)"));
     assert!(sql.contains("UNIQUE (tenant_id, organization_id, provider_code)"));
     assert!(sql.contains("UNIQUE (tenant_id, account_no)"));
@@ -284,7 +451,8 @@ fn initial_migration_declares_first_slice_tables_and_columns() {
     assert!(sql.contains("source_asset_type"));
     assert!(sql.contains("target_asset_type"));
     assert!(sql.contains("rate"));
-    assert!(!sql.contains("level_code"));
+    let membership_plan = table_definition(sql, "membership_plan");
+    assert!(!membership_plan.contains("level_code"));
     assert!(!sql.contains("benefits_json"));
     assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_membership_plan"));
     assert!(!sql.contains("CREATE TABLE IF NOT EXISTS commerce_membership_entitlement"));
@@ -299,12 +467,56 @@ fn initial_migration_declares_first_slice_tables_and_columns() {
 }
 
 #[test]
+fn shop_service_area_key_normalizes_nullable_location_scope_for_unique_storage() {
+    assert_eq!(
+        commerce_shop_service_area_key("CN", Some(" GD "), Some("SZ"), None, None).unwrap(),
+        "CN|gd|sz|*|*",
+    );
+    assert_eq!(
+        commerce_shop_service_area_key("us", None, None, Some(" 94* "), Some(5000)).unwrap(),
+        "US|*|*|94*|5000",
+    );
+    assert_eq!(
+        commerce_shop_service_area_key(" jp ", Some(" "), Some("Tokyo"), Some(" "), None).unwrap(),
+        "JP|*|tokyo|*|*",
+    );
+}
+
+#[test]
+fn shop_service_area_key_rejects_negative_delivery_radius() {
+    let error: CommerceShopServiceAreaKeyError =
+        commerce_shop_service_area_key("CN", Some("GD"), Some("SZ"), None, Some(-1)).unwrap_err();
+
+    assert_eq!(error.code, "commerce-shop-service-area-radius-invalid");
+    assert!(error
+        .message
+        .contains("delivery_radius_meters must be zero or positive"),);
+}
+
+#[test]
 fn initial_migration_declares_standard_query_indexes() {
     let sql = commerce_initial_migration_sql();
     let indexes = commerce_database_indexes();
 
     let required_indexes = [
         "idx_commerce_idempotency_key_tenant_key",
+        "idx_commerce_shop_organization",
+        "idx_commerce_shop_status",
+        "idx_commerce_shop_business_hour_shop",
+        "uk_commerce_shop_service_area_scope",
+        "idx_commerce_shop_service_area_region",
+        "idx_commerce_shop_policy_type_status",
+        "idx_commerce_shop_deposit_account_status",
+        "idx_commerce_shop_risk_signal_status",
+        "idx_commerce_shop_category_binding_status",
+        "idx_commerce_shop_brand_authorization_status",
+        "idx_commerce_shop_qualification_status",
+        "idx_commerce_shop_customer_service_status",
+        "uk_commerce_shop_customer_service_single_default",
+        "idx_commerce_shop_return_address_default",
+        "uk_commerce_shop_return_address_single_default",
+        "idx_commerce_shop_shipping_template_status",
+        "uk_commerce_shop_shipping_template_single_default",
         "idx_commerce_account_owner_asset",
         "idx_commerce_account_ledger_account_created_at",
         "idx_commerce_account_ledger_request_no",
@@ -327,6 +539,9 @@ fn initial_migration_declares_standard_query_indexes() {
         "idx_commerce_product_spu_type_status",
         "idx_commerce_product_sku_spu_status",
         "idx_commerce_product_sku_price_status",
+        "idx_commerce_product_media_owner",
+        "idx_commerce_price_list_market_status",
+        "idx_commerce_price_list_item_sku",
         "idx_commerce_recharge_package_amount_status",
         "idx_commerce_inventory_stock_sku_warehouse",
         "idx_commerce_inventory_reservation_order_status",
@@ -338,16 +553,37 @@ fn initial_migration_declares_standard_query_indexes() {
         "idx_commerce_order_owner_status_created_at",
         "idx_commerce_order_no",
         "idx_commerce_payment_intent_order",
-        "idx_commerce_payment_attempt_provider_trade_no",
-        "idx_commerce_payment_webhook_event_provider_event",
-        "idx_commerce_payment_webhook_event_provider_nonce",
+        "idx_commerce_payment_attempt_provider_code_trade_no",
+        "idx_commerce_payment_webhook_event_provider_code_event",
+        "idx_commerce_payment_webhook_event_provider_code_nonce",
         "idx_commerce_payment_webhook_event_status_processed_at",
         "idx_commerce_payment_method_status",
         "idx_commerce_payment_provider_status",
         "idx_commerce_payment_provider_account_provider",
         "idx_commerce_payment_channel_route",
         "idx_commerce_payment_route_rule_match",
+        "idx_commerce_payment_provider_capability_lookup",
+        "idx_commerce_payment_operation_attempt_resource",
+        "idx_commerce_payment_operation_attempt_native_request",
+        "idx_commerce_payment_route_decision_intent",
+        "idx_commerce_payment_capture_attempt_status",
+        "idx_commerce_payment_webhook_delivery_status",
+        "idx_commerce_payment_statement_period",
+        "idx_commerce_payment_statement_item_trade",
+        "idx_commerce_payment_statement_item_out_trade",
+        "idx_commerce_payment_reconciliation_run_status",
+        "idx_commerce_payment_reconciliation_run_period",
+        "idx_commerce_payment_reconciliation_item_run_status",
+        "idx_commerce_payment_reconciliation_item_resolution",
+        "idx_commerce_payment_reconciliation_item_payment",
+        "idx_commerce_payment_fee_payment",
+        "idx_commerce_payment_fee_refund",
+        "idx_commerce_payment_dispute_payment_status",
+        "idx_commerce_payment_dispute_event_created",
         "idx_commerce_refund_payment",
+        "idx_commerce_refund_item_refund",
+        "idx_commerce_refund_attempt_status",
+        "idx_commerce_refund_event_created",
         "idx_commerce_exchange_rule_pair_status",
         "idx_membership_plan_status",
         "idx_membership_plan_code",
@@ -374,9 +610,73 @@ fn initial_migration_declares_standard_query_indexes() {
 
     for index_name in required_indexes {
         assert!(indexes.contains(&index_name));
+        let index_marker = format!("CREATE INDEX IF NOT EXISTS {index_name}");
+        let unique_index_marker = format!("CREATE UNIQUE INDEX IF NOT EXISTS {index_name}");
         assert!(
-            sql.contains(&format!("CREATE INDEX IF NOT EXISTS {index_name}")),
+            sql.contains(&index_marker) || sql.contains(&unique_index_marker),
             "missing standard commerce migration index: {index_name}",
+        );
+    }
+    assert!(sql.contains(
+        "CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_shop_customer_service_single_default",
+    ));
+    assert!(
+        sql.contains("ON commerce_shop_customer_service (tenant_id, shop_id, service_channel)",)
+    );
+    assert!(sql.contains("WHERE is_default = 1"));
+    assert!(sql.contains(
+        "CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_shop_return_address_single_default",
+    ));
+    assert!(sql.contains("ON commerce_shop_return_address (tenant_id, shop_id, address_usage)",));
+    assert!(sql.contains("WHERE is_default = 1"));
+    assert!(sql.contains(
+        "CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_shop_shipping_template_single_default",
+    ));
+    assert!(
+        sql.contains("ON commerce_shop_shipping_template (tenant_id, shop_id, delivery_method)",)
+    );
+    assert!(sql.contains("WHERE is_default = 1"));
+}
+
+#[test]
+fn payment_extension_indexes_use_table_scoped_names() {
+    let sql = commerce_initial_migration_sql();
+
+    for legacy_prefix in [
+        "CREATE INDEX IF NOT EXISTS idx_pay_",
+        "CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_",
+        "CREATE INDEX IF NOT EXISTS idx_refund_",
+        "CREATE UNIQUE INDEX IF NOT EXISTS uk_refund_",
+    ] {
+        assert!(
+            !sql.contains(legacy_prefix),
+            "payment center indexes must use full table-scoped commerce names, not {legacy_prefix}",
+        );
+    }
+
+    for unique_index in [
+        "uk_commerce_payment_provider_capability_scope",
+        "uk_commerce_payment_operation_attempt_no",
+        "uk_commerce_payment_operation_attempt_idempotency",
+        "uk_commerce_payment_route_decision_attempt",
+        "uk_commerce_payment_capture_no",
+        "uk_commerce_payment_capture_native",
+        "uk_commerce_payment_webhook_delivery_event",
+        "uk_commerce_payment_webhook_delivery_nonce",
+        "uk_commerce_payment_statement_no",
+        "uk_commerce_payment_statement_scope",
+        "uk_commerce_payment_statement_item_row",
+        "uk_commerce_payment_reconciliation_run_no",
+        "uk_commerce_payment_reconciliation_run_idempotency",
+        "uk_commerce_payment_dispute_no",
+        "uk_commerce_payment_dispute_native",
+        "uk_commerce_payment_dispute_event_no",
+        "uk_commerce_refund_attempt_out_no",
+        "uk_commerce_refund_event_no",
+    ] {
+        assert!(
+            sql.contains(&format!("CREATE UNIQUE INDEX IF NOT EXISTS {unique_index}")),
+            "missing standard unique payment center index: {unique_index}",
         );
     }
 }
@@ -392,6 +692,7 @@ fn repository_bindings_cover_first_slice_storage_boundaries() {
             .collect::<Vec<_>>(),
         vec![
             "idempotency.repository",
+            "shop.repository",
             "account.repository",
             "benefit.repository",
             "entitlement.repository",
@@ -416,6 +717,37 @@ fn repository_bindings_cover_first_slice_storage_boundaries() {
     assert_eq!(idempotency.domain, "core");
     assert_eq!(idempotency.tables, vec!["commerce_idempotency_key"]);
     assert!(idempotency.requires_transaction);
+
+    let shop = bindings
+        .iter()
+        .find(|binding| binding.repository_name == "shop.repository")
+        .unwrap();
+    assert_eq!(shop.domain, "shop");
+    assert_eq!(
+        shop.tables,
+        vec![
+            "commerce_shop",
+            "commerce_shop_application",
+            "commerce_shop_verification",
+            "commerce_shop_status_event",
+            "commerce_shop_channel",
+            "commerce_shop_fulfillment_profile",
+            "commerce_shop_settlement_profile",
+            "commerce_shop_metric_snapshot",
+            "commerce_shop_business_hour",
+            "commerce_shop_service_area",
+            "commerce_shop_policy",
+            "commerce_shop_deposit_account",
+            "commerce_shop_risk_signal",
+            "commerce_shop_category_binding",
+            "commerce_shop_brand_authorization",
+            "commerce_shop_qualification",
+            "commerce_shop_customer_service",
+            "commerce_shop_return_address",
+            "commerce_shop_shipping_template",
+        ]
+    );
+    assert!(shop.requires_transaction);
 
     let benefit = bindings
         .iter()
@@ -491,8 +823,12 @@ fn repository_bindings_cover_first_slice_storage_boundaries() {
             "commerce_product_attribute",
             "commerce_product_attribute_value",
             "commerce_product_spu",
+            "commerce_product_spu_category",
             "commerce_product_sku",
-            "commerce_product_sku_attribute_value",
+            "commerce_product_sku_attribute",
+            "commerce_product_media",
+            "commerce_price_list",
+            "commerce_price_list_item",
             "commerce_recharge_package",
         ],
     );
@@ -544,7 +880,22 @@ fn repository_bindings_cover_first_slice_storage_boundaries() {
             "commerce_payment_provider_account",
             "commerce_payment_channel",
             "commerce_payment_route_rule",
+            "commerce_payment_provider_capability",
+            "commerce_payment_operation_attempt",
+            "commerce_payment_route_decision",
+            "commerce_payment_capture",
+            "commerce_payment_webhook_delivery",
+            "commerce_payment_statement",
+            "commerce_payment_statement_item",
+            "commerce_payment_reconciliation_run",
+            "commerce_payment_reconciliation_item",
+            "commerce_payment_fee",
+            "commerce_payment_dispute",
+            "commerce_payment_dispute_event",
             "commerce_refund",
+            "commerce_refund_item",
+            "commerce_refund_attempt",
+            "commerce_refund_event",
         ],
     );
     assert!(payment.requires_transaction);
@@ -666,6 +1017,10 @@ fn idempotency_repository_contract_standardizes_sql_conflict_classification() {
         "commerce_idempotency_key"
     );
     assert_eq!(
+        contract.conflict_classifier.constraint_name,
+        "commerce_idempotency_key_tenant_id_scope_idempotency_key_key",
+    );
+    assert_eq!(
         contract.conflict_classifier.unique_key,
         vec!["tenant_id", "scope", "idempotency_key"],
     );
@@ -687,6 +1042,161 @@ fn idempotency_repository_contract_standardizes_sql_conflict_classification() {
     assert!(!contract
         .conflict_classifier
         .matches_constraint("commerce_order_tenant_id_order_no_key"));
+}
+
+#[test]
+fn sql_conflict_classifier_does_not_match_everything_when_constraint_name_is_empty() {
+    let classifier = CommerceSqlConflictClassifier {
+        table: "commerce_shop_service_area",
+        constraint_name: "",
+        unique_key: vec!["tenant_id", "shop_id"],
+        error_code: "commerce-shop-service-area-scope-conflict",
+        message: "shop service area scope already exists",
+    };
+
+    assert!(!classifier
+        .matches_constraint("database error from a different table without the expected key"));
+    assert!(classifier.matches_constraint(
+        "UNIQUE constraint failed: commerce_shop_service_area.tenant_id, commerce_shop_service_area.shop_id"
+    ));
+}
+
+#[test]
+fn shop_repository_contract_standardizes_service_area_scope_conflicts() {
+    let catalogs = commerce_business_repository_sql_catalogs();
+    let shop = catalogs
+        .iter()
+        .find(|catalog| catalog.repository_name == "shop.repository")
+        .expect("shop repository catalog must be registered");
+
+    let conflict = shop
+        .conflict_classifiers
+        .iter()
+        .find(|classifier| classifier.table == "commerce_shop_service_area")
+        .expect("shop service area scope conflict classifier must be registered");
+
+    assert_eq!(
+        conflict.unique_key,
+        vec![
+            "tenant_id",
+            "shop_id",
+            "area_type",
+            "country_code",
+            "area_key"
+        ],
+    );
+    assert_eq!(
+        conflict.constraint_name,
+        "uk_commerce_shop_service_area_scope"
+    );
+    assert_eq!(
+        conflict.error_code,
+        "commerce-shop-service-area-scope-conflict",
+    );
+    assert_eq!(
+        conflict.message,
+        "shop service area scope already exists for the same normalized delivery coverage",
+    );
+    assert!(conflict.matches_constraint("uk_commerce_shop_service_area_scope"));
+    assert!(conflict.matches_constraint(
+        "UNIQUE constraint failed: commerce_shop_service_area.tenant_id, commerce_shop_service_area.shop_id, commerce_shop_service_area.area_type, commerce_shop_service_area.country_code, commerce_shop_service_area.area_key"
+    ));
+}
+
+#[test]
+fn shop_repository_contract_standardizes_wechat_aligned_scope_conflicts() {
+    let shop = commerce_business_repository_sql_catalogs()
+        .into_iter()
+        .find(|catalog| catalog.repository_name == "shop.repository")
+        .expect("shop repository catalog must be registered");
+
+    for (table, constraint_name, unique_key, error_code, message) in [
+        (
+            "commerce_shop_category_binding",
+            "uk_commerce_shop_category_binding_scope",
+            vec!["tenant_id", "shop_id", "shop_category_code"],
+            "commerce-shop-category-binding-scope-conflict",
+            "shop category binding already exists for the same shop category code",
+        ),
+        (
+            "commerce_shop_brand_authorization",
+            "uk_commerce_shop_brand_authorization_scope",
+            vec!["tenant_id", "shop_id", "brand_code"],
+            "commerce-shop-brand-authorization-scope-conflict",
+            "shop brand authorization already exists for the same shop brand code",
+        ),
+        (
+            "commerce_shop_qualification",
+            "uk_commerce_shop_qualification_scope",
+            vec![
+                "tenant_id",
+                "shop_id",
+                "qualification_type",
+                "subject_type",
+                "subject_id",
+            ],
+            "commerce-shop-qualification-scope-conflict",
+            "shop qualification already exists for the same qualification subject",
+        ),
+        (
+            "commerce_shop_customer_service",
+            "uk_commerce_shop_customer_service_scope",
+            vec!["tenant_id", "shop_id", "service_channel", "contact_ref"],
+            "commerce-shop-customer-service-scope-conflict",
+            "shop customer service contact already exists for the same service channel",
+        ),
+        (
+            "commerce_shop_customer_service",
+            "uk_commerce_shop_customer_service_single_default",
+            vec!["tenant_id", "shop_id", "service_channel"],
+            "commerce-shop-customer-service-default-conflict",
+            "shop customer service default already exists for the same service channel",
+        ),
+        (
+            "commerce_shop_return_address",
+            "uk_commerce_shop_return_address_scope",
+            vec!["tenant_id", "shop_id", "address_usage", "address_key"],
+            "commerce-shop-return-address-scope-conflict",
+            "shop return address already exists for the same normalized address",
+        ),
+        (
+            "commerce_shop_return_address",
+            "uk_commerce_shop_return_address_single_default",
+            vec!["tenant_id", "shop_id", "address_usage"],
+            "commerce-shop-return-address-default-conflict",
+            "shop return address default already exists for the same address usage",
+        ),
+        (
+            "commerce_shop_shipping_template",
+            "uk_commerce_shop_shipping_template_scope",
+            vec!["tenant_id", "shop_id", "template_code"],
+            "commerce-shop-shipping-template-scope-conflict",
+            "shop shipping template already exists for the same template code",
+        ),
+        (
+            "commerce_shop_shipping_template",
+            "uk_commerce_shop_shipping_template_single_default",
+            vec!["tenant_id", "shop_id", "delivery_method"],
+            "commerce-shop-shipping-template-default-conflict",
+            "shop shipping template default already exists for the same delivery method",
+        ),
+    ] {
+        let conflict = shop
+            .conflict_classifiers
+            .iter()
+            .find(|classifier| {
+                classifier.table == table && classifier.constraint_name == constraint_name
+            })
+            .unwrap_or_else(|| {
+                panic!("{table} conflict classifier {constraint_name} must be registered")
+            });
+
+        assert_eq!(conflict.constraint_name, constraint_name);
+        assert_eq!(conflict.unique_key, unique_key);
+        assert_eq!(conflict.error_code, error_code);
+        assert_eq!(conflict.message, message);
+        assert!(conflict.matches_constraint(constraint_name));
+    }
 }
 
 #[test]
@@ -743,6 +1253,7 @@ fn business_repository_sql_catalogs_cover_every_first_slice_business_repository(
             .map(|catalog| catalog.repository_name)
             .collect::<Vec<_>>(),
         vec![
+            "shop.repository",
             "account.repository",
             "benefit.repository",
             "entitlement.repository",
@@ -776,6 +1287,207 @@ fn business_repository_sql_catalogs_cover_every_first_slice_business_repository(
             .iter()
             .any(|operation| operation.is_write));
     }
+
+    let shop = catalogs
+        .iter()
+        .find(|catalog| catalog.repository_name == "shop.repository")
+        .unwrap();
+    assert_eq!(shop.domain, "shop");
+    assert_eq!(
+        shop.tables,
+        vec![
+            "commerce_shop",
+            "commerce_shop_application",
+            "commerce_shop_verification",
+            "commerce_shop_status_event",
+            "commerce_shop_channel",
+            "commerce_shop_fulfillment_profile",
+            "commerce_shop_settlement_profile",
+            "commerce_shop_metric_snapshot",
+            "commerce_shop_business_hour",
+            "commerce_shop_service_area",
+            "commerce_shop_policy",
+            "commerce_shop_deposit_account",
+            "commerce_shop_risk_signal",
+            "commerce_shop_category_binding",
+            "commerce_shop_brand_authorization",
+            "commerce_shop_qualification",
+            "commerce_shop_customer_service",
+            "commerce_shop_return_address",
+            "commerce_shop_shipping_template",
+        ]
+    );
+    assert_eq!(
+        shop.operations
+            .iter()
+            .map(|operation| (operation.name, operation.table, operation.is_write))
+            .collect::<Vec<_>>(),
+        vec![
+            ("shop.list_shops", "commerce_shop", false),
+            ("shop.find_shop", "commerce_shop", false),
+            ("shop.create_shop", "commerce_shop", true),
+            ("shop.update_shop", "commerce_shop", true),
+            ("shop.update_shop_status", "commerce_shop", true),
+            ("shop.submit_application", "commerce_shop_application", true),
+            ("shop.list_applications", "commerce_shop_application", false),
+            (
+                "shop.list_verifications",
+                "commerce_shop_verification",
+                false
+            ),
+            (
+                "shop.update_verification",
+                "commerce_shop_verification",
+                true
+            ),
+            (
+                "shop.append_status_event",
+                "commerce_shop_status_event",
+                true
+            ),
+            (
+                "shop.list_status_events",
+                "commerce_shop_status_event",
+                false
+            ),
+            ("shop.list_channels", "commerce_shop_channel", false),
+            ("shop.upsert_channel", "commerce_shop_channel", true),
+            (
+                "shop.find_fulfillment_profile",
+                "commerce_shop_fulfillment_profile",
+                false
+            ),
+            (
+                "shop.upsert_fulfillment_profile",
+                "commerce_shop_fulfillment_profile",
+                true
+            ),
+            (
+                "shop.find_settlement_profile",
+                "commerce_shop_settlement_profile",
+                false
+            ),
+            (
+                "shop.upsert_settlement_profile",
+                "commerce_shop_settlement_profile",
+                true
+            ),
+            (
+                "shop.review_settlement_profile",
+                "commerce_shop_settlement_profile",
+                true
+            ),
+            (
+                "shop.list_metric_snapshots",
+                "commerce_shop_metric_snapshot",
+                false
+            ),
+            (
+                "shop.find_business_hours",
+                "commerce_shop_business_hour",
+                false
+            ),
+            (
+                "shop.upsert_business_hours",
+                "commerce_shop_business_hour",
+                true
+            ),
+            (
+                "shop.list_service_areas",
+                "commerce_shop_service_area",
+                false
+            ),
+            (
+                "shop.upsert_service_area",
+                "commerce_shop_service_area",
+                true
+            ),
+            ("shop.list_policies", "commerce_shop_policy", false),
+            ("shop.upsert_policy", "commerce_shop_policy", true),
+            (
+                "shop.find_deposit_account",
+                "commerce_shop_deposit_account",
+                false
+            ),
+            (
+                "shop.upsert_deposit_account",
+                "commerce_shop_deposit_account",
+                true
+            ),
+            (
+                "shop.review_deposit_account",
+                "commerce_shop_deposit_account",
+                true
+            ),
+            ("shop.list_risk_signals", "commerce_shop_risk_signal", false),
+            ("shop.append_risk_signal", "commerce_shop_risk_signal", true),
+            (
+                "shop.resolve_risk_signal",
+                "commerce_shop_risk_signal",
+                true
+            ),
+            (
+                "shop.list_category_bindings",
+                "commerce_shop_category_binding",
+                false
+            ),
+            (
+                "shop.upsert_category_binding",
+                "commerce_shop_category_binding",
+                true
+            ),
+            (
+                "shop.list_brand_authorizations",
+                "commerce_shop_brand_authorization",
+                false
+            ),
+            (
+                "shop.upsert_brand_authorization",
+                "commerce_shop_brand_authorization",
+                true
+            ),
+            (
+                "shop.list_qualifications",
+                "commerce_shop_qualification",
+                false
+            ),
+            (
+                "shop.upsert_qualification",
+                "commerce_shop_qualification",
+                true
+            ),
+            (
+                "shop.list_customer_services",
+                "commerce_shop_customer_service",
+                false
+            ),
+            (
+                "shop.upsert_customer_service",
+                "commerce_shop_customer_service",
+                true
+            ),
+            (
+                "shop.list_return_addresses",
+                "commerce_shop_return_address",
+                false
+            ),
+            (
+                "shop.upsert_return_address",
+                "commerce_shop_return_address",
+                true
+            ),
+            (
+                "shop.list_shipping_templates",
+                "commerce_shop_shipping_template",
+                false
+            ),
+            (
+                "shop.upsert_shipping_template",
+                "commerce_shop_shipping_template",
+                true
+            ),
+        ],
+    );
 }
 
 #[test]
@@ -1003,8 +1715,27 @@ fn business_repository_sql_catalogs_standardize_operation_names_and_tables() {
             ),
             ("catalog.list_spu", "commerce_product_spu", false),
             ("catalog.upsert_spu", "commerce_product_spu", true),
+            (
+                "catalog.assign_spu_category",
+                "commerce_product_spu_category",
+                true,
+            ),
             ("catalog.list_skus", "commerce_product_sku", false),
             ("catalog.upsert_sku", "commerce_product_sku", true),
+            (
+                "catalog.upsert_sku_attribute",
+                "commerce_product_sku_attribute",
+                true,
+            ),
+            ("catalog.list_media", "commerce_product_media", false),
+            ("catalog.upsert_media", "commerce_product_media", true),
+            ("catalog.list_price_lists", "commerce_price_list", false),
+            ("catalog.upsert_price_list", "commerce_price_list", true),
+            (
+                "catalog.upsert_price_list_item",
+                "commerce_price_list_item",
+                true,
+            ),
             (
                 "catalog.list_recharge_packages",
                 "commerce_recharge_package",
@@ -1058,6 +1789,35 @@ fn business_repository_sql_catalogs_standardize_operation_names_and_tables() {
         .iter()
         .find(|catalog| catalog.repository_name == "payment.repository")
         .unwrap();
+    assert_eq!(
+        payment.tables,
+        vec![
+            "commerce_payment_intent",
+            "commerce_payment_attempt",
+            "commerce_payment_webhook_event",
+            "commerce_payment_method",
+            "commerce_payment_provider",
+            "commerce_payment_provider_account",
+            "commerce_payment_channel",
+            "commerce_payment_route_rule",
+            "commerce_payment_provider_capability",
+            "commerce_payment_operation_attempt",
+            "commerce_payment_route_decision",
+            "commerce_payment_capture",
+            "commerce_payment_webhook_delivery",
+            "commerce_payment_statement",
+            "commerce_payment_statement_item",
+            "commerce_payment_reconciliation_run",
+            "commerce_payment_reconciliation_item",
+            "commerce_payment_fee",
+            "commerce_payment_dispute",
+            "commerce_payment_dispute_event",
+            "commerce_refund",
+            "commerce_refund_item",
+            "commerce_refund_attempt",
+            "commerce_refund_event",
+        ],
+    );
     assert!(payment.operations.iter().any(|operation| {
         operation.name == "payment.create_intent"
             && operation.table == "commerce_payment_intent"
@@ -1119,6 +1879,81 @@ fn business_repository_sql_catalogs_standardize_operation_names_and_tables() {
             && operation.is_write
     }));
     assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.list_provider_capabilities"
+            && operation.table == "commerce_payment_provider_capability"
+            && operation.is_read
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.upsert_provider_capability"
+            && operation.table == "commerce_payment_provider_capability"
+            && operation.is_write
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.record_operation_attempt"
+            && operation.table == "commerce_payment_operation_attempt"
+            && operation.is_write
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.record_route_decision"
+            && operation.table == "commerce_payment_route_decision"
+            && operation.is_write
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.record_capture"
+            && operation.table == "commerce_payment_capture"
+            && operation.is_write
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.record_webhook_delivery"
+            && operation.table == "commerce_payment_webhook_delivery"
+            && operation.is_write
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.list_statements"
+            && operation.table == "commerce_payment_statement"
+            && operation.is_read
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.record_statement_item"
+            && operation.table == "commerce_payment_statement_item"
+            && operation.is_write
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.list_reconciliation_runs"
+            && operation.table == "commerce_payment_reconciliation_run"
+            && operation.is_read
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.create_reconciliation_run"
+            && operation.table == "commerce_payment_reconciliation_run"
+            && operation.is_write
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.finish_reconciliation_run"
+            && operation.table == "commerce_payment_reconciliation_run"
+            && operation.is_write
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.record_reconciliation_item"
+            && operation.table == "commerce_payment_reconciliation_item"
+            && operation.is_write
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.record_fee"
+            && operation.table == "commerce_payment_fee"
+            && operation.is_write
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.list_disputes"
+            && operation.table == "commerce_payment_dispute"
+            && operation.is_read
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.record_dispute_event"
+            && operation.table == "commerce_payment_dispute_event"
+            && operation.is_write
+    }));
+    assert!(payment.operations.iter().any(|operation| {
         operation.name == "payment.find_webhook_event"
             && operation.table == "commerce_payment_webhook_event"
             && operation.is_read
@@ -1143,6 +1978,21 @@ fn business_repository_sql_catalogs_standardize_operation_names_and_tables() {
             && operation.table == "commerce_refund"
             && operation.is_write
     }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.record_refund_item"
+            && operation.table == "commerce_refund_item"
+            && operation.is_write
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.record_refund_attempt"
+            && operation.table == "commerce_refund_attempt"
+            && operation.is_write
+    }));
+    assert!(payment.operations.iter().any(|operation| {
+        operation.name == "payment.record_refund_event"
+            && operation.table == "commerce_refund_event"
+            && operation.is_write
+    }));
 
     let exchange = catalogs
         .iter()
@@ -1160,6 +2010,308 @@ fn business_repository_sql_catalogs_standardize_operation_names_and_tables() {
             ("exchange.upsert_rule", "commerce_exchange_rule", true),
         ],
     );
+}
+
+#[test]
+fn recharge_repository_sql_uses_canonical_catalog_status_fields() {
+    let postgres_recharge_sql = include_str!("../src/postgres_recharge.rs");
+    let sqlite_recharge_sql = include_str!("../src/sqlite_recharge.rs");
+
+    for source in [postgres_recharge_sql, sqlite_recharge_sql] {
+        assert!(!source.contains("sales_status"));
+        assert!(!source.contains("delivery_mode"));
+        assert!(source.contains("s.status = 'active'"));
+        assert!(source.contains("pr.status = 'active'"));
+    }
+}
+
+#[test]
+fn recharge_repository_uses_canonical_payment_method_keys_without_compat_fallbacks() {
+    let postgres_recharge_sql = include_str!("../src/postgres_recharge.rs");
+    let sqlite_recharge_sql = include_str!("../src/sqlite_recharge.rs");
+
+    for (label, source) in [
+        ("postgres recharge repository", postgres_recharge_sql),
+        ("sqlite recharge repository", sqlite_recharge_sql),
+    ] {
+        assert!(
+            !source.contains("LOAD_RECHARGE_METHOD_FALLBACK"),
+            "{label} must fail closed instead of selecting an arbitrary active recharge method",
+        );
+        assert!(
+            !source.contains("method_alias"),
+            "{label} must query commerce_payment_method.method_key by canonical key only",
+        );
+        assert!(
+            !source.contains("wechatpay"),
+            "{label} must not keep legacy compact wechatpay aliases",
+        );
+        assert!(
+            !source.contains("\"wechat_pay\" => \"wechat\""),
+            "{label} must preserve the canonical wechat_pay method key",
+        );
+        assert!(
+            !source.contains("\"stripe\" => \"card\""),
+            "{label} must not accept provider_code as a payment method alias",
+        );
+        assert!(
+            !source.contains("_ => \"wechat_pay\""),
+            "{label} must not default unknown payment methods to wechat_pay",
+        );
+        assert!(
+            source.contains("SELECT method_key, provider_code"),
+            "{label} must load provider_code from commerce_payment_method instead of deriving it",
+        );
+        assert!(
+            !source.contains("recharge_provider_code(&method_key)"),
+            "{label} must not derive provider_code from method_key",
+        );
+    }
+}
+
+#[test]
+fn payment_method_table_uses_provider_code_not_ambiguous_provider() {
+    let sql = commerce_initial_migration_sql();
+    let payment_method = table_definition(sql, "commerce_payment_method");
+
+    assert!(payment_method.contains("method_key TEXT NOT NULL"));
+    assert!(payment_method.contains("provider_code TEXT NOT NULL"));
+    assert!(payment_method.contains("sort_order INTEGER NOT NULL DEFAULT 0"));
+    assert!(
+        !payment_method.contains("provider TEXT NOT NULL"),
+        "commerce_payment_method must name the selected payment provider as provider_code",
+    );
+    assert!(
+        !payment_method.contains("sort_weight INTEGER"),
+        "commerce_payment_method must use the standard sort_order column",
+    );
+    assert!(payment_method.contains("UNIQUE (tenant_id, organization_id, method_key)"));
+    assert!(sql
+        .contains("ON commerce_payment_method (tenant_id, organization_id, status, sort_order)",));
+}
+
+#[test]
+fn payment_fact_tables_separate_payment_method_from_provider_code() {
+    let sql = commerce_initial_migration_sql();
+    let intent = table_definition(sql, "commerce_payment_intent");
+    let attempt = table_definition(sql, "commerce_payment_attempt");
+
+    for (table_name, definition) in [
+        ("commerce_payment_intent", intent),
+        ("commerce_payment_attempt", attempt),
+    ] {
+        assert!(
+            definition.contains("payment_method TEXT NOT NULL"),
+            "{table_name} must persist the canonical commerce_payment_method.method_key",
+        );
+        assert!(
+            definition.contains("provider_code TEXT NOT NULL"),
+            "{table_name} must persist the selected provider code separately from method key",
+        );
+        assert!(
+            !definition.contains("provider TEXT NOT NULL"),
+            "{table_name} must not use a generic provider column for payment facts",
+        );
+    }
+
+    assert!(attempt.contains("UNIQUE (tenant_id, provider_code, out_trade_no)"));
+    assert!(
+        !attempt.contains("UNIQUE (tenant_id, provider, out_trade_no)"),
+        "payment attempt idempotency must be scoped by provider_code, not ambiguous provider",
+    );
+    assert!(sql.contains(
+        "CREATE INDEX IF NOT EXISTS idx_commerce_payment_attempt_provider_code_trade_no",
+    ));
+    assert!(sql.contains("ON commerce_payment_attempt (tenant_id, provider_code, out_trade_no)"));
+}
+
+#[test]
+fn payment_webhook_event_table_uses_provider_code_not_ambiguous_provider() {
+    let sql = commerce_initial_migration_sql();
+    let webhook_event = table_definition(sql, "commerce_payment_webhook_event");
+
+    assert!(webhook_event.contains("provider_code TEXT NOT NULL"));
+    assert!(
+        !webhook_event.contains("provider TEXT NOT NULL"),
+        "commerce_payment_webhook_event must name the webhook source as provider_code",
+    );
+    assert!(webhook_event.contains("UNIQUE (tenant_id, provider_code, event_id)"));
+    assert!(webhook_event.contains("UNIQUE (tenant_id, provider_code, nonce)"));
+    assert!(
+        !webhook_event.contains("UNIQUE (tenant_id, provider, event_id)"),
+        "webhook event idempotency must be scoped by provider_code, not ambiguous provider",
+    );
+    assert!(
+        !webhook_event.contains("UNIQUE (tenant_id, provider, nonce)"),
+        "webhook nonce idempotency must be scoped by provider_code, not ambiguous provider",
+    );
+    assert!(sql.contains(
+        "CREATE INDEX IF NOT EXISTS idx_commerce_payment_webhook_event_provider_code_event",
+    ));
+    assert!(sql.contains("ON commerce_payment_webhook_event (tenant_id, provider_code, event_id)",));
+    assert!(sql.contains(
+        "CREATE INDEX IF NOT EXISTS idx_commerce_payment_webhook_event_provider_code_nonce",
+    ));
+    assert!(sql.contains("ON commerce_payment_webhook_event (tenant_id, provider_code, nonce)",));
+    assert!(
+        !sql.contains("idx_commerce_payment_webhook_event_provider_event"),
+        "webhook indexes must use provider_code in their stable names",
+    );
+    assert!(
+        !sql.contains("idx_commerce_payment_webhook_event_provider_nonce"),
+        "webhook indexes must use provider_code in their stable names",
+    );
+}
+
+#[test]
+fn payment_routing_tables_use_payment_method_not_ambiguous_method_code() {
+    let sql = commerce_initial_migration_sql();
+    let provider_capability = table_definition(sql, "commerce_payment_provider_capability");
+    let route_decision = table_definition(sql, "commerce_payment_route_decision");
+
+    assert!(provider_capability.contains("payment_method TEXT"));
+    assert!(
+        !provider_capability.contains("method_code TEXT"),
+        "commerce_payment_provider_capability must describe the supported commerce payment method",
+    );
+    assert!(route_decision.contains("payment_method TEXT NOT NULL"));
+    assert!(
+        !route_decision.contains("method_code TEXT NOT NULL"),
+        "commerce_payment_route_decision must snapshot the selected commerce payment method",
+    );
+    assert!(sql.contains(
+        "ON commerce_payment_provider_capability (tenant_id, provider_account_id, capability_code, payment_method, scene_code, country_code, currency_code)",
+    ));
+    assert!(
+        !sql.contains(
+            "ON commerce_payment_provider_capability (tenant_id, provider_account_id, capability_code, method_code, scene_code, country_code, currency_code)",
+        ),
+        "provider capability matching index must use payment_method",
+    );
+}
+
+#[test]
+fn payment_reconciliation_runs_are_first_class_batch_entities() {
+    let sql = commerce_initial_migration_sql();
+    let run = table_definition(sql, "commerce_payment_reconciliation_run");
+    let item = table_definition(sql, "commerce_payment_reconciliation_item");
+
+    for required_column in [
+        "run_no TEXT NOT NULL",
+        "provider_code TEXT NOT NULL",
+        "provider_account_id TEXT",
+        "statement_id TEXT",
+        "reconciliation_type TEXT NOT NULL",
+        "period_start TEXT NOT NULL",
+        "period_end TEXT NOT NULL",
+        "status TEXT NOT NULL",
+        "matched_count INTEGER NOT NULL DEFAULT 0",
+        "mismatched_count INTEGER NOT NULL DEFAULT 0",
+        "unmatched_count INTEGER NOT NULL DEFAULT 0",
+        "total_difference_amount TEXT NOT NULL DEFAULT '0'",
+        "currency_code TEXT NOT NULL",
+        "request_no TEXT NOT NULL",
+        "idempotency_key TEXT NOT NULL",
+        "started_at TEXT",
+        "finished_at TEXT",
+    ] {
+        assert!(
+            run.contains(required_column),
+            "commerce_payment_reconciliation_run must include {required_column}",
+        );
+    }
+
+    assert!(item.contains("reconciliation_run_id TEXT NOT NULL"));
+    assert!(sql
+        .contains("CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_reconciliation_run_no",));
+    assert!(sql.contains("ON commerce_payment_reconciliation_run (tenant_id, run_no)",));
+    assert!(sql.contains(
+        "CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_reconciliation_run_idempotency",
+    ));
+    assert!(sql.contains(
+        "ON commerce_payment_reconciliation_run (tenant_id, provider_code, reconciliation_type, idempotency_key)",
+    ));
+    assert!(
+        sql.contains("CREATE INDEX IF NOT EXISTS idx_commerce_payment_reconciliation_run_status",)
+    );
+    assert!(sql.contains(
+        "ON commerce_payment_reconciliation_run (tenant_id, provider_code, status, created_at)",
+    ));
+    assert!(
+        sql.contains("CREATE INDEX IF NOT EXISTS idx_commerce_payment_reconciliation_run_period",)
+    );
+    assert!(sql.contains(
+        "ON commerce_payment_reconciliation_run (tenant_id, provider_code, period_start, period_end)",
+    ));
+}
+
+#[test]
+fn payment_method_sources_use_standard_sort_order() {
+    let checked_sources = [
+        (
+            "membership seed",
+            include_str!("../../sdkwork-commerce-membership-sqlx-rust/src/seed.rs"),
+        ),
+        (
+            "bootstrap seeds",
+            include_str!("../../sdkwork-commerce-bootstrap-rust/src/lib.rs"),
+        ),
+        (
+            "app recharge checkout router fixture",
+            include_str!("../../sdkwork-commerce-http-rust/tests/app_recharge_checkout_router.rs"),
+        ),
+        (
+            "postgres recharge",
+            include_str!("../src/postgres_recharge.rs"),
+        ),
+        ("sqlite recharge", include_str!("../src/sqlite_recharge.rs")),
+    ];
+
+    for (label, source) in checked_sources {
+        assert!(
+            !source.contains(
+                "method_key, display_name, provider_code, status, sort_weight, request_no",
+            ),
+            "{label} must not write commerce_payment_method.sort_weight",
+        );
+        assert!(
+            !source.contains("ORDER BY tenant_id DESC, organization_id DESC, sort_weight ASC"),
+            "{label} must not order commerce_payment_method by sort_weight",
+        );
+    }
+}
+
+#[test]
+fn membership_sql_and_recharge_fixtures_use_canonical_catalog_columns() {
+    let checked_sources = [
+        (
+            "membership postgres repository",
+            include_str!("../../sdkwork-commerce-membership-sqlx-rust/src/postgres.rs"),
+        ),
+        (
+            "membership sqlite repository",
+            include_str!("../../sdkwork-commerce-membership-sqlx-rust/src/sqlite.rs"),
+        ),
+        (
+            "membership seed",
+            include_str!("../../sdkwork-commerce-membership-sqlx-rust/src/seed.rs"),
+        ),
+        (
+            "app recharge checkout router fixture",
+            include_str!("../../sdkwork-commerce-http-rust/tests/app_recharge_checkout_router.rs"),
+        ),
+    ];
+
+    for (label, source) in checked_sources {
+        assert!(
+            !source.contains("sales_status"),
+            "{label} must use commerce_product_spu.status / commerce_product_sku.status",
+        );
+        assert!(
+            !source.contains("delivery_mode"),
+            "{label} must use commerce_product_sku.fulfillment_type",
+        );
+    }
 }
 
 #[test]
@@ -1545,6 +2697,10 @@ fn migration_runner_contract_tracks_migration_plan_and_transaction_boundary() {
     assert_eq!(
         contract.conflict_classifier.table,
         "commerce_schema_migration"
+    );
+    assert_eq!(
+        contract.conflict_classifier.constraint_name,
+        "commerce_schema_migration_sequence_name_key",
     );
     assert_eq!(
         contract.conflict_classifier.unique_key,
@@ -2266,11 +3422,11 @@ fn migration_runner_failure_recovery_rejects_recorded_failed_migration() {
 fn storage_capability_manifest_is_complete_for_first_slice_runtime_bootstrap() {
     let manifest = commerce_storage_capability_manifest();
 
-    assert_eq!(manifest.tables.len(), 68);
-    assert_eq!(manifest.indexes.len(), 66);
-    assert_eq!(manifest.migration_plan.len(), 13);
-    assert_eq!(manifest.repository_bindings.len(), 15);
-    assert_eq!(manifest.business_repositories.len(), 14);
+    assert_eq!(manifest.tables.len(), 91);
+    assert_eq!(manifest.indexes.len(), 115);
+    assert_eq!(manifest.migration_plan.len(), 14);
+    assert_eq!(manifest.repository_bindings.len(), 16);
+    assert_eq!(manifest.business_repositories.len(), 15);
     assert!(manifest
         .transaction_boundary
         .covered_repositories
@@ -2323,6 +3479,7 @@ fn migration_plan_exposes_host_consumable_order_and_sql_sources() {
             "exchange",
             "invoice",
             "billing",
+            "shop",
         ],
     );
 }
@@ -2438,6 +3595,7 @@ fn migration_plan_covers_first_slice_tables_by_domain() {
             "commerce_payment_webhook_delivery",
             "commerce_payment_statement",
             "commerce_payment_statement_item",
+            "commerce_payment_reconciliation_run",
             "commerce_payment_reconciliation_item",
             "commerce_payment_fee",
             "commerce_payment_dispute",
@@ -2448,6 +3606,37 @@ fn migration_plan_covers_first_slice_tables_by_domain() {
             "commerce_refund_event",
         ],
     );
+
+    let shop = plan
+        .iter()
+        .find(|migration| migration.domain == "shop")
+        .unwrap();
+    assert_eq!(
+        shop.required_tables,
+        vec![
+            "commerce_shop",
+            "commerce_shop_application",
+            "commerce_shop_verification",
+            "commerce_shop_status_event",
+            "commerce_shop_channel",
+            "commerce_shop_fulfillment_profile",
+            "commerce_shop_settlement_profile",
+            "commerce_shop_metric_snapshot",
+            "commerce_shop_business_hour",
+            "commerce_shop_service_area",
+            "commerce_shop_policy",
+            "commerce_shop_deposit_account",
+            "commerce_shop_risk_signal",
+            "commerce_shop_category_binding",
+            "commerce_shop_brand_authorization",
+            "commerce_shop_qualification",
+            "commerce_shop_customer_service",
+            "commerce_shop_return_address",
+            "commerce_shop_shipping_template",
+        ]
+    );
+    assert_eq!(shop.source_path, "migrations/0001_commerce_foundation.sql");
+    assert_eq!(shop.sql, commerce_initial_migration_sql());
 }
 
 #[test]
@@ -2513,4 +3702,16 @@ fn migration_plan_validation_rejects_missing_required_table_coverage() {
     assert!(error
         .message
         .contains("migration plan must cover table commerce_idempotency_key"));
+}
+
+fn table_definition<'a>(sql: &'a str, table_name: &str) -> &'a str {
+    let start_marker = format!("CREATE TABLE IF NOT EXISTS {table_name} (");
+    let start = sql
+        .find(&start_marker)
+        .unwrap_or_else(|| panic!("missing table definition for {table_name}"));
+    let rest = &sql[start..];
+    let end = rest
+        .find("\n);")
+        .unwrap_or_else(|| panic!("unterminated table definition for {table_name}"));
+    &rest[..end]
 }

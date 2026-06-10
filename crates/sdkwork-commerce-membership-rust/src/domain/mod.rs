@@ -42,6 +42,19 @@ pub struct MembershipPackageGroupDraft {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MembershipPackageGroupDraftInput {
+    pub tenant_id: String,
+    pub organization_id: String,
+    pub external_id: i64,
+    pub package_group_no: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub billing_cycle: MembershipBillingCycle,
+    pub duration_days: u32,
+    pub sort_weight: i64,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MembershipPackageDraft {
     pub tenant_id: String,
     pub organization_id: String,
@@ -150,6 +163,38 @@ impl MembershipPlanDraft {
 }
 
 impl MembershipPackageGroupDraft {
+    pub fn from_input(
+        input: MembershipPackageGroupDraftInput,
+    ) -> Result<Self, CommerceServiceError> {
+        crate::validation::require_non_empty("tenant_id", &input.tenant_id)?;
+        crate::validation::require_non_empty("organization_id", &input.organization_id)?;
+        crate::validation::require_non_empty("package_group_no", &input.package_group_no)?;
+        crate::validation::require_non_empty("name", &input.name)?;
+        if input.external_id <= 0 {
+            return Err(CommerceServiceError::validation(
+                "external_id must be greater than zero",
+            ));
+        }
+        if input.duration_days == 0 {
+            return Err(CommerceServiceError::validation(
+                "duration_days must be greater than zero",
+            ));
+        }
+
+        Ok(Self {
+            tenant_id: input.tenant_id,
+            organization_id: input.organization_id,
+            external_id: input.external_id,
+            package_group_no: input.package_group_no,
+            name: input.name,
+            description: normalize_optional_text(input.description.as_deref()),
+            billing_cycle: input.billing_cycle,
+            duration_days: input.duration_days,
+            sort_weight: input.sort_weight,
+        })
+    }
+
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         tenant_id: &str,
         organization_id: &str,
@@ -161,22 +206,7 @@ impl MembershipPackageGroupDraft {
         duration_days: u32,
         sort_weight: i64,
     ) -> Result<Self, CommerceServiceError> {
-        crate::validation::require_non_empty("tenant_id", tenant_id)?;
-        crate::validation::require_non_empty("organization_id", organization_id)?;
-        crate::validation::require_non_empty("package_group_no", package_group_no)?;
-        crate::validation::require_non_empty("name", name)?;
-        if external_id <= 0 {
-            return Err(CommerceServiceError::validation(
-                "external_id must be greater than zero",
-            ));
-        }
-        if duration_days == 0 {
-            return Err(CommerceServiceError::validation(
-                "duration_days must be greater than zero",
-            ));
-        }
-
-        Ok(Self {
+        Self::from_input(MembershipPackageGroupDraftInput {
             tenant_id: tenant_id.to_string(),
             organization_id: organization_id.to_string(),
             external_id,
@@ -335,7 +365,7 @@ impl MembershipPurchaseDraft {
             organization_id: organization_id.to_string(),
             owner_user_id: owner_user_id.to_string(),
             package_id,
-            payment_method: normalize_optional_text(payment_method),
+            payment_method: normalize_optional_payment_method(payment_method)?,
             coupon_id: normalize_optional_text(coupon_id),
         })
     }
@@ -352,6 +382,22 @@ fn normalize_optional_text(value: Option<&str>) -> Option<String> {
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .map(str::to_string)
+}
+
+fn normalize_optional_payment_method(
+    value: Option<&str>,
+) -> Result<Option<String>, CommerceServiceError> {
+    let Some(method) = normalize_optional_text(value) else {
+        return Ok(None);
+    };
+    let method = method.to_ascii_lowercase();
+    match method.as_str() {
+        "wechat_pay" | "alipay" | "paypal" | "card" | "apple_pay" | "google_pay"
+        | "wallet_balance" => Ok(Some(method)),
+        _ => Err(CommerceServiceError::validation(
+            "payment_method must be a canonical payment method key",
+        )),
+    }
 }
 
 impl EntitlementGrantDraft {

@@ -35,10 +35,10 @@ SELECT
 FROM commerce_recharge_package p
 LEFT JOIN commerce_product_sku s
     ON s.id = p.sku_id
-   AND s.sales_status = 'active'
+   AND s.status = 'active'
 LEFT JOIN commerce_product_spu pr
     ON pr.id = s.spu_id
-   AND pr.sales_status = 'active'
+   AND pr.status = 'active'
 WHERE (
         (p.tenant_id = CAST(?1 AS TEXT) AND p.organization_id = CAST(?2 AS TEXT))
         OR (p.tenant_id = CAST(?1 AS TEXT) AND p.organization_id IS NULL)
@@ -69,10 +69,10 @@ SELECT
 FROM commerce_recharge_package p
 LEFT JOIN commerce_product_sku s
     ON s.id = p.sku_id
-   AND s.sales_status = 'active'
+   AND s.status = 'active'
 LEFT JOIN commerce_product_spu pr
     ON pr.id = s.spu_id
-   AND pr.sales_status = 'active'
+   AND pr.status = 'active'
 WHERE p.tenant_id = '0'
   AND (p.organization_id = '0' OR p.organization_id IS NULL)
   AND p.status = 'active'
@@ -229,7 +229,7 @@ LIMIT 1
 "#;
 
 const LOAD_RECHARGE_METHOD: &str = r#"
-SELECT method_key
+SELECT method_key, provider_code
 FROM commerce_payment_method
 WHERE (
         (tenant_id = CAST(?1 AS TEXT) AND organization_id = CAST(?2 AS TEXT))
@@ -237,34 +237,14 @@ WHERE (
         OR (tenant_id = '0' AND (organization_id = '0' OR organization_id IS NULL))
       )
   AND status = 'active'
-  AND (LOWER(method_key) = ?3 OR LOWER(method_key) = ?4)
+  AND LOWER(method_key) = ?3
 ORDER BY
     CASE
         WHEN tenant_id = CAST(?1 AS TEXT) AND organization_id = CAST(?2 AS TEXT) THEN 0
         WHEN tenant_id = CAST(?1 AS TEXT) AND organization_id IS NULL THEN 1
         ELSE 2
     END ASC,
-    COALESCE(sort_weight, 0) ASC,
-    id ASC
-LIMIT 1
-"#;
-
-const LOAD_RECHARGE_METHOD_FALLBACK: &str = r#"
-SELECT method_key
-FROM commerce_payment_method
-WHERE (
-        (tenant_id = CAST(?1 AS TEXT) AND organization_id = CAST(?2 AS TEXT))
-        OR (tenant_id = CAST(?1 AS TEXT) AND organization_id IS NULL)
-        OR (tenant_id = '0' AND (organization_id = '0' OR organization_id IS NULL))
-      )
-  AND status = 'active'
-ORDER BY
-    CASE
-        WHEN tenant_id = CAST(?1 AS TEXT) AND organization_id = CAST(?2 AS TEXT) THEN 0
-        WHEN tenant_id = CAST(?1 AS TEXT) AND organization_id IS NULL THEN 1
-        ELSE 2
-    END ASC,
-    COALESCE(sort_weight, 0) ASC,
+    COALESCE(sort_order, 0) ASC,
     id ASC
 LIMIT 1
 "#;
@@ -276,8 +256,8 @@ SELECT
 FROM commerce_product_sku s
 JOIN commerce_product_spu pr ON pr.id = s.spu_id
 WHERE s.id = ?1
-  AND s.sales_status = 'active'
-  AND pr.sales_status = 'active'
+  AND s.status = 'active'
+  AND pr.status = 'active'
 LIMIT 1
 "#;
 
@@ -294,8 +274,8 @@ WHERE (
         AND (pr.organization_id = CAST(?2 AS TEXT) OR pr.organization_id IS NULL)
       )
   AND COALESCE(NULLIF(s.currency_code, ''), 'CNY') = ?3
-  AND s.sales_status = 'active'
-  AND pr.sales_status = 'active'
+  AND s.status = 'active'
+  AND pr.status = 'active'
 ORDER BY
     CASE WHEN CAST(s.price_amount AS TEXT) IN (?4, ?5, ?6) THEN 0 ELSE 1 END,
     CASE
@@ -319,8 +299,8 @@ WHERE s.tenant_id = '0'
   AND pr.tenant_id = '0'
   AND (pr.organization_id = '0' OR pr.organization_id IS NULL)
   AND COALESCE(NULLIF(s.currency_code, ''), 'CNY') = ?1
-  AND s.sales_status = 'active'
-  AND pr.sales_status = 'active'
+  AND s.status = 'active'
+  AND pr.status = 'active'
 ORDER BY
     CASE WHEN CAST(s.price_amount AS TEXT) IN (?2, ?3, ?4) THEN 0 ELSE 1 END,
     pr.id ASC,
@@ -341,7 +321,8 @@ SELECT
         NULLIF(json_extract(COALESCE(pa.callback_payload, '{}'), '$.points'), ''),
         '0'
     ) AS TEXT) AS points_value,
-    COALESCE(NULLIF(pa.provider, ''), NULLIF(pi.provider, ''), '-') AS payment_method,
+    COALESCE(NULLIF(pa.payment_method, ''), NULLIF(pi.payment_method, ''), '-') AS payment_method,
+    COALESCE(NULLIF(pa.provider_code, ''), NULLIF(pi.provider_code, ''), '-') AS provider_code,
     o.status AS order_status,
     pi.status AS payment_status,
     pa.status AS payment_attempt_status,
@@ -381,7 +362,8 @@ SELECT
         NULLIF(json_extract(COALESCE(pa.callback_payload, '{}'), '$.points'), ''),
         '0'
     ) AS TEXT) AS points_value,
-    COALESCE(NULLIF(pa.provider, ''), NULLIF(pi.provider, ''), '-') AS payment_method,
+    COALESCE(NULLIF(pa.payment_method, ''), NULLIF(pi.payment_method, ''), '-') AS payment_method,
+    COALESCE(NULLIF(pa.provider_code, ''), NULLIF(pi.provider_code, ''), '-') AS provider_code,
     o.status AS order_status,
     pi.status AS payment_status,
     pa.status AS payment_attempt_status,
@@ -823,30 +805,18 @@ async fn load_recharge_method(
     tx: &mut Transaction<'_, Sqlite>,
     command: &CreatePointsRechargeOrderCommand,
 ) -> Result<RechargeMethod, CommerceServiceError> {
-    let alias = method_alias(&command.method);
-    let preferred_row = sqlx::query(LOAD_RECHARGE_METHOD)
+    let requested_method = normalize_method_key(&command.method);
+    let row = sqlx::query(LOAD_RECHARGE_METHOD)
         .bind(&command.tenant_id)
         .bind(command.organization_id.as_deref())
-        .bind(&command.method)
-        .bind(alias)
+        .bind(&requested_method)
         .fetch_optional(&mut **tx)
         .await
-        .map_err(|error| store_error("failed to load recharge method", error))?;
-    let row = match preferred_row {
-        Some(row) => row,
-        None => sqlx::query(LOAD_RECHARGE_METHOD_FALLBACK)
-            .bind(&command.tenant_id)
-            .bind(command.organization_id.as_deref())
-            .fetch_optional(&mut **tx)
-            .await
-            .map_err(|error| store_error("failed to load fallback recharge method", error))?
-            .ok_or_else(|| {
-                CommerceServiceError::conflict("recharge payment method is unavailable")
-            })?,
-    };
+        .map_err(|error| store_error("failed to load recharge method", error))?
+        .ok_or_else(|| CommerceServiceError::conflict("recharge payment method is unavailable"))?;
     let method_key = normalize_method_key(&string_cell(&row, "method_key"));
-    let provider_code = recharge_provider_code(&method_key).to_string();
-    let payment_product = recharge_payment_product(&method_key).to_string();
+    let provider_code = normalize_method_key(&string_cell(&row, "provider_code"));
+    let payment_product = recharge_payment_product(&method_key)?.to_string();
     Ok(RechargeMethod {
         method_key,
         provider_code,
@@ -1143,9 +1113,9 @@ async fn insert_payment(
     sqlx::query(
         r#"
         INSERT INTO commerce_payment_intent
-            (id, tenant_id, organization_id, owner_user_id, order_id, provider, amount, currency_code, status, request_no, idempotency_key, created_at, updated_at)
+            (id, tenant_id, organization_id, owner_user_id, order_id, payment_method, provider_code, amount, currency_code, status, request_no, idempotency_key, created_at, updated_at)
         VALUES
-            (?, CAST(? AS TEXT), CAST(? AS TEXT), CAST(? AS TEXT), ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (?, CAST(? AS TEXT), CAST(? AS TEXT), CAST(? AS TEXT), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#,
     )
     .bind(&command.payment_intent_id)
@@ -1154,6 +1124,7 @@ async fn insert_payment(
     .bind(&command.owner_user_id)
     .bind(&command.order_id)
     .bind(&method.method_key)
+    .bind(&method.provider_code)
     .bind(command.amount.as_str())
     .bind(&command.currency_code)
     .bind(CommercePaymentStatus::Pending.as_str())
@@ -1167,9 +1138,9 @@ async fn insert_payment(
     sqlx::query(
         r#"
         INSERT INTO commerce_payment_attempt
-            (id, tenant_id, organization_id, owner_user_id, payment_intent_id, order_id, provider, out_trade_no, amount, currency_code, status, callback_payload, created_at, paid_at, updated_at)
+            (id, tenant_id, organization_id, owner_user_id, payment_intent_id, order_id, payment_method, provider_code, out_trade_no, amount, currency_code, status, callback_payload, created_at, paid_at, updated_at)
         VALUES
-            (?, CAST(? AS TEXT), CAST(? AS TEXT), CAST(? AS TEXT), ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)
+            (?, CAST(? AS TEXT), CAST(? AS TEXT), CAST(? AS TEXT), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)
         "#,
     )
     .bind(&command.payment_attempt_id)
@@ -1179,6 +1150,7 @@ async fn insert_payment(
     .bind(&command.payment_intent_id)
     .bind(&command.order_id)
     .bind(&method.method_key)
+    .bind(&method.provider_code)
     .bind(&command.out_trade_no)
     .bind(command.amount.as_str())
     .bind(&command.currency_code)
@@ -1310,6 +1282,8 @@ fn map_checkout_status(
     );
     let out_trade_no = string_cell(row, "out_trade_no");
 
+    let payment_method = normalize_method_key(&string_cell(row, "payment_method"));
+
     Ok(CheckoutStatusSnapshot {
         order_no: string_cell(row, "order_no"),
         out_trade_no: out_trade_no.clone(),
@@ -1318,17 +1292,9 @@ fn map_checkout_status(
             .trim()
             .to_ascii_uppercase(),
         points: checkout_points(&string_cell(row, "points_value"))?,
-        provider_code: recharge_provider_code(&normalize_method_key(&string_cell(
-            row,
-            "payment_method",
-        )))
-        .to_string(),
-        payment_method: normalize_method_key(&string_cell(row, "payment_method")),
-        payment_product: recharge_payment_product(&normalize_method_key(&string_cell(
-            row,
-            "payment_method",
-        )))
-        .to_string(),
+        provider_code: string_cell(row, "provider_code"),
+        payment_method: payment_method.clone(),
+        payment_product: recharge_payment_product(&payment_method)?.to_string(),
         order_status,
         payment_status: checkout_effective_payment_status(&payment_status, &payment_attempt_status),
         recharge_status,
@@ -1714,37 +1680,21 @@ fn decimal_sql_match_keys(amount: &str) -> DecimalSqlMatchKeys {
 }
 
 fn normalize_method_key(method: &str) -> String {
-    match method.trim().to_ascii_lowercase().as_str() {
-        "wechat_pay" => "wechat".to_string(),
-        value => value.to_string(),
-    }
+    method.trim().to_ascii_lowercase()
 }
 
-fn recharge_provider_code(method: &str) -> &'static str {
+fn recharge_payment_product(method: &str) -> Result<&'static str, CommerceServiceError> {
     match method.trim().to_ascii_lowercase().as_str() {
-        "wechat" | "wechat_pay" | "wechatpay" => "wechat_pay",
-        "alipay" | "ali" => "alipay",
-        "card" | "stripe" => "stripe",
-        _ => "wechat_pay",
-    }
-}
-
-fn recharge_payment_product(method: &str) -> &'static str {
-    match method.trim().to_ascii_lowercase().as_str() {
-        "wechat" | "wechat_pay" | "wechatpay" => "wechat_native",
-        "alipay" | "ali" => "alipay_page",
-        "card" | "stripe" => "card",
-        _ => "wechat_native",
-    }
-}
-
-fn method_alias(method: &str) -> &str {
-    match method {
-        "card" => "stripe",
-        "stripe" => "card",
-        "wechat" => "wechat_pay",
-        "wechatpay" | "wechat_pay" => "wechat",
-        _ => method,
+        "wechat_pay" => Ok("wechat_native"),
+        "alipay" => Ok("alipay_page"),
+        "paypal" => Ok("paypal_checkout"),
+        "card" => Ok("card"),
+        "apple_pay" => Ok("apple_pay"),
+        "google_pay" => Ok("google_pay"),
+        "wallet_balance" => Ok("wallet_balance"),
+        _ => Err(CommerceServiceError::conflict(
+            "recharge payment method is unavailable",
+        )),
     }
 }
 
@@ -1781,6 +1731,30 @@ fn civil_from_days(days: i64) -> (i64, i64, i64) {
     (year, month, day)
 }
 
+fn store_error(context: &str, error: sqlx::Error) -> CommerceServiceError {
+    CommerceServiceError::storage(format!("{context}: {error}"))
+}
+
+fn empty_rows_when_read_model_is_missing(
+    error: sqlx::Error,
+) -> Result<Vec<sqlx::sqlite::SqliteRow>, sqlx::Error> {
+    if is_missing_sqlite_read_model(&error) {
+        Ok(Vec::new())
+    } else {
+        Err(error)
+    }
+}
+
+fn is_missing_sqlite_read_model(error: &sqlx::Error) -> bool {
+    match error {
+        sqlx::Error::Database(database_error) => {
+            let message = database_error.message().to_ascii_lowercase();
+            message.contains("no such table") || message.contains("no such column")
+        }
+        _ => false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1813,29 +1787,5 @@ mod tests {
 
         assert!(!source.contains(&forbidden));
         assert!(source.contains("required_non_negative_integer_cell"));
-    }
-}
-
-fn store_error(context: &str, error: sqlx::Error) -> CommerceServiceError {
-    CommerceServiceError::storage(format!("{context}: {error}"))
-}
-
-fn empty_rows_when_read_model_is_missing(
-    error: sqlx::Error,
-) -> Result<Vec<sqlx::sqlite::SqliteRow>, sqlx::Error> {
-    if is_missing_sqlite_read_model(&error) {
-        Ok(Vec::new())
-    } else {
-        Err(error)
-    }
-}
-
-fn is_missing_sqlite_read_model(error: &sqlx::Error) -> bool {
-    match error {
-        sqlx::Error::Database(database_error) => {
-            let message = database_error.message().to_ascii_lowercase();
-            message.contains("no such table") || message.contains("no such column")
-        }
-        _ => false,
     }
 }

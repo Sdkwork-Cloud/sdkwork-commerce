@@ -98,7 +98,7 @@ async function importGeneratorRuntimeModule<TModule>(
   try {
     return await import(specifier) as TModule;
   } catch (error) {
-    if (!isMissingModuleError(error, specifier)) {
+    if (!isMissingModuleError(error, specifier) && !isMissingGeneratorRuntimeDependency(error)) {
       throw error;
     }
 
@@ -111,4 +111,13 @@ function isMissingModuleError(error: unknown, specifier: string): boolean {
   return message.includes(`Cannot find package '${specifier}'`)
     || message.includes(`Failed to resolve module specifier "${specifier}"`)
     || message.includes(`Cannot find module '${specifier}'`);
+}
+
+function isMissingGeneratorRuntimeDependency(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  const normalizedMessage = message.replaceAll("\\", "/");
+
+  return normalizedMessage.includes("Cannot find module")
+    && normalizedMessage.includes("@sdkwork/sdk-generator")
+    && normalizedMessage.includes("/tmp-js/");
 }

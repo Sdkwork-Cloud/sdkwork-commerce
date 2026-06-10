@@ -89,6 +89,232 @@ fn canonical_app_route_specs() -> Vec<(HttpMethod, &'static str, &'static str)> 
             "/app/v3/api/catalog/skus/{skuId}/prices",
             "catalog.skus.prices.retrieve",
         ),
+        (HttpMethod::Get, "/app/v3/api/shops", "shops.list"),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/{shopId}",
+            "shops.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current",
+            "shops.current.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/dashboard",
+            "shops.current.dashboard.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/category_bindings",
+            "shops.current.categoryBindings.list",
+        ),
+        (
+            HttpMethod::Put,
+            "/app/v3/api/shops/current/category_bindings",
+            "shops.current.categoryBindings.upsert",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/brand_authorizations",
+            "shops.current.brandAuthorizations.list",
+        ),
+        (
+            HttpMethod::Put,
+            "/app/v3/api/shops/current/brand_authorizations",
+            "shops.current.brandAuthorizations.upsert",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/qualifications",
+            "shops.current.qualifications.list",
+        ),
+        (
+            HttpMethod::Put,
+            "/app/v3/api/shops/current/qualifications",
+            "shops.current.qualifications.upsert",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/customer_services",
+            "shops.current.customerServices.list",
+        ),
+        (
+            HttpMethod::Put,
+            "/app/v3/api/shops/current/customer_services",
+            "shops.current.customerServices.upsert",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/return_addresses",
+            "shops.current.returnAddresses.list",
+        ),
+        (
+            HttpMethod::Put,
+            "/app/v3/api/shops/current/return_addresses",
+            "shops.current.returnAddresses.upsert",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/shipping_templates",
+            "shops.current.shippingTemplates.list",
+        ),
+        (
+            HttpMethod::Put,
+            "/app/v3/api/shops/current/shipping_templates",
+            "shops.current.shippingTemplates.upsert",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/applications",
+            "shops.current.applications.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/shops/current/applications",
+            "shops.current.applications.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/verifications",
+            "shops.current.verifications.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/status_events",
+            "shops.current.statusEvents.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/channels",
+            "shops.current.channels.list",
+        ),
+        (
+            HttpMethod::Patch,
+            "/app/v3/api/shops/current/channels/{channelId}",
+            "shops.current.channels.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/fulfillment_profile",
+            "shops.current.fulfillmentProfile.retrieve",
+        ),
+        (
+            HttpMethod::Patch,
+            "/app/v3/api/shops/current/fulfillment_profile",
+            "shops.current.fulfillmentProfile.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/settlement_profile",
+            "shops.current.settlementProfile.retrieve",
+        ),
+        (
+            HttpMethod::Patch,
+            "/app/v3/api/shops/current/settlement_profile",
+            "shops.current.settlementProfile.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/business_hours",
+            "shops.current.businessHours.retrieve",
+        ),
+        (
+            HttpMethod::Patch,
+            "/app/v3/api/shops/current/business_hours",
+            "shops.current.businessHours.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/service_areas",
+            "shops.current.serviceAreas.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/shops/current/service_areas",
+            "shops.current.serviceAreas.create",
+        ),
+        (
+            HttpMethod::Patch,
+            "/app/v3/api/shops/current/service_areas/{serviceAreaId}",
+            "shops.current.serviceAreas.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/policies",
+            "shops.current.policies.list",
+        ),
+        (
+            HttpMethod::Patch,
+            "/app/v3/api/shops/current/policies/{policyId}",
+            "shops.current.policies.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/deposit_account",
+            "shops.current.depositAccount.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/risk_signals",
+            "shops.current.riskSignals.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/products",
+            "shops.current.products.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/shops/current/products",
+            "shops.current.products.create",
+        ),
+        (
+            HttpMethod::Patch,
+            "/app/v3/api/shops/current/products/{productId}",
+            "shops.current.products.update",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/shops/current/products/{productId}/publish",
+            "shops.current.products.publish",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/shops/current/products/{productId}/unpublish",
+            "shops.current.products.unpublish",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/inventory/stocks",
+            "shops.current.inventory.stocks.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/shops/current/inventory/stocks/{stockId}/adjustments",
+            "shops.current.inventory.stocks.adjustments.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/orders",
+            "shops.current.orders.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/orders/{orderId}",
+            "shops.current.orders.retrieve",
+        ),
+        (
+            HttpMethod::Post,
+            "/app/v3/api/shops/current/orders/{orderId}/fulfillments",
+            "shops.current.orders.fulfillments.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/app/v3/api/shops/current/settlements",
+            "shops.current.settlements.list",
+        ),
         (
             HttpMethod::Get,
             "/app/v3/api/catalog/spus",
@@ -416,11 +642,326 @@ fn canonical_app_route_specs() -> Vec<(HttpMethod, &'static str, &'static str)> 
 
 fn canonical_backend_route_specs() -> Vec<(HttpMethod, &'static str, &'static str)> {
     vec![
-        (HttpMethod::Get, "/backend/v3/api/orders", "orders.list"),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops",
+            "shops.management.list",
+        ),
+        (HttpMethod::Post, "/backend/v3/api/shops", "shops.create"),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}",
+            "shops.management.retrieve",
+        ),
+        (
+            HttpMethod::Patch,
+            "/backend/v3/api/shops/{shopId}",
+            "shops.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/category_bindings",
+            "shops.categoryBindings.list",
+        ),
+        (
+            HttpMethod::Put,
+            "/backend/v3/api/shops/{shopId}/category_bindings",
+            "shops.categoryBindings.upsert",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/brand_authorizations",
+            "shops.brandAuthorizations.list",
+        ),
+        (
+            HttpMethod::Put,
+            "/backend/v3/api/shops/{shopId}/brand_authorizations",
+            "shops.brandAuthorizations.upsert",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/qualifications",
+            "shops.qualifications.list",
+        ),
+        (
+            HttpMethod::Put,
+            "/backend/v3/api/shops/{shopId}/qualifications",
+            "shops.qualifications.upsert",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/customer_services",
+            "shops.customerServices.list",
+        ),
+        (
+            HttpMethod::Put,
+            "/backend/v3/api/shops/{shopId}/customer_services",
+            "shops.customerServices.upsert",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/return_addresses",
+            "shops.returnAddresses.list",
+        ),
+        (
+            HttpMethod::Put,
+            "/backend/v3/api/shops/{shopId}/return_addresses",
+            "shops.returnAddresses.upsert",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/shipping_templates",
+            "shops.shippingTemplates.list",
+        ),
+        (
+            HttpMethod::Put,
+            "/backend/v3/api/shops/{shopId}/shipping_templates",
+            "shops.shippingTemplates.upsert",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/verifications",
+            "shops.verifications.list",
+        ),
+        (
+            HttpMethod::Patch,
+            "/backend/v3/api/shops/{shopId}/verifications/{verificationId}",
+            "shops.verifications.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/status_events",
+            "shops.statusEvents.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/channels",
+            "shops.channels.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/channels",
+            "shops.channels.create",
+        ),
+        (
+            HttpMethod::Patch,
+            "/backend/v3/api/shops/{shopId}/channels/{channelId}",
+            "shops.channels.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/fulfillment_profile",
+            "shops.fulfillmentProfile.retrieve",
+        ),
+        (
+            HttpMethod::Patch,
+            "/backend/v3/api/shops/{shopId}/fulfillment_profile",
+            "shops.fulfillmentProfile.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/settlement_profile",
+            "shops.settlementProfile.retrieve",
+        ),
+        (
+            HttpMethod::Patch,
+            "/backend/v3/api/shops/{shopId}/settlement_profile",
+            "shops.settlementProfile.update",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/settlement_profile/approve",
+            "shops.settlementProfile.approve",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/settlement_profile/reject",
+            "shops.settlementProfile.reject",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/business_hours",
+            "shops.businessHours.retrieve",
+        ),
+        (
+            HttpMethod::Patch,
+            "/backend/v3/api/shops/{shopId}/business_hours",
+            "shops.businessHours.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/service_areas",
+            "shops.serviceAreas.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/service_areas",
+            "shops.serviceAreas.create",
+        ),
+        (
+            HttpMethod::Patch,
+            "/backend/v3/api/shops/{shopId}/service_areas/{serviceAreaId}",
+            "shops.serviceAreas.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/policies",
+            "shops.policies.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/policies",
+            "shops.policies.create",
+        ),
+        (
+            HttpMethod::Patch,
+            "/backend/v3/api/shops/{shopId}/policies/{policyId}",
+            "shops.policies.update",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/deposit_account",
+            "shops.depositAccount.retrieve",
+        ),
+        (
+            HttpMethod::Patch,
+            "/backend/v3/api/shops/{shopId}/deposit_account",
+            "shops.depositAccount.update",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/deposit_account/review",
+            "shops.depositAccount.review",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shops/{shopId}/risk_signals",
+            "shops.riskSignals.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/risk_signals",
+            "shops.riskSignals.create",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/risk_signals/{riskSignalId}/resolve",
+            "shops.riskSignals.resolve",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/submit_review",
+            "shops.submitReview",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/approve",
+            "shops.approve",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/reject",
+            "shops.reject",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/suspend",
+            "shops.suspend",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/resume",
+            "shops.resume",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/shops/{shopId}/close",
+            "shops.close",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/catalog/categories",
+            "catalog.categories.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/catalog/products",
+            "catalog.products.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/catalog/products/{productId}",
+            "catalog.products.management.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/catalog/attributes",
+            "catalog.attributes.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/orders",
+            "orders.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/orders/{orderId}",
+            "orders.management.retrieve",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/orders/{orderId}/cancel",
+            "orders.management.cancel",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/orders/{orderId}/close",
+            "orders.management.close",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/orders/{orderId}/events",
+            "orders.events.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/payments/methods",
+            "payments.methods.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/payments/intents/{paymentIntentId}",
+            "payments.intents.management.retrieve",
+        ),
         (
             HttpMethod::Get,
             "/backend/v3/api/payments/reconciliation_runs",
             "payments.reconciliationRuns.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/refunds",
+            "refunds.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/refunds/{refundId}",
+            "refunds.management.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/fulfillments",
+            "fulfillments.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/fulfillments/{fulfillmentId}",
+            "fulfillments.management.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/shipments/{shipmentId}",
+            "shipments.management.retrieve",
         ),
         (
             HttpMethod::Get,
@@ -429,8 +970,28 @@ fn canonical_backend_route_specs() -> Vec<(HttpMethod, &'static str, &'static st
         ),
         (
             HttpMethod::Get,
+            "/backend/v3/api/invoices/{invoiceId}",
+            "invoices.management.retrieve",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/inventory/movements",
+            "inventory.movements.list",
+        ),
+        (
+            HttpMethod::Get,
             "/backend/v3/api/wallet/ledger_entries",
-            "wallet.ledgerEntries.list",
+            "wallet.ledgerEntries.management.list",
+        ),
+        (
+            HttpMethod::Post,
+            "/backend/v3/api/wallet/adjustments",
+            "wallet.adjustments.management.create",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/wallet/exchange_rules",
+            "wallet.exchangeRules.management.list",
         ),
         (
             HttpMethod::Get,
@@ -441,6 +1002,16 @@ fn canonical_backend_route_specs() -> Vec<(HttpMethod, &'static str, &'static st
             HttpMethod::Get,
             "/backend/v3/api/memberships/plans",
             "memberships.plans.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/memberships/package_groups",
+            "memberships.packageGroups.management.list",
+        ),
+        (
+            HttpMethod::Get,
+            "/backend/v3/api/memberships/packages",
+            "memberships.packages.management.list",
         ),
         (
             HttpMethod::Get,
@@ -567,10 +1138,18 @@ fn exposes_canonical_standard_app_commerce_routes_only() {
         assert!(route.path.starts_with("/app/v3/api/"));
         assert!(route.path == "/app/v3/api/billing/history" || !route.path.contains("/billing/"));
         assert!(!route.path.contains("/vip/"));
+        assert!(!route.path.contains("/shops/{shopId}/staff"));
+        assert!(!route.path.contains("/shops/{shopId}/members"));
+        assert!(!route.path.contains("/shops/{shopId}/roles"));
+        assert!(!route.path.contains("/shops/{shopId}/permissions"));
         assert!(!route.path.contains("__"));
         assert!(!route.operation_id.contains('_'));
         assert!(route.operation_id.contains('.'));
         assert!(!route.operation_id.starts_with("vip."));
+        assert!(!route.operation_id.starts_with("shops.staff."));
+        assert!(!route.operation_id.starts_with("shops.members."));
+        assert!(!route.operation_id.starts_with("shops.roles."));
+        assert!(!route.operation_id.starts_with("shops.permissions."));
     }
     assert_unique_route_specs(&actual);
     for retired_path in retired_paths {
@@ -609,12 +1188,73 @@ fn exposes_first_slice_backend_management_routes_separately() {
         assert!(route.path.starts_with("/backend/v3/api/"));
         assert!(!route.path.contains("/billing/"));
         assert!(!route.path.contains("/vip/"));
+        assert!(!route.path.contains("/shops/{shopId}/staff"));
+        assert!(!route.path.contains("/shops/{shopId}/members"));
+        assert!(!route.path.contains("/shops/{shopId}/roles"));
+        assert!(!route.path.contains("/shops/{shopId}/permissions"));
+        assert_ne!(route.path, "/backend/v3/api/inventory/ledger");
+        assert_ne!(route.path, "/backend/v3/api/inventory/ledger_entries");
         assert!(!route.operation_id.contains('_'));
         assert!(route.operation_id.contains('.'));
         assert!(!route.operation_id.starts_with("backend."));
         assert!(!route.operation_id.starts_with("vip."));
+        assert!(!route.operation_id.starts_with("shops.staff."));
+        assert!(!route.operation_id.starts_with("shops.members."));
+        assert!(!route.operation_id.starts_with("shops.roles."));
+        assert!(!route.operation_id.starts_with("shops.permissions."));
+        assert_ne!(route.operation_id, "inventory.ledger.list");
+        assert_ne!(route.operation_id, "inventory.ledgerEntries.list");
     }
     assert_unique_route_specs(&actual);
+
+    for retired_path in [
+        "/backend/v3/api/orders/management",
+        "/backend/v3/api/refunds/management",
+        "/backend/v3/api/payments/webhooks",
+    ] {
+        assert!(
+            !actual
+                .iter()
+                .any(|(_, path, _)| path.starts_with(retired_path)),
+            "retired backend management path must not be exposed: {retired_path}"
+        );
+    }
+
+    for retired_operation_id in [
+        "shops.retrieve",
+        "catalog.categories.list",
+        "catalog.attributes.list",
+        "catalog.products.list",
+        "orders.list",
+        "orders.retrieve",
+        "orders.cancel",
+        "orders.close",
+        "orders.events.list",
+        "payments.methods.list",
+        "payments.intents.retrieve",
+        "refunds.list",
+        "refunds.retrieve",
+        "fulfillments.list",
+        "fulfillments.retrieve",
+        "shipments.retrieve",
+        "memberships.packageGroups.list",
+        "memberships.packages.list",
+        "recharges.packages.list",
+        "recharges.settings.retrieve",
+        "recharges.orders.list",
+        "recharges.orders.retrieve",
+        "wallet.ledgerEntries.list",
+        "wallet.adjustments.create",
+        "wallet.exchangeRules.list",
+        "invoices.retrieve",
+    ] {
+        assert!(
+            !actual
+                .iter()
+                .any(|(_, _, operation_id)| operation_id == &retired_operation_id),
+            "retired backend operationId must not be exposed: {retired_operation_id}"
+        );
+    }
 }
 
 fn assert_unique_route_specs(routes: &[(HttpMethod, &str, &str)]) {
@@ -686,6 +1326,35 @@ fn app_routes_expose_runtime_execution_metadata_for_handler_generation() {
     assert_eq!(cart_update.capability_name, "commerce.catalog.cart");
     assert!(cart_update.requires_idempotency);
     assert!(cart_update.requires_transaction);
+
+    let shop_application = metadata
+        .iter()
+        .find(|entry| entry.operation_id == "shops.current.applications.create")
+        .unwrap();
+    assert_eq!(shop_application.service_name, "commerce.shop");
+    assert_eq!(
+        shop_application.execution_policy,
+        OperationExecutionPolicy::TransactionalWrite,
+    );
+    assert_eq!(shop_application.capability_name, "commerce.shop.onboarding");
+    assert!(shop_application.requires_idempotency);
+    assert!(shop_application.requires_transaction);
+
+    let shop_settlement_profile = metadata
+        .iter()
+        .find(|entry| entry.operation_id == "shops.current.settlementProfile.retrieve")
+        .unwrap();
+    assert_eq!(shop_settlement_profile.service_name, "commerce.shop");
+    assert_eq!(
+        shop_settlement_profile.execution_policy,
+        OperationExecutionPolicy::ReadOnly,
+    );
+    assert_eq!(
+        shop_settlement_profile.capability_name,
+        "commerce.shop.settlement"
+    );
+    assert!(!shop_settlement_profile.requires_idempotency);
+    assert!(!shop_settlement_profile.requires_transaction);
 
     let exchange_rules = metadata
         .iter()

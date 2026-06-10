@@ -5,6 +5,7 @@ export type CommerceOperationSecurity = "dualToken" | "public";
 
 export type CommerceSdkNamespace =
   | "accounts"
+  | "shops"
   | "catalog"
   | "cart"
   | "addresses"
@@ -29,7 +30,27 @@ export type CommerceSdkNamespace =
 export type CommerceCapabilityName = CommerceSdkNamespace;
 
 export const SDKWORK_COMMERCE_TABLES = {
+  shop: "commerce_shop",
+  shopApplication: "commerce_shop_application",
+  shopVerification: "commerce_shop_verification",
+  shopStatusEvent: "commerce_shop_status_event",
+  shopChannel: "commerce_shop_channel",
+  shopFulfillmentProfile: "commerce_shop_fulfillment_profile",
+  shopSettlementProfile: "commerce_shop_settlement_profile",
+  shopMetricSnapshot: "commerce_shop_metric_snapshot",
+  shopBusinessHour: "commerce_shop_business_hour",
+  shopServiceArea: "commerce_shop_service_area",
+  shopPolicy: "commerce_shop_policy",
+  shopDepositAccount: "commerce_shop_deposit_account",
+  shopRiskSignal: "commerce_shop_risk_signal",
+  shopCategoryBinding: "commerce_shop_category_binding",
+  shopBrandAuthorization: "commerce_shop_brand_authorization",
+  shopQualification: "commerce_shop_qualification",
+  shopCustomerService: "commerce_shop_customer_service",
+  shopReturnAddress: "commerce_shop_return_address",
+  shopShippingTemplate: "commerce_shop_shipping_template",
   productCategory: "commerce_product_category",
+  productSpuCategory: "commerce_product_spu_category",
   productSpu: "commerce_product_spu",
   productSku: "commerce_product_sku",
   productAttribute: "commerce_product_attribute",
@@ -40,7 +61,7 @@ export const SDKWORK_COMMERCE_TABLES = {
   priceListItem: "commerce_price_list_item",
   inventoryStock: "commerce_inventory_stock",
   inventoryReservation: "commerce_inventory_reservation",
-  inventoryLedger: "commerce_inventory_ledger",
+  inventoryMovement: "commerce_inventory_movement",
   cart: "commerce_cart",
   cartItem: "commerce_cart_item",
   userAddress: "commerce_user_address",
@@ -113,13 +134,28 @@ export type CommerceDomainModelName = keyof typeof SDKWORK_COMMERCE_TABLES;
 
 export interface CommerceOperationContract {
   apiSurface: "app" | "backend";
+  auditEvent?: string;
+  bodyRequired?: boolean;
+  idempotent?: boolean;
   method: CommerceOperationMethod;
   operationKey: string;
   operationId: string;
   path: string;
+  permission?: string;
   queryParameters?: readonly string[];
+  requestSchema?: string;
+  responseSchema?: string;
   security: CommerceOperationSecurity;
   tag: CommerceSdkNamespace;
+}
+
+export interface CommerceOperationOptions {
+  auditEvent?: string;
+  bodyRequired?: boolean;
+  idempotent?: boolean;
+  permission?: string;
+  requestSchema?: string;
+  responseSchema?: string;
 }
 
 export interface CommerceDomainModelContract {
@@ -156,6 +192,7 @@ export const SDKWORK_COMMERCE_STANDARD = {
   domain: "commerce",
   sdkNamespaces: [
     "accounts",
+    "shops",
     "catalog",
     "cart",
     "addresses",
@@ -187,6 +224,253 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
     current: {
       summary: {
         retrieve: operation("GET", `${app}/accounts/current/summary`, "accounts.current.summary.retrieve"),
+      },
+    },
+  },
+  shops: {
+    list: operation("GET", `${app}/shops`, "shops.list", ["q", "shop_type", "operation_status", "page", "page_size"], {
+      permission: "commerce.shops.read",
+      responseSchema: "ShopListResponse",
+    }),
+    retrieve: operation("GET", `${app}/shops/{shopId}`, "shops.retrieve", undefined, {
+      permission: "commerce.shops.read",
+      responseSchema: "ShopDetailResponse",
+    }),
+    current: {
+      retrieve: operation("GET", `${app}/shops/current`, "shops.current.retrieve", undefined, {
+        permission: "commerce.shops.self.read",
+        responseSchema: "CurrentShopResponse",
+      }),
+      dashboard: {
+        retrieve: operation("GET", `${app}/shops/current/dashboard`, "shops.current.dashboard.retrieve", undefined, {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopDashboardResponse",
+        }),
+      },
+      categoryBindings: {
+        list: operation("GET", `${app}/shops/current/category_bindings`, "shops.current.categoryBindings.list", ["shop_category_code", "platform_category_code", "category_status", "review_status", "page", "page_size"], {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopCategoryBindingListResponse",
+        }),
+        upsert: operation("PUT", `${app}/shops/current/category_bindings`, "shops.current.categoryBindings.upsert", undefined, {
+          auditEvent: "commerce.shop.categoryBinding.upserted",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "UpsertShopCategoryBindingRequest",
+          responseSchema: "ShopCategoryBindingResponse",
+        }),
+      },
+      brandAuthorizations: {
+        list: operation("GET", `${app}/shops/current/brand_authorizations`, "shops.current.brandAuthorizations.list", ["brand_code", "authorization_status", "page", "page_size"], {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopBrandAuthorizationListResponse",
+        }),
+        upsert: operation("PUT", `${app}/shops/current/brand_authorizations`, "shops.current.brandAuthorizations.upsert", undefined, {
+          auditEvent: "commerce.shop.brandAuthorization.upserted",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "UpsertShopBrandAuthorizationRequest",
+          responseSchema: "ShopBrandAuthorizationResponse",
+        }),
+      },
+      qualifications: {
+        list: operation("GET", `${app}/shops/current/qualifications`, "shops.current.qualifications.list", ["qualification_type", "subject_type", "subject_id", "qualification_status", "page", "page_size"], {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopQualificationListResponse",
+        }),
+        upsert: operation("PUT", `${app}/shops/current/qualifications`, "shops.current.qualifications.upsert", undefined, {
+          auditEvent: "commerce.shop.qualification.upserted",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "UpsertShopQualificationRequest",
+          responseSchema: "ShopQualificationResponse",
+        }),
+      },
+      customerServices: {
+        list: operation("GET", `${app}/shops/current/customer_services`, "shops.current.customerServices.list", ["service_channel", "service_status", "is_default", "page", "page_size"], {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopCustomerServiceListResponse",
+        }),
+        upsert: operation("PUT", `${app}/shops/current/customer_services`, "shops.current.customerServices.upsert", undefined, {
+          auditEvent: "commerce.shop.customerService.upserted",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "UpsertShopCustomerServiceRequest",
+          responseSchema: "ShopCustomerServiceResponse",
+        }),
+      },
+      returnAddresses: {
+        list: operation("GET", `${app}/shops/current/return_addresses`, "shops.current.returnAddresses.list", ["address_usage", "address_status", "is_default", "page", "page_size"], {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopReturnAddressListResponse",
+        }),
+        upsert: operation("PUT", `${app}/shops/current/return_addresses`, "shops.current.returnAddresses.upsert", undefined, {
+          auditEvent: "commerce.shop.returnAddress.upserted",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "UpsertShopReturnAddressRequest",
+          responseSchema: "ShopReturnAddressResponse",
+        }),
+      },
+      shippingTemplates: {
+        list: operation("GET", `${app}/shops/current/shipping_templates`, "shops.current.shippingTemplates.list", ["template_status", "delivery_method", "is_default", "page", "page_size"], {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopShippingTemplateListResponse",
+        }),
+        upsert: operation("PUT", `${app}/shops/current/shipping_templates`, "shops.current.shippingTemplates.upsert", undefined, {
+          auditEvent: "commerce.shop.shippingTemplate.upserted",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "UpsertShopShippingTemplateRequest",
+          responseSchema: "ShopShippingTemplateResponse",
+        }),
+      },
+      applications: {
+        list: operation("GET", `${app}/shops/current/applications`, "shops.current.applications.list", ["status", "page", "page_size"], {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopApplicationListResponse",
+        }),
+        create: operation("POST", `${app}/shops/current/applications`, "shops.current.applications.create", undefined, {
+          auditEvent: "commerce.shop.application.submitted",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "SubmitShopApplicationRequest",
+          responseSchema: "ShopApplicationResponse",
+        }),
+      },
+      verifications: {
+        list: operation("GET", `${app}/shops/current/verifications`, "shops.current.verifications.list", ["verification_type", "verification_status", "page", "page_size"], {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopVerificationListResponse",
+        }),
+      },
+      statusEvents: {
+        list: operation("GET", `${app}/shops/current/status_events`, "shops.current.statusEvents.list", ["event_type", "page", "page_size"], {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopStatusEventListResponse",
+        }),
+      },
+      channels: {
+        list: operation("GET", `${app}/shops/current/channels`, "shops.current.channels.list", ["channel_code", "storefront_status", "page", "page_size"], {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopChannelListResponse",
+        }),
+        update: operation("PATCH", `${app}/shops/current/channels/{channelId}`, "shops.current.channels.update", undefined, {
+          auditEvent: "commerce.shop.channel.updated",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "UpdateShopChannelRequest",
+          responseSchema: "ShopChannelResponse",
+        }),
+      },
+      fulfillmentProfile: {
+        retrieve: operation("GET", `${app}/shops/current/fulfillment_profile`, "shops.current.fulfillmentProfile.retrieve", undefined, {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopFulfillmentProfileResponse",
+        }),
+        update: operation("PATCH", `${app}/shops/current/fulfillment_profile`, "shops.current.fulfillmentProfile.update", undefined, {
+          auditEvent: "commerce.shop.fulfillmentProfile.updated",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "UpdateShopFulfillmentProfileRequest",
+          responseSchema: "ShopFulfillmentProfileResponse",
+        }),
+      },
+      settlementProfile: {
+        retrieve: operation("GET", `${app}/shops/current/settlement_profile`, "shops.current.settlementProfile.retrieve", undefined, {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopSettlementProfileResponse",
+        }),
+        update: operation("PATCH", `${app}/shops/current/settlement_profile`, "shops.current.settlementProfile.update", undefined, {
+          auditEvent: "commerce.shop.settlementProfile.updated",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "UpdateShopSettlementProfileRequest",
+          responseSchema: "ShopSettlementProfileResponse",
+        }),
+      },
+      businessHours: {
+        retrieve: operation("GET", `${app}/shops/current/business_hours`, "shops.current.businessHours.retrieve", undefined, {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopBusinessHourResponse",
+        }),
+        update: operation("PATCH", `${app}/shops/current/business_hours`, "shops.current.businessHours.update", undefined, {
+          auditEvent: "commerce.shop.businessHours.updated",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "UpdateShopBusinessHourRequest",
+          responseSchema: "ShopBusinessHourResponse",
+        }),
+      },
+      serviceAreas: {
+        list: operation("GET", `${app}/shops/current/service_areas`, "shops.current.serviceAreas.list", ["area_type", "region_code", "service_status", "page", "page_size"], {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopServiceAreaListResponse",
+        }),
+        create: operation("POST", `${app}/shops/current/service_areas`, "shops.current.serviceAreas.create", undefined, {
+          auditEvent: "commerce.shop.serviceArea.created",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "CreateShopServiceAreaRequest",
+          responseSchema: "ShopServiceAreaResponse",
+        }),
+        update: operation("PATCH", `${app}/shops/current/service_areas/{serviceAreaId}`, "shops.current.serviceAreas.update", undefined, {
+          auditEvent: "commerce.shop.serviceArea.updated",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "UpdateShopServiceAreaRequest",
+          responseSchema: "ShopServiceAreaResponse",
+        }),
+      },
+      policies: {
+        list: operation("GET", `${app}/shops/current/policies`, "shops.current.policies.list", ["policy_type", "policy_status", "page", "page_size"], {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopPolicyListResponse",
+        }),
+        update: operation("PATCH", `${app}/shops/current/policies/{policyId}`, "shops.current.policies.update", undefined, {
+          auditEvent: "commerce.shop.policy.updated",
+          idempotent: true,
+          permission: "commerce.shops.self.write",
+          requestSchema: "UpdateShopPolicyRequest",
+          responseSchema: "ShopPolicyResponse",
+        }),
+      },
+      depositAccount: {
+        retrieve: operation("GET", `${app}/shops/current/deposit_account`, "shops.current.depositAccount.retrieve", undefined, {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopDepositAccountResponse",
+        }),
+      },
+      riskSignals: {
+        list: operation("GET", `${app}/shops/current/risk_signals`, "shops.current.riskSignals.list", ["signal_type", "risk_level", "signal_status", "page", "page_size"], {
+          permission: "commerce.shops.self.read",
+          responseSchema: "ShopRiskSignalListResponse",
+        }),
+      },
+      products: {
+        list: operation("GET", `${app}/shops/current/products`, "shops.current.products.list", ["q", "status", "page", "page_size"]),
+        create: operation("POST", `${app}/shops/current/products`, "shops.current.products.create"),
+        update: operation("PATCH", `${app}/shops/current/products/{productId}`, "shops.current.products.update"),
+        publish: operation("POST", `${app}/shops/current/products/{productId}/publish`, "shops.current.products.publish"),
+        unpublish: operation("POST", `${app}/shops/current/products/{productId}/unpublish`, "shops.current.products.unpublish"),
+      },
+      inventory: {
+        stocks: {
+          list: operation("GET", `${app}/shops/current/inventory/stocks`, "shops.current.inventory.stocks.list", ["sku_id", "warehouse_id", "status", "page", "page_size"]),
+          adjustments: {
+            create: operation("POST", `${app}/shops/current/inventory/stocks/{stockId}/adjustments`, "shops.current.inventory.stocks.adjustments.create"),
+          },
+        },
+      },
+      orders: {
+        list: operation("GET", `${app}/shops/current/orders`, "shops.current.orders.list", ["status", "page", "page_size"]),
+        retrieve: operation("GET", `${app}/shops/current/orders/{orderId}`, "shops.current.orders.retrieve"),
+        fulfillments: {
+          create: operation("POST", `${app}/shops/current/orders/{orderId}/fulfillments`, "shops.current.orders.fulfillments.create"),
+        },
+      },
+      settlements: {
+        list: operation("GET", `${app}/shops/current/settlements`, "shops.current.settlements.list", ["status", "page", "page_size"]),
       },
     },
   },
@@ -516,15 +800,332 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
     },
   },
   backend: {
+    shops: {
+      list: operation("GET", `${backend}/shops`, "shops.management.list", ["q", "shop_type", "operation_status", "review_status", "page", "page_size"], {
+        permission: "commerce.shops.read",
+        responseSchema: "ShopManagementListResponse",
+      }),
+      create: operation("POST", `${backend}/shops`, "shops.create", undefined, {
+        auditEvent: "commerce.shop.created",
+        idempotent: true,
+        permission: "commerce.shops.write",
+        requestSchema: "CreateShopRequest",
+        responseSchema: "ShopManagementDetailResponse",
+      }),
+      retrieve: operation("GET", `${backend}/shops/{shopId}`, "shops.management.retrieve", undefined, {
+        permission: "commerce.shops.read",
+        responseSchema: "ShopManagementDetailResponse",
+      }),
+      update: operation("PATCH", `${backend}/shops/{shopId}`, "shops.update", undefined, {
+        auditEvent: "commerce.shop.updated",
+        idempotent: true,
+        permission: "commerce.shops.write",
+        requestSchema: "UpdateShopRequest",
+        responseSchema: "ShopManagementDetailResponse",
+      }),
+      categoryBindings: {
+        list: operation("GET", `${backend}/shops/{shopId}/category_bindings`, "shops.categoryBindings.list", ["shop_category_code", "platform_category_code", "category_status", "review_status", "page", "page_size"], {
+          permission: "commerce.shops.read",
+          responseSchema: "ShopCategoryBindingListResponse",
+        }),
+        upsert: operation("PUT", `${backend}/shops/{shopId}/category_bindings`, "shops.categoryBindings.upsert", undefined, {
+          auditEvent: "commerce.shop.categoryBinding.upserted",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "UpsertShopCategoryBindingRequest",
+          responseSchema: "ShopCategoryBindingResponse",
+        }),
+      },
+      brandAuthorizations: {
+        list: operation("GET", `${backend}/shops/{shopId}/brand_authorizations`, "shops.brandAuthorizations.list", ["brand_code", "authorization_status", "page", "page_size"], {
+          permission: "commerce.shops.read",
+          responseSchema: "ShopBrandAuthorizationListResponse",
+        }),
+        upsert: operation("PUT", `${backend}/shops/{shopId}/brand_authorizations`, "shops.brandAuthorizations.upsert", undefined, {
+          auditEvent: "commerce.shop.brandAuthorization.upserted",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "UpsertShopBrandAuthorizationRequest",
+          responseSchema: "ShopBrandAuthorizationResponse",
+        }),
+      },
+      qualifications: {
+        list: operation("GET", `${backend}/shops/{shopId}/qualifications`, "shops.qualifications.list", ["qualification_type", "subject_type", "subject_id", "qualification_status", "page", "page_size"], {
+          permission: "commerce.shops.read",
+          responseSchema: "ShopQualificationListResponse",
+        }),
+        upsert: operation("PUT", `${backend}/shops/{shopId}/qualifications`, "shops.qualifications.upsert", undefined, {
+          auditEvent: "commerce.shop.qualification.upserted",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "UpsertShopQualificationRequest",
+          responseSchema: "ShopQualificationResponse",
+        }),
+      },
+      customerServices: {
+        list: operation("GET", `${backend}/shops/{shopId}/customer_services`, "shops.customerServices.list", ["service_channel", "service_status", "is_default", "page", "page_size"], {
+          permission: "commerce.shops.read",
+          responseSchema: "ShopCustomerServiceListResponse",
+        }),
+        upsert: operation("PUT", `${backend}/shops/{shopId}/customer_services`, "shops.customerServices.upsert", undefined, {
+          auditEvent: "commerce.shop.customerService.upserted",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "UpsertShopCustomerServiceRequest",
+          responseSchema: "ShopCustomerServiceResponse",
+        }),
+      },
+      returnAddresses: {
+        list: operation("GET", `${backend}/shops/{shopId}/return_addresses`, "shops.returnAddresses.list", ["address_usage", "address_status", "is_default", "page", "page_size"], {
+          permission: "commerce.shops.read",
+          responseSchema: "ShopReturnAddressListResponse",
+        }),
+        upsert: operation("PUT", `${backend}/shops/{shopId}/return_addresses`, "shops.returnAddresses.upsert", undefined, {
+          auditEvent: "commerce.shop.returnAddress.upserted",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "UpsertShopReturnAddressRequest",
+          responseSchema: "ShopReturnAddressResponse",
+        }),
+      },
+      shippingTemplates: {
+        list: operation("GET", `${backend}/shops/{shopId}/shipping_templates`, "shops.shippingTemplates.list", ["template_status", "delivery_method", "is_default", "page", "page_size"], {
+          permission: "commerce.shops.read",
+          responseSchema: "ShopShippingTemplateListResponse",
+        }),
+        upsert: operation("PUT", `${backend}/shops/{shopId}/shipping_templates`, "shops.shippingTemplates.upsert", undefined, {
+          auditEvent: "commerce.shop.shippingTemplate.upserted",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "UpsertShopShippingTemplateRequest",
+          responseSchema: "ShopShippingTemplateResponse",
+        }),
+      },
+      verifications: {
+        list: operation("GET", `${backend}/shops/{shopId}/verifications`, "shops.verifications.list", ["verification_type", "verification_status", "page", "page_size"], {
+          permission: "commerce.shops.review",
+          responseSchema: "ShopVerificationListResponse",
+        }),
+        update: operation("PATCH", `${backend}/shops/{shopId}/verifications/{verificationId}`, "shops.verifications.update", undefined, {
+          auditEvent: "commerce.shop.verification.updated",
+          idempotent: true,
+          permission: "commerce.shops.review",
+          requestSchema: "UpdateShopVerificationRequest",
+          responseSchema: "ShopVerificationListResponse",
+        }),
+      },
+      statusEvents: {
+        list: operation("GET", `${backend}/shops/{shopId}/status_events`, "shops.statusEvents.list", ["event_type", "page", "page_size"], {
+          permission: "commerce.shops.audit.read",
+          responseSchema: "ShopStatusEventListResponse",
+        }),
+      },
+      channels: {
+        list: operation("GET", `${backend}/shops/{shopId}/channels`, "shops.channels.list", ["channel_code", "storefront_status", "page", "page_size"], {
+          permission: "commerce.shops.read",
+          responseSchema: "ShopChannelListResponse",
+        }),
+        create: operation("POST", `${backend}/shops/{shopId}/channels`, "shops.channels.create", undefined, {
+          auditEvent: "commerce.shop.channel.created",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "CreateShopChannelRequest",
+          responseSchema: "ShopChannelResponse",
+        }),
+        update: operation("PATCH", `${backend}/shops/{shopId}/channels/{channelId}`, "shops.channels.update", undefined, {
+          auditEvent: "commerce.shop.channel.updated",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "UpdateShopChannelRequest",
+          responseSchema: "ShopChannelResponse",
+        }),
+      },
+      fulfillmentProfile: {
+        retrieve: operation("GET", `${backend}/shops/{shopId}/fulfillment_profile`, "shops.fulfillmentProfile.retrieve", undefined, {
+          permission: "commerce.shops.read",
+          responseSchema: "ShopFulfillmentProfileResponse",
+        }),
+        update: operation("PATCH", `${backend}/shops/{shopId}/fulfillment_profile`, "shops.fulfillmentProfile.update", undefined, {
+          auditEvent: "commerce.shop.fulfillmentProfile.updated",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "UpdateShopFulfillmentProfileRequest",
+          responseSchema: "ShopFulfillmentProfileResponse",
+        }),
+      },
+      settlementProfile: {
+        retrieve: operation("GET", `${backend}/shops/{shopId}/settlement_profile`, "shops.settlementProfile.retrieve", undefined, {
+          permission: "commerce.shops.settlement.read",
+          responseSchema: "ShopSettlementProfileResponse",
+        }),
+        update: operation("PATCH", `${backend}/shops/{shopId}/settlement_profile`, "shops.settlementProfile.update", undefined, {
+          auditEvent: "commerce.shop.settlementProfile.updated",
+          idempotent: true,
+          permission: "commerce.shops.settlement.write",
+          requestSchema: "UpdateShopSettlementProfileRequest",
+          responseSchema: "ShopSettlementProfileResponse",
+        }),
+        approve: operation("POST", `${backend}/shops/{shopId}/settlement_profile/approve`, "shops.settlementProfile.approve", undefined, {
+          auditEvent: "commerce.shop.settlementProfile.approved",
+          idempotent: true,
+          permission: "commerce.shops.settlement.review",
+          requestSchema: "ApproveShopSettlementProfileRequest",
+          responseSchema: "ShopSettlementProfileResponse",
+        }),
+        reject: operation("POST", `${backend}/shops/{shopId}/settlement_profile/reject`, "shops.settlementProfile.reject", undefined, {
+          auditEvent: "commerce.shop.settlementProfile.rejected",
+          idempotent: true,
+          permission: "commerce.shops.settlement.review",
+          requestSchema: "RejectShopSettlementProfileRequest",
+          responseSchema: "ShopSettlementProfileResponse",
+        }),
+      },
+      businessHours: {
+        retrieve: operation("GET", `${backend}/shops/{shopId}/business_hours`, "shops.businessHours.retrieve", undefined, {
+          permission: "commerce.shops.read",
+          responseSchema: "ShopBusinessHourResponse",
+        }),
+        update: operation("PATCH", `${backend}/shops/{shopId}/business_hours`, "shops.businessHours.update", undefined, {
+          auditEvent: "commerce.shop.businessHours.updated",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "UpdateShopBusinessHourRequest",
+          responseSchema: "ShopBusinessHourResponse",
+        }),
+      },
+      serviceAreas: {
+        list: operation("GET", `${backend}/shops/{shopId}/service_areas`, "shops.serviceAreas.list", ["area_type", "region_code", "service_status", "page", "page_size"], {
+          permission: "commerce.shops.read",
+          responseSchema: "ShopServiceAreaListResponse",
+        }),
+        create: operation("POST", `${backend}/shops/{shopId}/service_areas`, "shops.serviceAreas.create", undefined, {
+          auditEvent: "commerce.shop.serviceArea.created",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "CreateShopServiceAreaRequest",
+          responseSchema: "ShopServiceAreaResponse",
+        }),
+        update: operation("PATCH", `${backend}/shops/{shopId}/service_areas/{serviceAreaId}`, "shops.serviceAreas.update", undefined, {
+          auditEvent: "commerce.shop.serviceArea.updated",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "UpdateShopServiceAreaRequest",
+          responseSchema: "ShopServiceAreaResponse",
+        }),
+      },
+      policies: {
+        list: operation("GET", `${backend}/shops/{shopId}/policies`, "shops.policies.list", ["policy_type", "policy_status", "page", "page_size"], {
+          permission: "commerce.shops.read",
+          responseSchema: "ShopPolicyListResponse",
+        }),
+        create: operation("POST", `${backend}/shops/{shopId}/policies`, "shops.policies.create", undefined, {
+          auditEvent: "commerce.shop.policy.created",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "CreateShopPolicyRequest",
+          responseSchema: "ShopPolicyResponse",
+        }),
+        update: operation("PATCH", `${backend}/shops/{shopId}/policies/{policyId}`, "shops.policies.update", undefined, {
+          auditEvent: "commerce.shop.policy.updated",
+          idempotent: true,
+          permission: "commerce.shops.write",
+          requestSchema: "UpdateShopPolicyRequest",
+          responseSchema: "ShopPolicyResponse",
+        }),
+      },
+      depositAccount: {
+        retrieve: operation("GET", `${backend}/shops/{shopId}/deposit_account`, "shops.depositAccount.retrieve", undefined, {
+          permission: "commerce.shops.deposit.read",
+          responseSchema: "ShopDepositAccountResponse",
+        }),
+        update: operation("PATCH", `${backend}/shops/{shopId}/deposit_account`, "shops.depositAccount.update", undefined, {
+          auditEvent: "commerce.shop.depositAccount.updated",
+          idempotent: true,
+          permission: "commerce.shops.deposit.write",
+          requestSchema: "UpdateShopDepositAccountRequest",
+          responseSchema: "ShopDepositAccountResponse",
+        }),
+        review: operation("POST", `${backend}/shops/{shopId}/deposit_account/review`, "shops.depositAccount.review", undefined, {
+          auditEvent: "commerce.shop.depositAccount.reviewed",
+          idempotent: true,
+          permission: "commerce.shops.deposit.review",
+          requestSchema: "ReviewShopDepositAccountRequest",
+          responseSchema: "ShopDepositAccountResponse",
+        }),
+      },
+      riskSignals: {
+        list: operation("GET", `${backend}/shops/{shopId}/risk_signals`, "shops.riskSignals.list", ["signal_type", "risk_level", "signal_status", "page", "page_size"], {
+          permission: "commerce.shops.risk.read",
+          responseSchema: "ShopRiskSignalListResponse",
+        }),
+        create: operation("POST", `${backend}/shops/{shopId}/risk_signals`, "shops.riskSignals.create", undefined, {
+          auditEvent: "commerce.shop.riskSignal.created",
+          idempotent: true,
+          permission: "commerce.shops.risk.write",
+          requestSchema: "CreateShopRiskSignalRequest",
+          responseSchema: "ShopRiskSignalResponse",
+        }),
+        resolve: operation("POST", `${backend}/shops/{shopId}/risk_signals/{riskSignalId}/resolve`, "shops.riskSignals.resolve", undefined, {
+          auditEvent: "commerce.shop.riskSignal.resolved",
+          idempotent: true,
+          permission: "commerce.shops.risk.write",
+          requestSchema: "ResolveShopRiskSignalRequest",
+          responseSchema: "ShopRiskSignalResponse",
+        }),
+      },
+      submitReview: operation("POST", `${backend}/shops/{shopId}/submit_review`, "shops.submitReview", undefined, {
+        auditEvent: "commerce.shop.review.submitted",
+        idempotent: true,
+        permission: "commerce.shops.review",
+        requestSchema: "SubmitShopReviewRequest",
+        responseSchema: "ShopManagementDetailResponse",
+      }),
+      approve: operation("POST", `${backend}/shops/{shopId}/approve`, "shops.approve", undefined, {
+        auditEvent: "commerce.shop.approved",
+        idempotent: true,
+        permission: "commerce.shops.review",
+        requestSchema: "ApproveShopRequest",
+        responseSchema: "ShopManagementDetailResponse",
+      }),
+      reject: operation("POST", `${backend}/shops/{shopId}/reject`, "shops.reject", undefined, {
+        auditEvent: "commerce.shop.rejected",
+        idempotent: true,
+        permission: "commerce.shops.review",
+        requestSchema: "RejectShopRequest",
+        responseSchema: "ShopManagementDetailResponse",
+      }),
+      suspend: operation("POST", `${backend}/shops/{shopId}/suspend`, "shops.suspend", undefined, {
+        auditEvent: "commerce.shop.suspended",
+        idempotent: true,
+        permission: "commerce.shops.status.write",
+        requestSchema: "SuspendShopRequest",
+        responseSchema: "ShopManagementDetailResponse",
+      }),
+      resume: operation("POST", `${backend}/shops/{shopId}/resume`, "shops.resume", undefined, {
+        auditEvent: "commerce.shop.resumed",
+        idempotent: true,
+        permission: "commerce.shops.status.write",
+        requestSchema: "ResumeShopRequest",
+        responseSchema: "ShopManagementDetailResponse",
+      }),
+      close: operation("POST", `${backend}/shops/{shopId}/close`, "shops.close", undefined, {
+        auditEvent: "commerce.shop.closed",
+        idempotent: true,
+        permission: "commerce.shops.status.write",
+        requestSchema: "CloseShopRequest",
+        responseSchema: "ShopManagementDetailResponse",
+      }),
+    },
     catalog: {
       categories: {
-        list: operation("GET", `${backend}/catalog/categories`, "catalog.categories.list", ["parent_id", "status", "page", "page_size"]),
+        list: operation("GET", `${backend}/catalog/categories`, "catalog.categories.management.list", ["parent_id", "status", "page", "page_size"]),
         create: operation("POST", `${backend}/catalog/categories`, "catalog.categories.create"),
         update: operation("PATCH", `${backend}/catalog/categories/{categoryId}`, "catalog.categories.update"),
         delete: operation("DELETE", `${backend}/catalog/categories/{categoryId}`, "catalog.categories.delete"),
       },
       products: {
-        list: operation("GET", `${backend}/catalog/products`, "catalog.products.list", ["q", "category_id", "product_type", "status", "page", "page_size", "sort"]),
+        list: operation("GET", `${backend}/catalog/products`, "catalog.products.management.list", ["q", "category_id", "product_type", "status", "page", "page_size", "sort"]),
+        retrieve: operation("GET", `${backend}/catalog/products/{productId}`, "catalog.products.management.retrieve"),
         create: operation("POST", `${backend}/catalog/products`, "catalog.products.create"),
         update: operation("PATCH", `${backend}/catalog/products/{productId}`, "catalog.products.update"),
         delete: operation("DELETE", `${backend}/catalog/products/{productId}`, "catalog.products.delete"),
@@ -543,7 +1144,7 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
         delete: operation("DELETE", `${backend}/catalog/skus/{skuId}`, "catalog.skus.delete"),
       },
       attributes: {
-        list: operation("GET", `${backend}/catalog/attributes`, "catalog.attributes.list", ["scope", "status", "page", "page_size"]),
+        list: operation("GET", `${backend}/catalog/attributes`, "catalog.attributes.management.list", ["scope", "status", "page", "page_size"]),
         create: operation("POST", `${backend}/catalog/attributes`, "catalog.attributes.create"),
       },
       categorySeeds: {
@@ -569,15 +1170,17 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
       reservations: {
         list: operation("GET", `${backend}/inventory/reservations`, "inventory.reservations.list", ["sku_id", "order_id", "checkout_session_id", "status", "page", "page_size"]),
       },
-      ledgerEntries: {
-        list: operation("GET", `${backend}/inventory/ledger_entries`, "inventory.ledgerEntries.list", ["sku_id", "warehouse_id", "source_type", "source_id", "page", "page_size"]),
+      movements: {
+        list: operation("GET", `${backend}/inventory/movements`, "inventory.movements.list", ["sku_id", "warehouse_id", "movement_type", "source_type", "source_id", "page", "page_size"]),
       },
     },
     orders: {
-      list: operation("GET", `${backend}/orders`, "orders.list", ["status", "page", "page_size", "q"]),
-      retrieve: operation("GET", `${backend}/orders/{orderId}`, "orders.retrieve"),
+      list: operation("GET", `${backend}/orders`, "orders.management.list", ["status", "page", "page_size", "q"]),
+      retrieve: operation("GET", `${backend}/orders/{orderId}`, "orders.management.retrieve"),
+      cancel: operation("POST", `${backend}/orders/{orderId}/cancel`, "orders.management.cancel"),
+      close: operation("POST", `${backend}/orders/{orderId}/close`, "orders.management.close"),
       events: {
-        list: operation("GET", `${backend}/orders/{orderId}/events`, "orders.events.list", ["page", "page_size"]),
+        list: operation("GET", `${backend}/orders/{orderId}/events`, "orders.events.management.list", ["page", "page_size"]),
       },
       cancellations: {
         list: operation("GET", `${backend}/orders/cancellations`, "orders.cancellations.list", ["status", "page", "page_size"]),
@@ -598,7 +1201,7 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
         },
       },
       methods: {
-        list: operation("GET", `${backend}/payments/methods`, "payments.methods.list", ["status"]),
+        list: operation("GET", `${backend}/payments/methods`, "payments.methods.management.list", ["status"]),
         create: operation("POST", `${backend}/payments/methods`, "payments.methods.create"),
         update: operation("PATCH", `${backend}/payments/methods/{methodId}`, "payments.methods.update"),
       },
@@ -614,19 +1217,19 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
       },
       intents: {
         list: operation("GET", `${backend}/payments/intents`, "payments.intents.list", ["status", "page", "page_size"]),
-        retrieve: operation("GET", `${backend}/payments/intents/{paymentIntentId}`, "payments.intents.retrieve"),
+        retrieve: operation("GET", `${backend}/payments/intents/{paymentIntentId}`, "payments.intents.management.retrieve"),
       },
       attempts: {
-        list: operation("GET", `${backend}/payments/attempts`, "payments.attempts.list", ["provider", "status", "page", "page_size", "cursor"]),
+        list: operation("GET", `${backend}/payments/attempts`, "payments.attempts.list", ["provider_code", "status", "page", "page_size", "cursor"]),
       },
       webhookEvents: {
-        list: operation("GET", `${backend}/payments/webhook_events`, "payments.webhookEvents.list", ["provider", "status", "page", "page_size"]),
+        list: operation("GET", `${backend}/payments/webhook_events`, "payments.webhookEvents.list", ["provider_code", "status", "page", "page_size"]),
         replays: {
           create: operation("POST", `${backend}/payments/webhook_events/{eventId}/replays`, "payments.webhookEvents.replays.create"),
         },
       },
       reconciliationRuns: {
-        list: operation("GET", `${backend}/payments/reconciliation_runs`, "payments.reconciliationRuns.list", ["provider", "status", "page", "page_size"]),
+        list: operation("GET", `${backend}/payments/reconciliation_runs`, "payments.reconciliationRuns.list", ["provider_code", "status", "page", "page_size"]),
         create: operation("POST", `${backend}/payments/reconciliation_runs`, "payments.reconciliationRuns.create"),
       },
       runtime: {
@@ -639,20 +1242,20 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
       },
     },
     refunds: {
-      list: operation("GET", `${backend}/refunds`, "refunds.list", ["status", "page", "page_size"]),
-      retrieve: operation("GET", `${backend}/refunds/{refundId}`, "refunds.retrieve"),
+      list: operation("GET", `${backend}/refunds`, "refunds.management.list", ["status", "page", "page_size"]),
+      retrieve: operation("GET", `${backend}/refunds/{refundId}`, "refunds.management.retrieve"),
       attempts: {
         list: operation("GET", `${backend}/refunds/{refundId}/attempts`, "refunds.attempts.list"),
       },
     },
     fulfillments: {
-      list: operation("GET", `${backend}/fulfillments`, "fulfillments.list", ["status", "page", "page_size"]),
-      retrieve: operation("GET", `${backend}/fulfillments/{fulfillmentId}`, "fulfillments.retrieve"),
+      list: operation("GET", `${backend}/fulfillments`, "fulfillments.management.list", ["status", "page", "page_size"]),
+      retrieve: operation("GET", `${backend}/fulfillments/{fulfillmentId}`, "fulfillments.management.retrieve"),
       update: operation("PATCH", `${backend}/fulfillments/{fulfillmentId}`, "fulfillments.update"),
     },
     shipments: {
       list: operation("GET", `${backend}/shipments`, "shipments.list", ["status", "page", "page_size"]),
-      retrieve: operation("GET", `${backend}/shipments/{shipmentId}`, "shipments.retrieve"),
+      retrieve: operation("GET", `${backend}/shipments/{shipmentId}`, "shipments.management.retrieve"),
       trackingEvents: {
         list: operation("GET", `${backend}/shipments/{shipmentId}/tracking_events`, "shipments.trackingEvents.list"),
       },
@@ -670,15 +1273,21 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
     },
     memberships: {
       plans: {
-        list: operation("GET", `${backend}/memberships/plans`, "memberships.plans.list", ["status"]),
+        list: operation("GET", `${backend}/memberships/plans`, "memberships.plans.management.list", ["status"]),
         create: operation("POST", `${backend}/memberships/plans`, "memberships.plans.create"),
         update: operation("PATCH", `${backend}/memberships/plans/{planId}`, "memberships.plans.update"),
       },
       packages: {
-        list: operation("GET", `${backend}/memberships/packages`, "memberships.packages.list", ["plan_id", "status"]),
+        list: operation("GET", `${backend}/memberships/packages`, "memberships.packages.management.list", ["plan_id", "status"]),
         create: operation("POST", `${backend}/memberships/packages`, "memberships.packages.create"),
         update: operation("PATCH", `${backend}/memberships/packages/{packageId}`, "memberships.packages.update"),
         delete: operation("DELETE", `${backend}/memberships/packages/{packageId}`, "memberships.packages.delete"),
+      },
+      packageGroups: {
+        list: operation("GET", `${backend}/memberships/package_groups`, "memberships.packageGroups.management.list", ["status"]),
+        create: operation("POST", `${backend}/memberships/package_groups`, "memberships.packageGroups.create"),
+        update: operation("PATCH", `${backend}/memberships/package_groups/{packageGroupId}`, "memberships.packageGroups.update"),
+        delete: operation("DELETE", `${backend}/memberships/package_groups/{packageGroupId}`, "memberships.packageGroups.delete"),
       },
       members: {
         list: operation("GET", `${backend}/memberships/members`, "memberships.members.list", ["user_id", "plan_id", "status", "page", "page_size"]),
@@ -690,35 +1299,41 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
     },
     recharges: {
       packages: {
-        list: operation("GET", `${backend}/recharges/packages`, "recharges.packages.list", ["status"]),
+        list: operation("GET", `${backend}/recharges/packages`, "recharges.packages.management.list", ["status"]),
         create: operation("POST", `${backend}/recharges/packages`, "recharges.packages.create"),
         update: operation("PATCH", `${backend}/recharges/packages/{packageId}`, "recharges.packages.update"),
         delete: operation("DELETE", `${backend}/recharges/packages/{packageId}`, "recharges.packages.delete"),
       },
       settings: {
-        retrieve: operation("GET", `${backend}/recharges/settings`, "recharges.settings.retrieve"),
+        retrieve: operation("GET", `${backend}/recharges/settings`, "recharges.settings.management.retrieve"),
         update: operation("PUT", `${backend}/recharges/settings`, "recharges.settings.update"),
       },
       orders: {
-        list: operation("GET", `${backend}/recharges/orders`, "recharges.orders.list", ["user_id", "status", "page", "page_size", "cursor"]),
-        retrieve: operation("GET", `${backend}/recharges/orders/{orderId}`, "recharges.orders.retrieve"),
+        list: operation("GET", `${backend}/recharges/orders`, "recharges.orders.management.list", ["user_id", "status", "page", "page_size", "cursor"]),
+        retrieve: operation("GET", `${backend}/recharges/orders/{orderId}`, "recharges.orders.management.retrieve"),
       },
     },
     wallet: {
       accounts: {
-        list: operation("GET", `${backend}/wallet/accounts`, "wallet.accounts.list", ["user_id", "asset_type", "status", "page", "page_size"]),
+        list: operation("GET", `${backend}/wallet/accounts`, "wallet.accounts.management.list", [
+          "user_id",
+          "asset_type",
+          "status",
+          "page",
+          "page_size",
+        ]),
       },
       ledgerEntries: {
-        list: operation("GET", `${backend}/wallet/ledger_entries`, "wallet.ledgerEntries.list", ["page", "page_size", "q", "status", "start_time", "end_time"]),
+        list: operation("GET", `${backend}/wallet/ledger_entries`, "wallet.ledgerEntries.management.list", ["page", "page_size", "q", "status", "start_time", "end_time"]),
       },
       adjustments: {
-        create: operation("POST", `${backend}/wallet/adjustments`, "wallet.adjustments.create"),
+        create: operation("POST", `${backend}/wallet/adjustments`, "wallet.adjustments.management.create"),
       },
       holds: {
         list: operation("GET", `${backend}/wallet/holds`, "wallet.holds.list", ["status", "page", "page_size"]),
       },
       exchangeRules: {
-        list: operation("GET", `${backend}/wallet/exchange_rules`, "wallet.exchangeRules.list", ["source_asset_type", "target_asset_type", "status"]),
+        list: operation("GET", `${backend}/wallet/exchange_rules`, "wallet.exchangeRules.management.list", ["source_asset_type", "target_asset_type", "status"]),
         update: operation("PUT", `${backend}/wallet/exchange_rules`, "wallet.exchangeRules.update"),
       },
     },
@@ -765,8 +1380,8 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
       titles: {
         list: operation("GET", `${backend}/invoices/titles`, "invoices.titles.list", ["user_id", "status", "page", "page_size"]),
       },
-      list: operation("GET", `${backend}/invoices`, "invoices.list", ["status", "page", "page_size"]),
-      retrieve: operation("GET", `${backend}/invoices/{invoiceId}`, "invoices.retrieve"),
+      list: operation("GET", `${backend}/invoices`, "invoices.management.list", ["status", "page", "page_size"]),
+      retrieve: operation("GET", `${backend}/invoices/{invoiceId}`, "invoices.management.retrieve"),
       issuances: {
         create: operation("POST", `${backend}/invoices/{invoiceId}/issuances`, "invoices.issuances.create"),
       },
@@ -779,7 +1394,7 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
         list: operation("GET", `${backend}/commerce_reports/usage_statements`, "commerceReports.usageStatements.list", ["user_id", "period_start", "period_end", "page", "page_size"]),
       },
       paymentReconciliation: {
-        retrieve: operation("GET", `${backend}/commerce_reports/payment_reconciliation`, "commerceReports.paymentReconciliation.retrieve", ["provider", "start_time", "end_time"]),
+        retrieve: operation("GET", `${backend}/commerce_reports/payment_reconciliation`, "commerceReports.paymentReconciliation.retrieve", ["provider_code", "start_time", "end_time"]),
       },
       orderRevenue: {
         list: operation("GET", `${backend}/commerce_reports/order_revenue`, "commerceReports.orderRevenue.list", ["start_time", "end_time", "page", "page_size"]),
@@ -796,7 +1411,7 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
         list: operation("GET", `${backend}/reports/sales`, "reports.sales.list", ["period_start", "period_end", "currency_code"]),
       },
       paymentReconciliation: {
-        list: operation("GET", `${backend}/reports/payment_reconciliation`, "reports.paymentReconciliation.list", ["provider", "period_start", "period_end"]),
+        list: operation("GET", `${backend}/reports/payment_reconciliation`, "reports.paymentReconciliation.list", ["provider_code", "period_start", "period_end"]),
       },
     },
     audit: {
@@ -810,8 +1425,28 @@ export const SDKWORK_COMMERCE_API_ROUTES = {
 export const SDKWORK_COMMERCE_OPERATION_IDS = flattenOperations(SDKWORK_COMMERCE_API_ROUTES);
 
 export const SDKWORK_COMMERCE_DOMAIN_MODELS = [
+  model("shop", ["shops"], ["id", "tenant_id", "organization_id", "shop_no", "shop_name", "shop_type", "business_model", "storefront_status", "operation_status", "review_status", "data_scope", "logo_media_resource_id", "cover_media_resource_id", "default_currency_code", "default_locale", "timezone", "version", "submitted_at", "approved_at", "rejected_at", "suspended_at", "closed_at", "deleted_at", "created_at", "updated_at"]),
+  model("shopApplication", ["shops"], ["id", "tenant_id", "organization_id", "shop_id", "application_no", "application_type", "review_status", "legal_entity_snapshot_json", "contact_snapshot_json", "qualification_snapshot_json", "submitted_by", "submitted_at", "reviewed_by", "reviewed_at", "review_comment", "idempotency_key", "created_at", "updated_at"]),
+  model("shopVerification", ["shops"], ["id", "tenant_id", "organization_id", "shop_id", "verification_type", "verification_status", "legal_entity_name", "credential_no_hash", "credential_media_resource_id", "verification_snapshot_json", "expires_at", "reviewed_by", "reviewed_at", "created_at", "updated_at"]),
+  model("shopStatusEvent", ["shops", "audit"], ["id", "tenant_id", "organization_id", "shop_id", "event_no", "event_type", "from_status", "to_status", "reason_code", "reason_detail", "actor_type", "actor_id", "idempotency_key", "created_at"]),
+  model("shopChannel", ["shops"], ["id", "tenant_id", "organization_id", "shop_id", "channel_code", "storefront_status", "domain_name", "path_prefix", "theme_code", "channel_config_json", "sort_order", "created_at", "updated_at"]),
+  model("shopFulfillmentProfile", ["shops", "fulfillments"], ["id", "tenant_id", "organization_id", "shop_id", "fulfillment_mode", "shipping_origin_region_code", "service_level_code", "after_sales_policy_json", "service_config_json", "created_at", "updated_at"]),
+  model("shopSettlementProfile", ["shops", "payments"], ["id", "tenant_id", "organization_id", "shop_id", "settlement_status", "settlement_cycle", "settlement_currency_code", "account_ref", "risk_hold_days", "settlement_config_json", "reviewed_by", "reviewed_at", "created_at", "updated_at"]),
+  model("shopMetricSnapshot", ["shops", "commerceReports"], ["id", "tenant_id", "organization_id", "shop_id", "snapshot_date", "gross_sales_amount", "currency_code", "paid_order_count", "refund_order_count", "fulfillment_pending_count", "settlement_pending_amount", "created_at"]),
+  model("shopBusinessHour", ["shops"], ["id", "tenant_id", "organization_id", "shop_id", "schedule_type", "timezone", "weekly_schedule_json", "holiday_schedule_json", "effective_from", "effective_to", "status", "version", "created_at", "updated_at"]),
+  model("shopServiceArea", ["shops", "fulfillments"], ["id", "tenant_id", "organization_id", "shop_id", "area_type", "country_code", "region_code", "city_code", "area_key", "postal_code_pattern", "delivery_radius_meters", "service_status", "service_config_json", "sort_order", "created_at", "updated_at"]),
+  model("shopPolicy", ["shops"], ["id", "tenant_id", "organization_id", "shop_id", "policy_type", "policy_status", "policy_version", "policy_json", "published_at", "reviewed_by", "reviewed_at", "created_at", "updated_at"]),
+  model("shopDepositAccount", ["shops", "payments"], ["id", "tenant_id", "organization_id", "shop_id", "deposit_status", "currency_code", "required_amount", "paid_amount", "frozen_amount", "account_ref", "due_at", "reviewed_by", "reviewed_at", "created_at", "updated_at"]),
+  model("shopRiskSignal", ["shops", "audit"], ["id", "tenant_id", "organization_id", "shop_id", "signal_no", "signal_type", "risk_level", "signal_status", "source_type", "source_id", "risk_score", "payload_json", "detected_at", "resolved_at", "created_at", "updated_at"]),
+  model("shopCategoryBinding", ["shops"], ["id", "tenant_id", "organization_id", "shop_id", "shop_category_code", "platform_category_code", "platform_category_name", "category_path", "category_level", "category_status", "qualification_required", "qualification_snapshot_json", "review_status", "reviewed_by", "reviewed_at", "effective_from", "effective_to", "created_at", "updated_at"]),
+  model("shopBrandAuthorization", ["shops"], ["id", "tenant_id", "organization_id", "shop_id", "brand_code", "brand_name", "authorization_type", "authorization_status", "brand_owner_name", "trademark_no_hash", "trademark_media_resource_id", "authorization_media_resource_id", "authorization_snapshot_json", "valid_from", "valid_to", "reviewed_by", "reviewed_at", "created_at", "updated_at"]),
+  model("shopQualification", ["shops"], ["id", "tenant_id", "organization_id", "shop_id", "qualification_type", "qualification_status", "subject_type", "subject_id", "credential_name", "credential_no_hash", "credential_media_resource_id", "qualification_snapshot_json", "issued_at", "expires_at", "reviewed_by", "reviewed_at", "created_at", "updated_at"]),
+  model("shopCustomerService", ["shops"], ["id", "tenant_id", "organization_id", "shop_id", "service_channel", "service_status", "contact_ref", "contact_label", "service_window_json", "service_config_json", "is_default", "sort_order", "created_at", "updated_at"]),
+  model("shopReturnAddress", ["shops", "fulfillments"], ["id", "tenant_id", "organization_id", "shop_id", "address_usage", "address_key", "receiver_name", "phone_hash", "country_code", "region_code", "city_code", "district_code", "address_line1", "postal_code", "is_default", "address_status", "address_snapshot_json", "created_at", "updated_at"]),
+  model("shopShippingTemplate", ["shops", "fulfillments"], ["id", "tenant_id", "organization_id", "shop_id", "template_code", "template_name", "template_status", "pricing_mode", "delivery_method", "base_quantity", "base_fee_amount", "currency_code", "is_default", "region_rule_json", "free_shipping_rule_json", "created_at", "updated_at"]),
   model("productCategory", ["catalog"], ["id", "tenant_id", "organization_id", "category_no", "parent_id", "path", "level_no", "name", "status", "sort_order", "created_at", "updated_at"]),
   model("productSpu", ["catalog"], ["id", "tenant_id", "organization_id", "spu_no", "product_type", "title", "category_id", "status", "published_at", "created_at", "updated_at"]),
+  model("productSpuCategory", ["catalog"], ["id", "tenant_id", "organization_id", "spu_id", "category_id", "primary_flag", "sort_order", "status", "created_at", "updated_at"]),
   model("productSku", ["catalog"], ["id", "tenant_id", "organization_id", "sku_no", "spu_id", "fulfillment_type", "status", "published_at", "created_at", "updated_at"]),
   model("productAttribute", ["catalog"], ["id", "tenant_id", "organization_id", "attribute_no", "name", "value_type", "scope", "status", "created_at", "updated_at"]),
   model("productAttributeValue", ["catalog"], ["id", "tenant_id", "organization_id", "attribute_id", "value_code", "display_value", "status", "created_at", "updated_at"]),
@@ -821,7 +1456,7 @@ export const SDKWORK_COMMERCE_DOMAIN_MODELS = [
   model("priceListItem", ["catalog"], ["id", "tenant_id", "organization_id", "price_list_id", "sku_id", "price_amount", "currency_code", "created_at", "updated_at"]),
   model("inventoryStock", ["inventory"], ["id", "tenant_id", "organization_id", "sku_id", "warehouse_id", "available_quantity", "reserved_quantity", "sold_quantity", "version", "status", "created_at", "updated_at"]),
   model("inventoryReservation", ["inventory", "checkout", "orders"], ["id", "tenant_id", "organization_id", "reservation_no", "checkout_session_id", "order_id", "sku_id", "quantity", "status", "expires_at", "idempotency_key", "created_at", "updated_at"]),
-  model("inventoryLedger", ["inventory"], ["id", "tenant_id", "organization_id", "movement_no", "sku_id", "warehouse_id", "direction", "quantity", "balance_after", "source_type", "source_id", "idempotency_key", "created_at"]),
+  model("inventoryMovement", ["inventory"], ["id", "tenant_id", "organization_id", "movement_no", "sku_id", "warehouse_id", "movement_type", "quantity", "business_type", "source_id", "idempotency_key", "created_at"]),
   model("cart", ["cart"], ["id", "tenant_id", "organization_id", "owner_user_id", "status", "currency_code", "version", "created_at", "updated_at"]),
   model("cartItem", ["cart"], ["id", "tenant_id", "organization_id", "cart_id", "sku_id", "quantity", "selected", "created_at", "updated_at"]),
   model("userAddress", ["addresses"], ["id", "tenant_id", "organization_id", "owner_user_id", "recipient_name", "country_code", "region_code", "city", "status", "created_at", "updated_at"]),
@@ -890,10 +1525,65 @@ export const SDKWORK_COMMERCE_DOMAIN_MODELS = [
   model("outboxEvent", ["audit"], ["id", "tenant_id", "organization_id", "event_no", "aggregate_type", "aggregate_id", "event_type", "payload_json", "published_at", "created_at"]),
 ] as const satisfies readonly CommerceDomainModelContract[];
 
+const APP_CURRENT_SHOP_OPERATION_RESOURCE_ORDER = [
+  "applications",
+  "brandAuthorizations",
+  "businessHours",
+  "categoryBindings",
+  "channels",
+  "customerServices",
+  "dashboard",
+  "depositAccount",
+  "fulfillmentProfile",
+  "inventory",
+  "orders",
+  "policies",
+  "products",
+  "retrieve",
+  "returnAddresses",
+  "riskSignals",
+  "settlementProfile",
+  "settlements",
+  "serviceAreas",
+  "shippingTemplates",
+  "statusEvents",
+  "qualifications",
+  "verifications",
+] as const;
+
+const BACKEND_SHOP_OPERATION_RESOURCE_ORDER = [
+  "approve",
+  "brandAuthorizations",
+  "businessHours",
+  "categoryBindings",
+  "channels",
+  "close",
+  "create",
+  "customerServices",
+  "depositAccount",
+  "fulfillmentProfile",
+  "management",
+  "policies",
+  "qualifications",
+  "reject",
+  "resume",
+  "returnAddresses",
+  "riskSignals",
+  "settlementProfile",
+  "serviceAreas",
+  "shippingTemplates",
+  "statusEvents",
+  "submitReview",
+  "suspend",
+  "update",
+  "verifications",
+] as const;
+
 export const SDKWORK_COMMERCE_CAPABILITIES = [
   capability("accounts", ["account", "accountLedgerEntry"], operationsForRoot("accounts")),
-  capability("catalog", ["productCategory", "productSpu", "productSku", "productAttribute", "productAttributeValue", "productSkuAttribute", "productMedia", "priceList", "priceListItem"], operationsForRoot("catalog")),
-  capability("inventory", ["inventoryStock", "inventoryReservation", "inventoryLedger"], operationsForRoot("inventory")),
+  capability("shops", ["shop", "shopApplication", "shopVerification", "shopStatusEvent", "shopChannel", "shopFulfillmentProfile", "shopSettlementProfile", "shopMetricSnapshot", "shopBusinessHour", "shopServiceArea", "shopPolicy", "shopDepositAccount", "shopRiskSignal", "shopCategoryBinding", "shopBrandAuthorization", "shopQualification", "shopCustomerService", "shopReturnAddress", "shopShippingTemplate"], operationsForRoot("shops")),
+  capability("catalog", ["productCategory", "productSpu", "productSpuCategory", "productSku", "productAttribute", "productAttributeValue", "productSkuAttribute", "productMedia", "priceList", "priceListItem"], operationsForRoot("catalog")),
+  capability("inventory", ["inventoryStock", "inventoryReservation", "inventoryMovement"], operationsForRoot("inventory")),
   capability("cart", ["cart", "cartItem"], operationsForRoot("cart")),
   capability("addresses", ["userAddress", "orderAddressSnapshot"], operationsForRoot("addresses")),
   capability("checkout", ["checkoutSession", "checkoutLine", "checkoutQuote", "inventoryReservation", "idempotencyKey"], operationsForRoot("checkout")),
@@ -937,15 +1627,22 @@ function operation(
   path: string,
   operationId: string,
   queryParameters?: readonly string[],
+  options: CommerceOperationOptions = {},
 ): CommerceOperationContract {
   const apiSurface = path.startsWith(`${backend}/`) ? "backend" : "app";
   const tag = operationId.split(".")[0] as CommerceSdkNamespace;
   return {
     apiSurface,
+    ...(options.auditEvent ? { auditEvent: options.auditEvent } : {}),
+    ...(options.bodyRequired === undefined ? {} : { bodyRequired: options.bodyRequired }),
+    ...(options.idempotent === undefined ? {} : { idempotent: options.idempotent }),
     method,
     operationKey: `${apiSurface}.${operationId}`,
     operationId,
+    ...(options.permission ? { permission: options.permission } : {}),
     ...(queryParameters ? { queryParameters } : {}),
+    ...(options.requestSchema ? { requestSchema: options.requestSchema } : {}),
+    ...(options.responseSchema ? { responseSchema: options.responseSchema } : {}),
     path,
     security: "dualToken",
     tag,
@@ -984,7 +1681,43 @@ function operationsForRoot(root: CommerceCapabilityName): string[] {
   return Object.values(SDKWORK_COMMERCE_OPERATION_IDS)
     .filter((operation) => operation.operationId.split(".")[0] === root)
     .map((operation) => operation.operationKey)
-    .sort();
+    .sort(compareCommerceOperationKeys);
+}
+
+function compareCommerceOperationKeys(left: string, right: string): number {
+  const leftRank = commerceOperationSortRank(left);
+  const rightRank = commerceOperationSortRank(right);
+
+  if (leftRank && rightRank && leftRank.scope === rightRank.scope && leftRank.rank !== rightRank.rank) {
+    return leftRank.rank - rightRank.rank;
+  }
+
+  return left.localeCompare(right);
+}
+
+function commerceOperationSortRank(operationKey: string): { rank: number; scope: string } | undefined {
+  const parts = operationKey.split(".");
+
+  if (parts[0] === "app" && parts[1] === "shops" && parts[2] === "current" && parts[3]) {
+    return {
+      rank: operationResourceRank(parts[3], APP_CURRENT_SHOP_OPERATION_RESOURCE_ORDER),
+      scope: "app.shops.current",
+    };
+  }
+
+  if (parts[0] === "backend" && parts[1] === "shops" && parts[2]) {
+    return {
+      rank: operationResourceRank(parts[2], BACKEND_SHOP_OPERATION_RESOURCE_ORDER),
+      scope: "backend.shops",
+    };
+  }
+
+  return undefined;
+}
+
+function operationResourceRank(resource: string, orderedResources: readonly string[]): number {
+  const rank = orderedResources.indexOf(resource);
+  return rank === -1 ? orderedResources.length : rank;
 }
 
 function flattenOperations(value: unknown): Record<string, CommerceOperationContract> {

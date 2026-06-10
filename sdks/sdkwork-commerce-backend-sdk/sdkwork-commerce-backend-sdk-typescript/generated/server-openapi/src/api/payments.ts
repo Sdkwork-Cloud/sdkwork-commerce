@@ -29,150 +29,6 @@ export class PaymentsDisputesApi {
   }
 }
 
-export interface PaymentsProvidersListParams {
-  status?: string;
-}
-
-export class PaymentsProvidersApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Payments providers list. */
-  async list(params?: PaymentsProvidersListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/providers`), query));
-  }
-
-/** Payments providers update. */
-  async update(providerCode: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.patch<CommerceApiResult>(backendApiPath(`/payments/providers/${serializePathParameter(providerCode, { name: 'providerCode', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export interface PaymentsWebhooksListParams {
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-  sort?: string;
-  q?: string;
-}
-
-export class PaymentsWebhooksApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Payments webhooks list. */
-  async list(params?: PaymentsWebhooksListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
-      { name: 'sort', value: params?.sort, style: 'form', explode: true, allowReserved: false },
-      { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/webhooks`), query));
-  }
-
-/** Payments webhooks retrieve. */
-  async retrieve(webhookEventId: string): Promise<CommerceApiResult> {
-    return this.client.get<CommerceApiResult>(backendApiPath(`/payments/webhooks/${serializePathParameter(webhookEventId, { name: 'webhookEventId', style: 'simple', explode: false })}`));
-  }
-
-/** Payments webhooks replay. */
-  async replay(webhookEventId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/payments/webhooks/${serializePathParameter(webhookEventId, { name: 'webhookEventId', style: 'simple', explode: false })}/replay`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export class PaymentsWebhookEventsReplaysApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Payments webhook Events replays create. */
-  async create(eventId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/payments/webhook_events/${serializePathParameter(eventId, { name: 'eventId', style: 'simple', explode: false })}/replays`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export interface PaymentsWebhookEventsListParams {
-  provider?: string;
-  status?: string;
-  page?: number;
-  pageSize?: number;
-}
-
-export class PaymentsWebhookEventsApi {
-  private client: HttpClient;
-  public readonly replays: PaymentsWebhookEventsReplaysApi;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-    this.replays = new PaymentsWebhookEventsReplaysApi(client);
-  }
-
-
-/** Payments webhook Events list. */
-  async list(params?: PaymentsWebhookEventsListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'provider', value: params?.provider, style: 'form', explode: true, allowReserved: false },
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/webhook_events`), query));
-  }
-}
-
-export interface PaymentsRouteRulesListParams {
-  status?: string;
-}
-
-export class PaymentsRouteRulesApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Payments route Rules list. */
-  async list(params?: PaymentsRouteRulesListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/route_rules`), query));
-  }
-
-/** Payments route Rules create. */
-  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/payments/route_rules`), body, undefined, undefined, 'application/json');
-  }
-
-/** Payments route Rules delete. */
-  async delete(routeRuleId: string): Promise<CommerceApiResult> {
-    return this.client.delete<CommerceApiResult>(backendApiPath(`/payments/route_rules/${serializePathParameter(routeRuleId, { name: 'routeRuleId', style: 'simple', explode: false })}`));
-  }
-
-/** Payments route Rules update. */
-  async update(routeRuleId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.patch<CommerceApiResult>(backendApiPath(`/payments/route_rules/${serializePathParameter(routeRuleId, { name: 'routeRuleId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
-  }
-}
-
 export interface PaymentsRuntimeSnapshotRetrieveParams {
   environment?: string;
 }
@@ -206,7 +62,7 @@ export class PaymentsRuntimeApi {
 }
 
 export interface PaymentsReconciliationRunsListParams {
-  provider?: string;
+  providerCode?: string;
   status?: string;
   page?: number;
   pageSize?: number;
@@ -223,7 +79,7 @@ export class PaymentsReconciliationRunsApi {
 /** Payments reconciliation Runs list. */
   async list(params?: PaymentsReconciliationRunsListParams): Promise<CommerceApiResult> {
     const query = buildQueryString([
-      { name: 'provider', value: params?.provider, style: 'form', explode: true, allowReserved: false },
+      { name: 'provider_code', value: params?.providerCode, style: 'form', explode: true, allowReserved: false },
       { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
@@ -234,6 +90,227 @@ export class PaymentsReconciliationRunsApi {
 /** Payments reconciliation Runs create. */
   async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
     return this.client.post<CommerceApiResult>(backendApiPath(`/payments/reconciliation_runs`), body, undefined, undefined, 'application/json');
+  }
+}
+
+export class PaymentsWebhookEventsReplaysApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Payments webhook Events replays create. */
+  async create(eventId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/payments/webhook_events/${serializePathParameter(eventId, { name: 'eventId', style: 'simple', explode: false })}/replays`), body, undefined, undefined, 'application/json');
+  }
+}
+
+export interface PaymentsWebhookEventsListParams {
+  providerCode?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export class PaymentsWebhookEventsApi {
+  private client: HttpClient;
+  public readonly replays: PaymentsWebhookEventsReplaysApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.replays = new PaymentsWebhookEventsReplaysApi(client);
+  }
+
+
+/** Payments webhook Events list. */
+  async list(params?: PaymentsWebhookEventsListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'provider_code', value: params?.providerCode, style: 'form', explode: true, allowReserved: false },
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/webhook_events`), query));
+  }
+}
+
+export interface PaymentsAttemptsListParams {
+  providerCode?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+  cursor?: string;
+}
+
+export class PaymentsAttemptsApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Payments attempts list. */
+  async list(params?: PaymentsAttemptsListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'provider_code', value: params?.providerCode, style: 'form', explode: true, allowReserved: false },
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/attempts`), query));
+  }
+}
+
+export class PaymentsIntentsManagementApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Payments intents management retrieve. */
+  async retrieve(paymentIntentId: string): Promise<CommerceApiResult> {
+    return this.client.get<CommerceApiResult>(backendApiPath(`/payments/intents/${serializePathParameter(paymentIntentId, { name: 'paymentIntentId', style: 'simple', explode: false })}`));
+  }
+}
+
+export interface PaymentsIntentsListParams {
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export class PaymentsIntentsApi {
+  private client: HttpClient;
+  public readonly management: PaymentsIntentsManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new PaymentsIntentsManagementApi(client);
+  }
+
+
+/** Payments intents list. */
+  async list(params?: PaymentsIntentsListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/intents`), query));
+  }
+}
+
+export interface PaymentsRouteRulesListParams {
+  status?: string;
+}
+
+export class PaymentsRouteRulesApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Payments route Rules list. */
+  async list(params?: PaymentsRouteRulesListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/route_rules`), query));
+  }
+
+/** Payments route Rules create. */
+  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/payments/route_rules`), body, undefined, undefined, 'application/json');
+  }
+
+/** Payments route Rules update. */
+  async update(routeRuleId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.patch<CommerceApiResult>(backendApiPath(`/payments/route_rules/${serializePathParameter(routeRuleId, { name: 'routeRuleId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
+  }
+}
+
+export interface PaymentsChannelsListParams {
+  providerAccountId?: string;
+  methodId?: string;
+  status?: string;
+}
+
+export class PaymentsChannelsApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Payments channels list. */
+  async list(params?: PaymentsChannelsListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'provider_account_id', value: params?.providerAccountId, style: 'form', explode: true, allowReserved: false },
+      { name: 'method_id', value: params?.methodId, style: 'form', explode: true, allowReserved: false },
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/channels`), query));
+  }
+
+/** Payments channels create. */
+  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/payments/channels`), body, undefined, undefined, 'application/json');
+  }
+
+/** Payments channels update. */
+  async update(channelId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.patch<CommerceApiResult>(backendApiPath(`/payments/channels/${serializePathParameter(channelId, { name: 'channelId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
+  }
+}
+
+export interface PaymentsMethodsManagementListParams {
+  status?: string;
+}
+
+export class PaymentsMethodsManagementApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Payments methods management list. */
+  async list(params?: PaymentsMethodsManagementListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/methods`), query));
+  }
+}
+
+export class PaymentsMethodsApi {
+  private client: HttpClient;
+  public readonly management: PaymentsMethodsManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new PaymentsMethodsManagementApi(client);
+  }
+
+
+/** Payments methods create. */
+  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/payments/methods`), body, undefined, undefined, 'application/json');
+  }
+
+/** Payments methods update. */
+  async update(methodId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.patch<CommerceApiResult>(backendApiPath(`/payments/methods/${serializePathParameter(methodId, { name: 'methodId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
   }
 }
 
@@ -295,11 +372,11 @@ export class PaymentsProviderAccountsApi {
   }
 }
 
-export interface PaymentsMethodsListParams {
+export interface PaymentsProvidersListParams {
   status?: string;
 }
 
-export class PaymentsMethodsApi {
+export class PaymentsProvidersApi {
   private client: HttpClient;
 
   constructor(client: HttpClient) {
@@ -307,147 +384,46 @@ export class PaymentsMethodsApi {
   }
 
 
-/** Payments methods list. */
-  async list(params?: PaymentsMethodsListParams): Promise<CommerceApiResult> {
+/** Payments providers list. */
+  async list(params?: PaymentsProvidersListParams): Promise<CommerceApiResult> {
     const query = buildQueryString([
       { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
     ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/methods`), query));
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/providers`), query));
   }
 
-/** Payments methods create. */
-  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/payments/methods`), body, undefined, undefined, 'application/json');
-  }
-
-/** Payments methods update. */
-  async update(methodId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.patch<CommerceApiResult>(backendApiPath(`/payments/methods/${serializePathParameter(methodId, { name: 'methodId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export interface PaymentsIntentsListParams {
-  status?: string;
-  page?: number;
-  pageSize?: number;
-}
-
-export class PaymentsIntentsApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Payments intents list. */
-  async list(params?: PaymentsIntentsListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/intents`), query));
-  }
-
-/** Payments intents retrieve. */
-  async retrieve(paymentIntentId: string): Promise<CommerceApiResult> {
-    return this.client.get<CommerceApiResult>(backendApiPath(`/payments/intents/${serializePathParameter(paymentIntentId, { name: 'paymentIntentId', style: 'simple', explode: false })}`));
-  }
-}
-
-export interface PaymentsChannelsListParams {
-  providerAccountId?: string;
-  methodId?: string;
-  status?: string;
-}
-
-export class PaymentsChannelsApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Payments channels list. */
-  async list(params?: PaymentsChannelsListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'provider_account_id', value: params?.providerAccountId, style: 'form', explode: true, allowReserved: false },
-      { name: 'method_id', value: params?.methodId, style: 'form', explode: true, allowReserved: false },
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/channels`), query));
-  }
-
-/** Payments channels create. */
-  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/payments/channels`), body, undefined, undefined, 'application/json');
-  }
-
-/** Payments channels update. */
-  async update(channelId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.patch<CommerceApiResult>(backendApiPath(`/payments/channels/${serializePathParameter(channelId, { name: 'channelId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export interface PaymentsAttemptsListParams {
-  provider?: string;
-  status?: string;
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-}
-
-export class PaymentsAttemptsApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Payments attempts list. */
-  async list(params?: PaymentsAttemptsListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'provider', value: params?.provider, style: 'form', explode: true, allowReserved: false },
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/payments/attempts`), query));
+/** Payments providers update. */
+  async update(providerCode: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.patch<CommerceApiResult>(backendApiPath(`/payments/providers/${serializePathParameter(providerCode, { name: 'providerCode', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
   }
 }
 
 export class PaymentsApi {
   private client: HttpClient;
-  public readonly attempts: PaymentsAttemptsApi;
-  public readonly channels: PaymentsChannelsApi;
-  public readonly intents: PaymentsIntentsApi;
-  public readonly methods: PaymentsMethodsApi;
+  public readonly providers: PaymentsProvidersApi;
   public readonly providerAccounts: PaymentsProviderAccountsApi;
+  public readonly methods: PaymentsMethodsApi;
+  public readonly channels: PaymentsChannelsApi;
+  public readonly routeRules: PaymentsRouteRulesApi;
+  public readonly intents: PaymentsIntentsApi;
+  public readonly attempts: PaymentsAttemptsApi;
+  public readonly webhookEvents: PaymentsWebhookEventsApi;
   public readonly reconciliationRuns: PaymentsReconciliationRunsApi;
   public readonly runtime: PaymentsRuntimeApi;
-  public readonly routeRules: PaymentsRouteRulesApi;
-  public readonly webhookEvents: PaymentsWebhookEventsApi;
-  public readonly webhooks: PaymentsWebhooksApi;
-  public readonly providers: PaymentsProvidersApi;
   public readonly disputes: PaymentsDisputesApi;
 
   constructor(client: HttpClient) {
     this.client = client;
-    this.attempts = new PaymentsAttemptsApi(client);
-    this.channels = new PaymentsChannelsApi(client);
-    this.intents = new PaymentsIntentsApi(client);
-    this.methods = new PaymentsMethodsApi(client);
+    this.providers = new PaymentsProvidersApi(client);
     this.providerAccounts = new PaymentsProviderAccountsApi(client);
+    this.methods = new PaymentsMethodsApi(client);
+    this.channels = new PaymentsChannelsApi(client);
+    this.routeRules = new PaymentsRouteRulesApi(client);
+    this.intents = new PaymentsIntentsApi(client);
+    this.attempts = new PaymentsAttemptsApi(client);
+    this.webhookEvents = new PaymentsWebhookEventsApi(client);
     this.reconciliationRuns = new PaymentsReconciliationRunsApi(client);
     this.runtime = new PaymentsRuntimeApi(client);
-    this.routeRules = new PaymentsRouteRulesApi(client);
-    this.webhookEvents = new PaymentsWebhookEventsApi(client);
-    this.webhooks = new PaymentsWebhooksApi(client);
-    this.providers = new PaymentsProvidersApi(client);
     this.disputes = new PaymentsDisputesApi(client);
   }
 

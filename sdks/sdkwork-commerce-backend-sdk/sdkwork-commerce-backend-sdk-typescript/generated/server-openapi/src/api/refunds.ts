@@ -1,42 +1,8 @@
 import { backendApiPath } from './paths';
 import type { HttpClient } from '../http/client';
 
-import type { CommerceApiResult, CommerceOperationCommand } from '../types';
+import type { CommerceApiResult } from '../types';
 
-
-export interface RefundsManagementListParams {
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-  sort?: string;
-  q?: string;
-}
-
-export class RefundsManagementApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Refunds management list. */
-  async list(params?: RefundsManagementListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
-      { name: 'sort', value: params?.sort, style: 'form', explode: true, allowReserved: false },
-      { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/refunds/management`), query));
-  }
-
-/** Refunds management retrieve. */
-  async retrieve(refundId: string): Promise<CommerceApiResult> {
-    return this.client.get<CommerceApiResult>(backendApiPath(`/refunds/management/${serializePathParameter(refundId, { name: 'refundId', style: 'simple', explode: false })}`));
-  }
-}
 
 export class RefundsAttemptsApi {
   private client: HttpClient;
@@ -50,49 +16,24 @@ export class RefundsAttemptsApi {
   async list(refundId: string): Promise<CommerceApiResult> {
     return this.client.get<CommerceApiResult>(backendApiPath(`/refunds/${serializePathParameter(refundId, { name: 'refundId', style: 'simple', explode: false })}/attempts`));
   }
-
-/** Refunds attempts create. */
-  async create(refundId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/refunds/${serializePathParameter(refundId, { name: 'refundId', style: 'simple', explode: false })}/attempts`), body, undefined, undefined, 'application/json');
-  }
 }
 
-export class RefundsApprovalsApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Refunds approvals create. */
-  async create(refundId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/refunds/${serializePathParameter(refundId, { name: 'refundId', style: 'simple', explode: false })}/approvals`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export interface RefundsListParams {
+export interface RefundsManagementListParams {
   status?: string;
   page?: number;
   pageSize?: number;
 }
 
-export class RefundsApi {
+export class RefundsManagementApi {
   private client: HttpClient;
-  public readonly approvals: RefundsApprovalsApi;
-  public readonly attempts: RefundsAttemptsApi;
-  public readonly management: RefundsManagementApi;
 
   constructor(client: HttpClient) {
     this.client = client;
-    this.approvals = new RefundsApprovalsApi(client);
-    this.attempts = new RefundsAttemptsApi(client);
-    this.management = new RefundsManagementApi(client);
   }
 
 
-/** Refunds list. */
-  async list(params?: RefundsListParams): Promise<CommerceApiResult> {
+/** Refunds management list. */
+  async list(params?: RefundsManagementListParams): Promise<CommerceApiResult> {
     const query = buildQueryString([
       { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
@@ -101,10 +42,23 @@ export class RefundsApi {
     return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/refunds`), query));
   }
 
-/** Refunds retrieve. */
+/** Refunds management retrieve. */
   async retrieve(refundId: string): Promise<CommerceApiResult> {
     return this.client.get<CommerceApiResult>(backendApiPath(`/refunds/${serializePathParameter(refundId, { name: 'refundId', style: 'simple', explode: false })}`));
   }
+}
+
+export class RefundsApi {
+  private client: HttpClient;
+  public readonly management: RefundsManagementApi;
+  public readonly attempts: RefundsAttemptsApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new RefundsManagementApi(client);
+    this.attempts = new RefundsAttemptsApi(client);
+  }
+
 }
 
 export function createRefundsApi(client: HttpClient): RefundsApi {

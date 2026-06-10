@@ -336,7 +336,7 @@ async fn upsert_sqlite_seed_product(
     sqlx::query(
         r#"
         INSERT INTO commerce_product_spu
-            (id, tenant_id, organization_id, spu_no, title, subtitle, description, product_type, category_id, sales_status, visible_surfaces, created_at, updated_at)
+            (id, tenant_id, organization_id, spu_no, title, subtitle, description, product_type, category_id, status, visible_surfaces, created_at, updated_at)
         VALUES
             (?, '0', '0', ?, ?, ?, ?, ?, ?, 'active', '["app","console","admin"]', ?, ?)
         ON CONFLICT(tenant_id, spu_no) DO UPDATE SET
@@ -347,7 +347,7 @@ async fn upsert_sqlite_seed_product(
             description = excluded.description,
             product_type = excluded.product_type,
             category_id = excluded.category_id,
-            sales_status = excluded.sales_status,
+            status = excluded.status,
             visible_surfaces = excluded.visible_surfaces,
             updated_at = excluded.updated_at
         "#,
@@ -379,7 +379,7 @@ async fn upsert_postgres_seed_product(
     sqlx::query(
         r#"
         INSERT INTO commerce_product_spu
-            (id, tenant_id, organization_id, spu_no, title, subtitle, description, product_type, category_id, sales_status, visible_surfaces, created_at, updated_at)
+            (id, tenant_id, organization_id, spu_no, title, subtitle, description, product_type, category_id, status, visible_surfaces, created_at, updated_at)
         VALUES
             ($1, '0', '0', $2, $3, $4, $5, $6, $7, 'active', '["app","console","admin"]', $8, $9)
         ON CONFLICT(tenant_id, spu_no) DO UPDATE SET
@@ -390,7 +390,7 @@ async fn upsert_postgres_seed_product(
             description = excluded.description,
             product_type = excluded.product_type,
             category_id = excluded.category_id,
-            sales_status = excluded.sales_status,
+            status = excluded.status,
             visible_surfaces = excluded.visible_surfaces,
             updated_at = excluded.updated_at
         "#,
@@ -922,7 +922,7 @@ async fn upsert_sqlite_membership_package_sku(
     sqlx::query(
         r#"
         INSERT INTO commerce_product_sku
-            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, original_price_amount, currency_code, delivery_mode, inventory_tracking, sales_status, spec_json, created_at, updated_at)
+            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, original_price_amount, currency_code, fulfillment_type, inventory_tracking, status, spec_json, created_at, updated_at)
         VALUES
             (?, '0', '0', ?, ?, ?, ?, ?, ?, ?, 'membership_activation', 'untracked', 'active', ?, ?, ?)
         ON CONFLICT(tenant_id, sku_no) DO UPDATE SET
@@ -934,9 +934,9 @@ async fn upsert_sqlite_membership_package_sku(
             price_amount = excluded.price_amount,
             original_price_amount = excluded.original_price_amount,
             currency_code = excluded.currency_code,
-            delivery_mode = excluded.delivery_mode,
+            fulfillment_type = excluded.fulfillment_type,
             inventory_tracking = excluded.inventory_tracking,
-            sales_status = excluded.sales_status,
+            status = excluded.status,
             spec_json = excluded.spec_json,
             updated_at = excluded.updated_at
         "#,
@@ -965,7 +965,7 @@ async fn upsert_postgres_membership_package_sku(
     sqlx::query(
         r#"
         INSERT INTO commerce_product_sku
-            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, original_price_amount, currency_code, delivery_mode, inventory_tracking, sales_status, spec_json, created_at, updated_at)
+            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, original_price_amount, currency_code, fulfillment_type, inventory_tracking, status, spec_json, created_at, updated_at)
         VALUES
             ($1, '0', '0', $2, $3, $4, $5, $6, $7, $8, 'membership_activation', 'untracked', 'active', $9, $10, $11)
         ON CONFLICT(tenant_id, sku_no) DO UPDATE SET
@@ -977,9 +977,9 @@ async fn upsert_postgres_membership_package_sku(
             price_amount = excluded.price_amount,
             original_price_amount = excluded.original_price_amount,
             currency_code = excluded.currency_code,
-            delivery_mode = excluded.delivery_mode,
+            fulfillment_type = excluded.fulfillment_type,
             inventory_tracking = excluded.inventory_tracking,
-            sales_status = excluded.sales_status,
+            status = excluded.status,
             spec_json = excluded.spec_json,
             updated_at = excluded.updated_at
         "#,
@@ -1104,7 +1104,7 @@ async fn upsert_sqlite_recharge_package_sku(
     sqlx::query(
         r#"
         INSERT INTO commerce_product_sku
-            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, original_price_amount, currency_code, delivery_mode, inventory_tracking, sales_status, spec_json, created_at, updated_at)
+            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, original_price_amount, currency_code, fulfillment_type, inventory_tracking, status, spec_json, created_at, updated_at)
         VALUES
             (?, '0', '0', ?, ?, ?, ?, ?, NULL, ?, 'points_credit', 'untracked', 'active', ?, ?, ?)
         ON CONFLICT(tenant_id, sku_no) DO UPDATE SET
@@ -1115,9 +1115,9 @@ async fn upsert_sqlite_recharge_package_sku(
             title = excluded.title,
             price_amount = excluded.price_amount,
             currency_code = excluded.currency_code,
-            delivery_mode = excluded.delivery_mode,
+            fulfillment_type = excluded.fulfillment_type,
             inventory_tracking = excluded.inventory_tracking,
-            sales_status = excluded.sales_status,
+            status = excluded.status,
             spec_json = excluded.spec_json,
             updated_at = excluded.updated_at
         "#,
@@ -1145,7 +1145,7 @@ async fn upsert_postgres_recharge_package_sku(
     sqlx::query(
         r#"
         INSERT INTO commerce_product_sku
-            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, original_price_amount, currency_code, delivery_mode, inventory_tracking, sales_status, spec_json, created_at, updated_at)
+            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, original_price_amount, currency_code, fulfillment_type, inventory_tracking, status, spec_json, created_at, updated_at)
         VALUES
             ($1, '0', '0', $2, $3, $4, $5, $6, NULL, $7, 'points_credit', 'untracked', 'active', $8, $9, $10)
         ON CONFLICT(tenant_id, sku_no) DO UPDATE SET
@@ -1156,9 +1156,9 @@ async fn upsert_postgres_recharge_package_sku(
             title = excluded.title,
             price_amount = excluded.price_amount,
             currency_code = excluded.currency_code,
-            delivery_mode = excluded.delivery_mode,
+            fulfillment_type = excluded.fulfillment_type,
             inventory_tracking = excluded.inventory_tracking,
-            sales_status = excluded.sales_status,
+            status = excluded.status,
             spec_json = excluded.spec_json,
             updated_at = excluded.updated_at
         "#,
@@ -1278,71 +1278,172 @@ fn recharge_settings_remark_json(setting: &CommerceRechargeSettingsSeed) -> Stri
 }
 
 async fn upsert_sqlite_payment_methods(pool: &SqlitePool) -> Result<(), CommerceServiceError> {
+    let has_legacy_provider = sqlite_payment_method_has_legacy_provider(pool).await?;
     for method in commerce_payment_method_seeds() {
-        sqlx::query(
-            r#"
-            INSERT INTO commerce_payment_method
-                (id, tenant_id, organization_id, method_key, display_name, provider, status, sort_weight, request_no, idempotency_key, created_at, updated_at)
-            VALUES
-                (?, '0', '0', ?, ?, ?, 'active', ?, ?, ?, ?, ?)
-            ON CONFLICT(tenant_id, organization_id, method_key) DO UPDATE SET
-                id = excluded.id,
-                display_name = excluded.display_name,
-                provider = excluded.provider,
-                sort_weight = excluded.sort_weight,
-                request_no = excluded.request_no,
-                idempotency_key = excluded.idempotency_key,
-                updated_at = excluded.updated_at
-            "#,
-        )
-        .bind(method.id)
-        .bind(method.method_key)
-        .bind(method.display_name)
-        .bind(method.provider)
-        .bind(method.sort_weight)
-        .bind(payment_method_request_no(&method))
-        .bind(payment_method_request_no(&method))
-        .bind(SEED_TIMESTAMP)
-        .bind(SEED_TIMESTAMP)
-        .execute(pool)
-        .await
-        .map_err(|error| storage_error("failed to upsert payment method", error))?;
+        let request_no = payment_method_request_no(&method);
+        if has_legacy_provider {
+            sqlx::query(
+                r#"
+                INSERT INTO commerce_payment_method
+                    (id, tenant_id, organization_id, method_key, display_name, provider, provider_code, status, sort_order, request_no, idempotency_key, created_at, updated_at)
+                VALUES
+                    (?, '0', '0', ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?)
+                ON CONFLICT(tenant_id, organization_id, method_key) DO UPDATE SET
+                    id = excluded.id,
+                    display_name = excluded.display_name,
+                    provider = excluded.provider,
+                    provider_code = excluded.provider_code,
+                    sort_order = excluded.sort_order,
+                    request_no = excluded.request_no,
+                    idempotency_key = excluded.idempotency_key,
+                    updated_at = excluded.updated_at
+                "#,
+            )
+            .bind(method.id)
+            .bind(method.method_key)
+            .bind(method.display_name)
+            .bind(method.provider_code)
+            .bind(method.provider_code)
+            .bind(method.sort_order)
+            .bind(&request_no)
+            .bind(&request_no)
+            .bind(SEED_TIMESTAMP)
+            .bind(SEED_TIMESTAMP)
+            .execute(pool)
+            .await
+            .map_err(|error| storage_error("failed to upsert payment method", error))?;
+        } else {
+            sqlx::query(
+                r#"
+                INSERT INTO commerce_payment_method
+                    (id, tenant_id, organization_id, method_key, display_name, provider_code, status, sort_order, request_no, idempotency_key, created_at, updated_at)
+                VALUES
+                    (?, '0', '0', ?, ?, ?, 'active', ?, ?, ?, ?, ?)
+                ON CONFLICT(tenant_id, organization_id, method_key) DO UPDATE SET
+                    id = excluded.id,
+                    display_name = excluded.display_name,
+                    provider_code = excluded.provider_code,
+                    sort_order = excluded.sort_order,
+                    request_no = excluded.request_no,
+                    idempotency_key = excluded.idempotency_key,
+                    updated_at = excluded.updated_at
+                "#,
+            )
+            .bind(method.id)
+            .bind(method.method_key)
+            .bind(method.display_name)
+            .bind(method.provider_code)
+            .bind(method.sort_order)
+            .bind(&request_no)
+            .bind(&request_no)
+            .bind(SEED_TIMESTAMP)
+            .bind(SEED_TIMESTAMP)
+            .execute(pool)
+            .await
+            .map_err(|error| storage_error("failed to upsert payment method", error))?;
+        }
     }
     Ok(())
 }
 
 async fn upsert_postgres_payment_methods(pool: &PgPool) -> Result<(), CommerceServiceError> {
+    let has_legacy_provider = postgres_payment_method_has_legacy_provider(pool).await?;
     for method in commerce_payment_method_seeds() {
-        sqlx::query(
-            r#"
-            INSERT INTO commerce_payment_method
-                (id, tenant_id, organization_id, method_key, display_name, provider, status, sort_weight, request_no, idempotency_key, created_at, updated_at)
-            VALUES
-                ($1, '0', '0', $2, $3, $4, 'active', $5, $6, $7, $8, $9)
-            ON CONFLICT(tenant_id, organization_id, method_key) DO UPDATE SET
-                id = excluded.id,
-                display_name = excluded.display_name,
-                provider = excluded.provider,
-                sort_weight = excluded.sort_weight,
-                request_no = excluded.request_no,
-                idempotency_key = excluded.idempotency_key,
-                updated_at = excluded.updated_at
-            "#,
-        )
-        .bind(method.id)
-        .bind(method.method_key)
-        .bind(method.display_name)
-        .bind(method.provider)
-        .bind(method.sort_weight)
-        .bind(payment_method_request_no(&method))
-        .bind(payment_method_request_no(&method))
-        .bind(SEED_TIMESTAMP)
-        .bind(SEED_TIMESTAMP)
-        .execute(pool)
-        .await
-        .map_err(|error| storage_error("failed to upsert payment method", error))?;
+        let request_no = payment_method_request_no(&method);
+        if has_legacy_provider {
+            sqlx::query(
+                r#"
+                INSERT INTO commerce_payment_method
+                    (id, tenant_id, organization_id, method_key, display_name, provider, provider_code, status, sort_order, request_no, idempotency_key, created_at, updated_at)
+                VALUES
+                    ($1, '0', '0', $2, $3, $4, $5, 'active', $6, $7, $8, $9, $10)
+                ON CONFLICT(tenant_id, organization_id, method_key) DO UPDATE SET
+                    id = excluded.id,
+                    display_name = excluded.display_name,
+                    provider = excluded.provider,
+                    provider_code = excluded.provider_code,
+                    sort_order = excluded.sort_order,
+                    request_no = excluded.request_no,
+                    idempotency_key = excluded.idempotency_key,
+                    updated_at = excluded.updated_at
+                "#,
+            )
+            .bind(method.id)
+            .bind(method.method_key)
+            .bind(method.display_name)
+            .bind(method.provider_code)
+            .bind(method.provider_code)
+            .bind(method.sort_order)
+            .bind(&request_no)
+            .bind(&request_no)
+            .bind(SEED_TIMESTAMP)
+            .bind(SEED_TIMESTAMP)
+            .execute(pool)
+            .await
+            .map_err(|error| storage_error("failed to upsert payment method", error))?;
+        } else {
+            sqlx::query(
+                r#"
+                INSERT INTO commerce_payment_method
+                    (id, tenant_id, organization_id, method_key, display_name, provider_code, status, sort_order, request_no, idempotency_key, created_at, updated_at)
+                VALUES
+                    ($1, '0', '0', $2, $3, $4, 'active', $5, $6, $7, $8, $9)
+                ON CONFLICT(tenant_id, organization_id, method_key) DO UPDATE SET
+                    id = excluded.id,
+                    display_name = excluded.display_name,
+                    provider_code = excluded.provider_code,
+                    sort_order = excluded.sort_order,
+                    request_no = excluded.request_no,
+                    idempotency_key = excluded.idempotency_key,
+                    updated_at = excluded.updated_at
+                "#,
+            )
+            .bind(method.id)
+            .bind(method.method_key)
+            .bind(method.display_name)
+            .bind(method.provider_code)
+            .bind(method.sort_order)
+            .bind(&request_no)
+            .bind(&request_no)
+            .bind(SEED_TIMESTAMP)
+            .bind(SEED_TIMESTAMP)
+            .execute(pool)
+            .await
+            .map_err(|error| storage_error("failed to upsert payment method", error))?;
+        }
     }
     Ok(())
+}
+
+async fn sqlite_payment_method_has_legacy_provider(
+    pool: &SqlitePool,
+) -> Result<bool, CommerceServiceError> {
+    let column_count: i64 = sqlx::query_scalar(
+        "SELECT COUNT(1) FROM pragma_table_info('commerce_payment_method') WHERE name = 'provider'",
+    )
+    .fetch_one(pool)
+    .await
+    .map_err(|error| storage_error("failed to inspect payment method columns", error))?;
+    Ok(column_count > 0)
+}
+
+async fn postgres_payment_method_has_legacy_provider(
+    pool: &PgPool,
+) -> Result<bool, CommerceServiceError> {
+    sqlx::query_scalar(
+        r#"
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = current_schema()
+              AND table_name = 'commerce_payment_method'
+              AND column_name = 'provider'
+        )
+        "#,
+    )
+    .fetch_one(pool)
+    .await
+    .map_err(|error| storage_error("failed to inspect payment method columns", error))
 }
 
 async fn upsert_sqlite_payment_providers(pool: &SqlitePool) -> Result<(), CommerceServiceError> {
@@ -1944,7 +2045,7 @@ FROM commerce_product_spu
 WHERE tenant_id = '0'
   AND organization_id = '0'
   AND spu_no IN ('membership', 'points-recharge-cny', 'points-recharge-non-cny')
-  AND sales_status = 'active'
+  AND status = 'active'
 "#;
 
 const COMPLETE_MEMBERSHIP_PLAN_COUNT_SQL: &str = r#"
@@ -1996,7 +2097,7 @@ WHERE tenant_id = '0'
   AND organization_id = '0'
   AND spu_id = 'seed-product-membership'
   AND sku_no LIKE 'membership-%'
-  AND sales_status = 'active'
+  AND status = 'active'
 "#;
 
 const COMPLETE_RECHARGE_PACKAGE_COUNT_SQL: &str = r#"
@@ -2112,7 +2213,7 @@ LEFT JOIN commerce_product_sku sku
   ON sku.id = package.sku_id
  AND sku.tenant_id = package.tenant_id
  AND sku.organization_id = package.organization_id
- AND sku.sales_status = 'active'
+ AND sku.status = 'active'
 WHERE package.tenant_id = '0'
   AND package.organization_id = '0'
   AND package.package_no LIKE 'membership-%'
@@ -2141,7 +2242,7 @@ LEFT JOIN commerce_product_sku sku
   ON sku.id = package.sku_id
  AND sku.tenant_id = package.tenant_id
  AND sku.organization_id = package.organization_id
- AND sku.sales_status = 'active'
+ AND sku.status = 'active'
 WHERE package.tenant_id = '0'
   AND package.organization_id = '0'
   AND package.package_no LIKE 'points-%'

@@ -4,6 +4,47 @@ import type { HttpClient } from '../http/client';
 import type { CommerceApiResult, CommerceOperationCommand } from '../types';
 
 
+export interface WalletExchangeRulesManagementListParams {
+  sourceAssetType?: string;
+  targetAssetType?: string;
+  status?: string;
+}
+
+export class WalletExchangeRulesManagementApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Wallet exchange Rules management list. */
+  async list(params?: WalletExchangeRulesManagementListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'source_asset_type', value: params?.sourceAssetType, style: 'form', explode: true, allowReserved: false },
+      { name: 'target_asset_type', value: params?.targetAssetType, style: 'form', explode: true, allowReserved: false },
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/wallet/exchange_rules`), query));
+  }
+}
+
+export class WalletExchangeRulesApi {
+  private client: HttpClient;
+  public readonly management: WalletExchangeRulesManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new WalletExchangeRulesManagementApi(client);
+  }
+
+
+/** Wallet exchange Rules update. */
+  async update(body?: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.put<CommerceApiResult>(backendApiPath(`/wallet/exchange_rules`), body, undefined, undefined, 'application/json');
+  }
+}
+
 export interface WalletHoldsListParams {
   status?: string;
   page?: number;
@@ -29,7 +70,32 @@ export class WalletHoldsApi {
   }
 }
 
-export interface WalletLedgerEntriesListParams {
+export class WalletAdjustmentsManagementApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Wallet adjustments management create. */
+  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/wallet/adjustments`), body, undefined, undefined, 'application/json');
+  }
+}
+
+export class WalletAdjustmentsApi {
+  private client: HttpClient;
+  public readonly management: WalletAdjustmentsManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new WalletAdjustmentsManagementApi(client);
+  }
+
+}
+
+export interface WalletLedgerEntriesManagementListParams {
   page?: number;
   pageSize?: number;
   q?: string;
@@ -38,7 +104,7 @@ export interface WalletLedgerEntriesListParams {
   endTime?: string;
 }
 
-export class WalletLedgerEntriesApi {
+export class WalletLedgerEntriesManagementApi {
   private client: HttpClient;
 
   constructor(client: HttpClient) {
@@ -46,8 +112,8 @@ export class WalletLedgerEntriesApi {
   }
 
 
-/** Wallet ledger Entries list. */
-  async list(params?: WalletLedgerEntriesListParams): Promise<CommerceApiResult> {
+/** Wallet ledger Entries management list. */
+  async list(params?: WalletLedgerEntriesManagementListParams): Promise<CommerceApiResult> {
     const query = buildQueryString([
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
@@ -60,80 +126,18 @@ export class WalletLedgerEntriesApi {
   }
 }
 
-export interface WalletLedgerListParams {
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-  sort?: string;
-  q?: string;
-}
-
-export class WalletLedgerApi {
+export class WalletLedgerEntriesApi {
   private client: HttpClient;
+  public readonly management: WalletLedgerEntriesManagementApi;
 
   constructor(client: HttpClient) {
     this.client = client;
+    this.management = new WalletLedgerEntriesManagementApi(client);
   }
 
-
-/** Wallet ledger list. */
-  async list(params?: WalletLedgerListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
-      { name: 'sort', value: params?.sort, style: 'form', explode: true, allowReserved: false },
-      { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/wallet/ledger`), query));
-  }
 }
 
-export interface WalletExchangeRulesListParams {
-  sourceAssetType?: string;
-  targetAssetType?: string;
-  status?: string;
-}
-
-export class WalletExchangeRulesApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Wallet exchange Rules list. */
-  async list(params?: WalletExchangeRulesListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'source_asset_type', value: params?.sourceAssetType, style: 'form', explode: true, allowReserved: false },
-      { name: 'target_asset_type', value: params?.targetAssetType, style: 'form', explode: true, allowReserved: false },
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/wallet/exchange_rules`), query));
-  }
-
-/** Wallet exchange Rules update. */
-  async update(body?: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.put<CommerceApiResult>(backendApiPath(`/wallet/exchange_rules`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export class WalletAdjustmentsApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Wallet adjustments create. */
-  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/wallet/adjustments`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export interface WalletAccountsListParams {
+export interface WalletAccountsManagementListParams {
   userId?: string;
   assetType?: string;
   status?: string;
@@ -141,7 +145,7 @@ export interface WalletAccountsListParams {
   pageSize?: number;
 }
 
-export class WalletAccountsApi {
+export class WalletAccountsManagementApi {
   private client: HttpClient;
 
   constructor(client: HttpClient) {
@@ -149,8 +153,8 @@ export class WalletAccountsApi {
   }
 
 
-/** Wallet accounts list. */
-  async list(params?: WalletAccountsListParams): Promise<CommerceApiResult> {
+/** Wallet accounts management list. */
+  async list(params?: WalletAccountsManagementListParams): Promise<CommerceApiResult> {
     const query = buildQueryString([
       { name: 'user_id', value: params?.userId, style: 'form', explode: true, allowReserved: false },
       { name: 'asset_type', value: params?.assetType, style: 'form', explode: true, allowReserved: false },
@@ -162,23 +166,32 @@ export class WalletAccountsApi {
   }
 }
 
+export class WalletAccountsApi {
+  private client: HttpClient;
+  public readonly management: WalletAccountsManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new WalletAccountsManagementApi(client);
+  }
+
+}
+
 export class WalletApi {
   private client: HttpClient;
   public readonly accounts: WalletAccountsApi;
-  public readonly adjustments: WalletAdjustmentsApi;
-  public readonly exchangeRules: WalletExchangeRulesApi;
-  public readonly ledger: WalletLedgerApi;
   public readonly ledgerEntries: WalletLedgerEntriesApi;
+  public readonly adjustments: WalletAdjustmentsApi;
   public readonly holds: WalletHoldsApi;
+  public readonly exchangeRules: WalletExchangeRulesApi;
 
   constructor(client: HttpClient) {
     this.client = client;
     this.accounts = new WalletAccountsApi(client);
-    this.adjustments = new WalletAdjustmentsApi(client);
-    this.exchangeRules = new WalletExchangeRulesApi(client);
-    this.ledger = new WalletLedgerApi(client);
     this.ledgerEntries = new WalletLedgerEntriesApi(client);
+    this.adjustments = new WalletAdjustmentsApi(client);
     this.holds = new WalletHoldsApi(client);
+    this.exchangeRules = new WalletExchangeRulesApi(client);
   }
 
 }

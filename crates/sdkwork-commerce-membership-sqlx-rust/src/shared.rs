@@ -12,35 +12,23 @@ pub(crate) const POINTS_ASSET_TYPE: &str = "points";
 pub(crate) const POINTS_CURRENCY_CODE: &str = "POINT";
 
 pub(crate) fn normalize_payment_method(method: &str) -> String {
-    match method.trim().to_ascii_lowercase().as_str() {
-        "wechat_pay" => "wechat".to_string(),
-        value => value.to_string(),
-    }
+    method.trim().to_ascii_lowercase()
 }
 
-pub(crate) fn method_alias(method: &str) -> &str {
-    match method {
-        "card" => "stripe",
-        "wechat" | "wechatpay" => "wechat_pay",
-        _ => method,
-    }
-}
-
-pub(crate) fn payment_provider_code(method: &str) -> &'static str {
+pub(crate) fn payment_product_for_scan_qr(
+    method: &str,
+) -> Result<&'static str, CommerceServiceError> {
     match method.trim().to_ascii_lowercase().as_str() {
-        "wechat" | "wechat_pay" | "wechatpay" => "wechat_pay",
-        "alipay" | "ali" => "alipay",
-        "card" | "stripe" => "stripe",
-        _ => "wechat_pay",
-    }
-}
-
-pub(crate) fn payment_product_for_scan_qr(method: &str) -> &'static str {
-    match method.trim().to_ascii_lowercase().as_str() {
-        "wechat" | "wechat_pay" | "wechatpay" => "wechat_native",
-        "alipay" | "ali" => "alipay_page",
-        "card" | "stripe" => "card",
-        _ => "wechat_native",
+        "wechat_pay" => Ok("wechat_native"),
+        "alipay" => Ok("alipay_page"),
+        "paypal" => Ok("paypal_checkout"),
+        "card" => Ok("card"),
+        "apple_pay" => Ok("apple_pay"),
+        "google_pay" => Ok("google_pay"),
+        "wallet_balance" => Ok("wallet_balance"),
+        _ => Err(CommerceServiceError::conflict(
+            "membership payment method is unavailable",
+        )),
     }
 }
 
@@ -72,6 +60,7 @@ pub(crate) fn default_plan_name(rank: i64) -> &'static str {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn map_membership_package_record(
     id: i64,
     name: String,

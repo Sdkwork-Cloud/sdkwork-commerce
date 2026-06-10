@@ -5,6 +5,7 @@ pub mod postgres_invoice;
 pub mod postgres_payment;
 pub mod postgres_promotion;
 pub mod postgres_recharge;
+mod shop_service_area_key;
 pub mod sqlite_account;
 pub mod sqlite_billing;
 pub mod sqlite_exchange;
@@ -23,6 +24,7 @@ pub use postgres_recharge::PostgresCommerceRechargeStore;
 pub use sdkwork_commerce_promotion::{
     AppCommerceExchangeRuleItem, AppCommerceExchangeRuleQuery, AppCommerceSubject,
 };
+pub use shop_service_area_key::{commerce_shop_service_area_key, CommerceShopServiceAreaKeyError};
 pub use sqlite_account::SqliteCommerceAccountStore;
 pub use sqlite_billing::SqliteCommerceBillingHistoryStore;
 pub use sqlite_exchange::SqliteCommerceExchangeStore;
@@ -34,6 +36,25 @@ pub use sqlite_recharge::SqliteCommerceRechargeStore;
 pub fn commerce_database_tables() -> Vec<&'static str> {
     vec![
         "commerce_idempotency_key",
+        "commerce_shop",
+        "commerce_shop_application",
+        "commerce_shop_verification",
+        "commerce_shop_status_event",
+        "commerce_shop_channel",
+        "commerce_shop_fulfillment_profile",
+        "commerce_shop_settlement_profile",
+        "commerce_shop_metric_snapshot",
+        "commerce_shop_business_hour",
+        "commerce_shop_service_area",
+        "commerce_shop_policy",
+        "commerce_shop_deposit_account",
+        "commerce_shop_risk_signal",
+        "commerce_shop_category_binding",
+        "commerce_shop_brand_authorization",
+        "commerce_shop_qualification",
+        "commerce_shop_customer_service",
+        "commerce_shop_return_address",
+        "commerce_shop_shipping_template",
         "commerce_account",
         "commerce_account_ledger_entry",
         "commerce_billing_prehold",
@@ -63,7 +84,10 @@ pub fn commerce_database_tables() -> Vec<&'static str> {
         "commerce_product_spu",
         "commerce_product_spu_category",
         "commerce_product_sku",
-        "commerce_product_sku_attribute_value",
+        "commerce_product_sku_attribute",
+        "commerce_product_media",
+        "commerce_price_list",
+        "commerce_price_list_item",
         "commerce_recharge_package",
         "commerce_inventory_stock",
         "commerce_inventory_reservation",
@@ -89,6 +113,7 @@ pub fn commerce_database_tables() -> Vec<&'static str> {
         "commerce_payment_webhook_delivery",
         "commerce_payment_statement",
         "commerce_payment_statement_item",
+        "commerce_payment_reconciliation_run",
         "commerce_payment_reconciliation_item",
         "commerce_payment_fee",
         "commerce_payment_dispute",
@@ -122,6 +147,7 @@ pub struct CommerceSqlStatementContract {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommerceSqlConflictClassifier {
     pub table: &'static str,
+    pub constraint_name: &'static str,
     pub unique_key: Vec<&'static str>,
     pub error_code: &'static str,
     pub message: &'static str,
@@ -184,6 +210,7 @@ pub struct CommerceBusinessRepositorySqlCatalog {
     pub tenant_scope_field: &'static str,
     pub requires_transaction: bool,
     pub operations: Vec<CommerceBusinessRepositorySqlOperation>,
+    pub conflict_classifiers: Vec<CommerceSqlConflictClassifier>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -430,6 +457,31 @@ pub fn commerce_database_indexes() -> Vec<&'static str> {
         "idx_entitlement_grant_source",
         "idx_entitlement_account_subject_status",
         "idx_entitlement_ledger_entry_account_occurred_at",
+        "idx_commerce_shop_organization",
+        "idx_commerce_shop_status",
+        "idx_commerce_shop_review_status",
+        "idx_commerce_shop_application_review",
+        "idx_commerce_shop_verification_status",
+        "idx_commerce_shop_status_event_shop_created",
+        "idx_commerce_shop_channel_shop_code",
+        "idx_commerce_shop_fulfillment_profile_shop",
+        "idx_commerce_shop_settlement_profile_status",
+        "idx_commerce_shop_metric_snapshot_shop_date",
+        "idx_commerce_shop_business_hour_shop",
+        "uk_commerce_shop_service_area_scope",
+        "idx_commerce_shop_service_area_region",
+        "idx_commerce_shop_policy_type_status",
+        "idx_commerce_shop_deposit_account_status",
+        "idx_commerce_shop_risk_signal_status",
+        "idx_commerce_shop_category_binding_status",
+        "idx_commerce_shop_brand_authorization_status",
+        "idx_commerce_shop_qualification_status",
+        "idx_commerce_shop_customer_service_status",
+        "uk_commerce_shop_customer_service_single_default",
+        "idx_commerce_shop_return_address_default",
+        "uk_commerce_shop_return_address_single_default",
+        "idx_commerce_shop_shipping_template_status",
+        "uk_commerce_shop_shipping_template_single_default",
         "idx_commerce_product_category_parent_status",
         "idx_commerce_product_attribute_status",
         "idx_commerce_product_spu_category_status",
@@ -438,6 +490,9 @@ pub fn commerce_database_indexes() -> Vec<&'static str> {
         "idx_commerce_product_spu_type_status",
         "idx_commerce_product_sku_spu_status",
         "idx_commerce_product_sku_price_status",
+        "idx_commerce_product_media_owner",
+        "idx_commerce_price_list_market_status",
+        "idx_commerce_price_list_item_sku",
         "idx_commerce_recharge_package_amount_status",
         "idx_commerce_inventory_stock_sku_warehouse",
         "idx_commerce_inventory_reservation_order_status",
@@ -449,16 +504,37 @@ pub fn commerce_database_indexes() -> Vec<&'static str> {
         "idx_commerce_order_owner_status_created_at",
         "idx_commerce_order_no",
         "idx_commerce_payment_intent_order",
-        "idx_commerce_payment_attempt_provider_trade_no",
-        "idx_commerce_payment_webhook_event_provider_event",
-        "idx_commerce_payment_webhook_event_provider_nonce",
+        "idx_commerce_payment_attempt_provider_code_trade_no",
+        "idx_commerce_payment_webhook_event_provider_code_event",
+        "idx_commerce_payment_webhook_event_provider_code_nonce",
         "idx_commerce_payment_webhook_event_status_processed_at",
         "idx_commerce_payment_method_status",
         "idx_commerce_payment_provider_status",
         "idx_commerce_payment_provider_account_provider",
         "idx_commerce_payment_channel_route",
         "idx_commerce_payment_route_rule_match",
+        "idx_commerce_payment_provider_capability_lookup",
+        "idx_commerce_payment_operation_attempt_resource",
+        "idx_commerce_payment_operation_attempt_native_request",
+        "idx_commerce_payment_route_decision_intent",
+        "idx_commerce_payment_capture_attempt_status",
+        "idx_commerce_payment_webhook_delivery_status",
+        "idx_commerce_payment_statement_period",
+        "idx_commerce_payment_statement_item_trade",
+        "idx_commerce_payment_statement_item_out_trade",
+        "idx_commerce_payment_reconciliation_run_status",
+        "idx_commerce_payment_reconciliation_run_period",
+        "idx_commerce_payment_reconciliation_item_run_status",
+        "idx_commerce_payment_reconciliation_item_resolution",
+        "idx_commerce_payment_reconciliation_item_payment",
+        "idx_commerce_payment_fee_payment",
+        "idx_commerce_payment_fee_refund",
+        "idx_commerce_payment_dispute_payment_status",
+        "idx_commerce_payment_dispute_event_created",
         "idx_commerce_refund_payment",
+        "idx_commerce_refund_item_refund",
+        "idx_commerce_refund_attempt_status",
+        "idx_commerce_refund_event_created",
         "idx_commerce_exchange_rule_pair_status",
         "idx_membership_plan_status",
         "idx_membership_plan_code",
@@ -499,6 +575,7 @@ pub fn commerce_migration_names() -> Vec<&'static str> {
         "0011_exchange.sql",
         "0012_invoice.sql",
         "0013_billing_history.sql",
+        "0014_shop.sql",
     ]
 }
 
@@ -593,7 +670,10 @@ pub fn commerce_migration_plan() -> Vec<CommerceStorageMigration> {
                 "commerce_product_spu",
                 "commerce_product_spu_category",
                 "commerce_product_sku",
-                "commerce_product_sku_attribute_value",
+                "commerce_product_sku_attribute",
+                "commerce_product_media",
+                "commerce_price_list",
+                "commerce_price_list_item",
                 "commerce_recharge_package",
                 "commerce_cart",
                 "commerce_cart_item",
@@ -646,6 +726,7 @@ pub fn commerce_migration_plan() -> Vec<CommerceStorageMigration> {
                 "commerce_payment_webhook_delivery",
                 "commerce_payment_statement",
                 "commerce_payment_statement_item",
+                "commerce_payment_reconciliation_run",
                 "commerce_payment_reconciliation_item",
                 "commerce_payment_fee",
                 "commerce_payment_dispute",
@@ -683,6 +764,34 @@ pub fn commerce_migration_plan() -> Vec<CommerceStorageMigration> {
             source_path,
             sql,
             vec!["commerce_billing_history"],
+        ),
+        migration(
+            14,
+            "0014_shop.sql",
+            "shop",
+            source_path,
+            sql,
+            vec![
+                "commerce_shop",
+                "commerce_shop_application",
+                "commerce_shop_verification",
+                "commerce_shop_status_event",
+                "commerce_shop_channel",
+                "commerce_shop_fulfillment_profile",
+                "commerce_shop_settlement_profile",
+                "commerce_shop_metric_snapshot",
+                "commerce_shop_business_hour",
+                "commerce_shop_service_area",
+                "commerce_shop_policy",
+                "commerce_shop_deposit_account",
+                "commerce_shop_risk_signal",
+                "commerce_shop_category_binding",
+                "commerce_shop_brand_authorization",
+                "commerce_shop_qualification",
+                "commerce_shop_customer_service",
+                "commerce_shop_return_address",
+                "commerce_shop_shipping_template",
+            ],
         ),
     ]
 }
@@ -780,6 +889,31 @@ pub fn commerce_repository_bindings() -> Vec<CommerceRepositoryBinding> {
             vec!["commerce_idempotency_key"],
         ),
         binding(
+            "shop",
+            "shop.repository",
+            vec![
+                "commerce_shop",
+                "commerce_shop_application",
+                "commerce_shop_verification",
+                "commerce_shop_status_event",
+                "commerce_shop_channel",
+                "commerce_shop_fulfillment_profile",
+                "commerce_shop_settlement_profile",
+                "commerce_shop_metric_snapshot",
+                "commerce_shop_business_hour",
+                "commerce_shop_service_area",
+                "commerce_shop_policy",
+                "commerce_shop_deposit_account",
+                "commerce_shop_risk_signal",
+                "commerce_shop_category_binding",
+                "commerce_shop_brand_authorization",
+                "commerce_shop_qualification",
+                "commerce_shop_customer_service",
+                "commerce_shop_return_address",
+                "commerce_shop_shipping_template",
+            ],
+        ),
+        binding(
             "account",
             "account.repository",
             vec![
@@ -834,8 +968,12 @@ pub fn commerce_repository_bindings() -> Vec<CommerceRepositoryBinding> {
                 "commerce_product_attribute",
                 "commerce_product_attribute_value",
                 "commerce_product_spu",
+                "commerce_product_spu_category",
                 "commerce_product_sku",
-                "commerce_product_sku_attribute_value",
+                "commerce_product_sku_attribute",
+                "commerce_product_media",
+                "commerce_price_list",
+                "commerce_price_list_item",
                 "commerce_recharge_package",
             ],
         ),
@@ -879,7 +1017,22 @@ pub fn commerce_repository_bindings() -> Vec<CommerceRepositoryBinding> {
                 "commerce_payment_provider_account",
                 "commerce_payment_channel",
                 "commerce_payment_route_rule",
+                "commerce_payment_provider_capability",
+                "commerce_payment_operation_attempt",
+                "commerce_payment_route_decision",
+                "commerce_payment_capture",
+                "commerce_payment_webhook_delivery",
+                "commerce_payment_statement",
+                "commerce_payment_statement_item",
+                "commerce_payment_reconciliation_run",
+                "commerce_payment_reconciliation_item",
+                "commerce_payment_fee",
+                "commerce_payment_dispute",
+                "commerce_payment_dispute_event",
                 "commerce_refund",
+                "commerce_refund_item",
+                "commerce_refund_attempt",
+                "commerce_refund_event",
             ],
         ),
         binding(
@@ -964,6 +1117,7 @@ pub fn commerce_idempotency_repository_sql_contract() -> CommerceIdempotencyRepo
         ),
         conflict_classifier: CommerceSqlConflictClassifier {
             table: "commerce_idempotency_key",
+            constraint_name: "commerce_idempotency_key_tenant_id_scope_idempotency_key_key",
             unique_key: vec!["tenant_id", "scope", "idempotency_key"],
             error_code: "idempotency-key-conflict",
             message: "idempotency key lock conflicts must be resolved by reading the existing record",
@@ -1069,6 +1223,7 @@ pub fn commerce_migration_runner_sql_contract() -> CommerceMigrationRunnerSqlCon
         ),
         conflict_classifier: CommerceSqlConflictClassifier {
             table: "commerce_schema_migration",
+            constraint_name: "commerce_schema_migration_sequence_name_key",
             unique_key: vec!["sequence", "name"],
             error_code: "commerce-migration-already-applied",
             message: "migration runner must treat duplicate applied migrations as already applied",
@@ -2050,6 +2205,218 @@ pub fn validate_commerce_migration_runner_final_state(
 
 pub fn commerce_business_repository_sql_catalogs() -> Vec<CommerceBusinessRepositorySqlCatalog> {
     vec![
+        business_catalog_with_conflicts(
+            "shop",
+            "shop.repository",
+            vec![
+                "commerce_shop",
+                "commerce_shop_application",
+                "commerce_shop_verification",
+                "commerce_shop_status_event",
+                "commerce_shop_channel",
+                "commerce_shop_fulfillment_profile",
+                "commerce_shop_settlement_profile",
+                "commerce_shop_metric_snapshot",
+                "commerce_shop_business_hour",
+                "commerce_shop_service_area",
+                "commerce_shop_policy",
+                "commerce_shop_deposit_account",
+                "commerce_shop_risk_signal",
+                "commerce_shop_category_binding",
+                "commerce_shop_brand_authorization",
+                "commerce_shop_qualification",
+                "commerce_shop_customer_service",
+                "commerce_shop_return_address",
+                "commerce_shop_shipping_template",
+            ],
+            vec![
+                read("shop.list_shops", "commerce_shop"),
+                read("shop.find_shop", "commerce_shop"),
+                write("shop.create_shop", "commerce_shop"),
+                write("shop.update_shop", "commerce_shop"),
+                write("shop.update_shop_status", "commerce_shop"),
+                write("shop.submit_application", "commerce_shop_application"),
+                read("shop.list_applications", "commerce_shop_application"),
+                read("shop.list_verifications", "commerce_shop_verification"),
+                write("shop.update_verification", "commerce_shop_verification"),
+                write("shop.append_status_event", "commerce_shop_status_event"),
+                read("shop.list_status_events", "commerce_shop_status_event"),
+                read("shop.list_channels", "commerce_shop_channel"),
+                write("shop.upsert_channel", "commerce_shop_channel"),
+                read(
+                    "shop.find_fulfillment_profile",
+                    "commerce_shop_fulfillment_profile",
+                ),
+                write(
+                    "shop.upsert_fulfillment_profile",
+                    "commerce_shop_fulfillment_profile",
+                ),
+                read(
+                    "shop.find_settlement_profile",
+                    "commerce_shop_settlement_profile",
+                ),
+                write(
+                    "shop.upsert_settlement_profile",
+                    "commerce_shop_settlement_profile",
+                ),
+                write(
+                    "shop.review_settlement_profile",
+                    "commerce_shop_settlement_profile",
+                ),
+                read(
+                    "shop.list_metric_snapshots",
+                    "commerce_shop_metric_snapshot",
+                ),
+                read("shop.find_business_hours", "commerce_shop_business_hour"),
+                write("shop.upsert_business_hours", "commerce_shop_business_hour"),
+                read("shop.list_service_areas", "commerce_shop_service_area"),
+                write("shop.upsert_service_area", "commerce_shop_service_area"),
+                read("shop.list_policies", "commerce_shop_policy"),
+                write("shop.upsert_policy", "commerce_shop_policy"),
+                read("shop.find_deposit_account", "commerce_shop_deposit_account"),
+                write(
+                    "shop.upsert_deposit_account",
+                    "commerce_shop_deposit_account",
+                ),
+                write(
+                    "shop.review_deposit_account",
+                    "commerce_shop_deposit_account",
+                ),
+                read("shop.list_risk_signals", "commerce_shop_risk_signal"),
+                write("shop.append_risk_signal", "commerce_shop_risk_signal"),
+                write("shop.resolve_risk_signal", "commerce_shop_risk_signal"),
+                read(
+                    "shop.list_category_bindings",
+                    "commerce_shop_category_binding",
+                ),
+                write(
+                    "shop.upsert_category_binding",
+                    "commerce_shop_category_binding",
+                ),
+                read(
+                    "shop.list_brand_authorizations",
+                    "commerce_shop_brand_authorization",
+                ),
+                write(
+                    "shop.upsert_brand_authorization",
+                    "commerce_shop_brand_authorization",
+                ),
+                read("shop.list_qualifications", "commerce_shop_qualification"),
+                write("shop.upsert_qualification", "commerce_shop_qualification"),
+                read(
+                    "shop.list_customer_services",
+                    "commerce_shop_customer_service",
+                ),
+                write(
+                    "shop.upsert_customer_service",
+                    "commerce_shop_customer_service",
+                ),
+                read("shop.list_return_addresses", "commerce_shop_return_address"),
+                write("shop.upsert_return_address", "commerce_shop_return_address"),
+                read(
+                    "shop.list_shipping_templates",
+                    "commerce_shop_shipping_template",
+                ),
+                write(
+                    "shop.upsert_shipping_template",
+                    "commerce_shop_shipping_template",
+                ),
+            ],
+            vec![
+                CommerceSqlConflictClassifier {
+                    table: "commerce_shop_service_area",
+                    constraint_name: "uk_commerce_shop_service_area_scope",
+                    unique_key: vec![
+                        "tenant_id",
+                        "shop_id",
+                        "area_type",
+                        "country_code",
+                        "area_key",
+                    ],
+                    error_code: "commerce-shop-service-area-scope-conflict",
+                    message:
+                        "shop service area scope already exists for the same normalized delivery coverage",
+                },
+                CommerceSqlConflictClassifier {
+                    table: "commerce_shop_category_binding",
+                    constraint_name: "uk_commerce_shop_category_binding_scope",
+                    unique_key: vec!["tenant_id", "shop_id", "shop_category_code"],
+                    error_code: "commerce-shop-category-binding-scope-conflict",
+                    message:
+                        "shop category binding already exists for the same shop category code",
+                },
+                CommerceSqlConflictClassifier {
+                    table: "commerce_shop_brand_authorization",
+                    constraint_name: "uk_commerce_shop_brand_authorization_scope",
+                    unique_key: vec!["tenant_id", "shop_id", "brand_code"],
+                    error_code: "commerce-shop-brand-authorization-scope-conflict",
+                    message:
+                        "shop brand authorization already exists for the same shop brand code",
+                },
+                CommerceSqlConflictClassifier {
+                    table: "commerce_shop_qualification",
+                    constraint_name: "uk_commerce_shop_qualification_scope",
+                    unique_key: vec![
+                        "tenant_id",
+                        "shop_id",
+                        "qualification_type",
+                        "subject_type",
+                        "subject_id",
+                    ],
+                    error_code: "commerce-shop-qualification-scope-conflict",
+                    message:
+                        "shop qualification already exists for the same qualification subject",
+                },
+                CommerceSqlConflictClassifier {
+                    table: "commerce_shop_customer_service",
+                    constraint_name: "uk_commerce_shop_customer_service_scope",
+                    unique_key: vec!["tenant_id", "shop_id", "service_channel", "contact_ref"],
+                    error_code: "commerce-shop-customer-service-scope-conflict",
+                    message:
+                        "shop customer service contact already exists for the same service channel",
+                },
+                CommerceSqlConflictClassifier {
+                    table: "commerce_shop_customer_service",
+                    constraint_name: "uk_commerce_shop_customer_service_single_default",
+                    unique_key: vec!["tenant_id", "shop_id", "service_channel"],
+                    error_code: "commerce-shop-customer-service-default-conflict",
+                    message:
+                        "shop customer service default already exists for the same service channel",
+                },
+                CommerceSqlConflictClassifier {
+                    table: "commerce_shop_return_address",
+                    constraint_name: "uk_commerce_shop_return_address_scope",
+                    unique_key: vec!["tenant_id", "shop_id", "address_usage", "address_key"],
+                    error_code: "commerce-shop-return-address-scope-conflict",
+                    message:
+                        "shop return address already exists for the same normalized address",
+                },
+                CommerceSqlConflictClassifier {
+                    table: "commerce_shop_return_address",
+                    constraint_name: "uk_commerce_shop_return_address_single_default",
+                    unique_key: vec!["tenant_id", "shop_id", "address_usage"],
+                    error_code: "commerce-shop-return-address-default-conflict",
+                    message:
+                        "shop return address default already exists for the same address usage",
+                },
+                CommerceSqlConflictClassifier {
+                    table: "commerce_shop_shipping_template",
+                    constraint_name: "uk_commerce_shop_shipping_template_scope",
+                    unique_key: vec!["tenant_id", "shop_id", "template_code"],
+                    error_code: "commerce-shop-shipping-template-scope-conflict",
+                    message:
+                        "shop shipping template already exists for the same template code",
+                },
+                CommerceSqlConflictClassifier {
+                    table: "commerce_shop_shipping_template",
+                    constraint_name: "uk_commerce_shop_shipping_template_single_default",
+                    unique_key: vec!["tenant_id", "shop_id", "delivery_method"],
+                    error_code: "commerce-shop-shipping-template-default-conflict",
+                    message:
+                        "shop shipping template default already exists for the same delivery method",
+                },
+            ],
+        ),
         business_catalog(
             "account",
             "account.repository",
@@ -2192,8 +2559,12 @@ pub fn commerce_business_repository_sql_catalogs() -> Vec<CommerceBusinessReposi
                 "commerce_product_attribute",
                 "commerce_product_attribute_value",
                 "commerce_product_spu",
+                "commerce_product_spu_category",
                 "commerce_product_sku",
-                "commerce_product_sku_attribute_value",
+                "commerce_product_sku_attribute",
+                "commerce_product_media",
+                "commerce_price_list",
+                "commerce_price_list_item",
                 "commerce_recharge_package",
             ],
             vec![
@@ -2203,8 +2574,21 @@ pub fn commerce_business_repository_sql_catalogs() -> Vec<CommerceBusinessReposi
                 write("catalog.upsert_attribute", "commerce_product_attribute"),
                 read("catalog.list_spu", "commerce_product_spu"),
                 write("catalog.upsert_spu", "commerce_product_spu"),
+                write(
+                    "catalog.assign_spu_category",
+                    "commerce_product_spu_category",
+                ),
                 read("catalog.list_skus", "commerce_product_sku"),
                 write("catalog.upsert_sku", "commerce_product_sku"),
+                write(
+                    "catalog.upsert_sku_attribute",
+                    "commerce_product_sku_attribute",
+                ),
+                read("catalog.list_media", "commerce_product_media"),
+                write("catalog.upsert_media", "commerce_product_media"),
+                read("catalog.list_price_lists", "commerce_price_list"),
+                write("catalog.upsert_price_list", "commerce_price_list"),
+                write("catalog.upsert_price_list_item", "commerce_price_list_item"),
                 read(
                     "catalog.list_recharge_packages",
                     "commerce_recharge_package",
@@ -2296,7 +2680,22 @@ pub fn commerce_business_repository_sql_catalogs() -> Vec<CommerceBusinessReposi
                 "commerce_payment_provider_account",
                 "commerce_payment_channel",
                 "commerce_payment_route_rule",
+                "commerce_payment_provider_capability",
+                "commerce_payment_operation_attempt",
+                "commerce_payment_route_decision",
+                "commerce_payment_capture",
+                "commerce_payment_webhook_delivery",
+                "commerce_payment_statement",
+                "commerce_payment_statement_item",
+                "commerce_payment_reconciliation_run",
+                "commerce_payment_reconciliation_item",
+                "commerce_payment_fee",
+                "commerce_payment_dispute",
+                "commerce_payment_dispute_event",
                 "commerce_refund",
+                "commerce_refund_item",
+                "commerce_refund_attempt",
+                "commerce_refund_event",
             ],
             vec![
                 read("payment.list_records", "commerce_payment_attempt"),
@@ -2321,6 +2720,54 @@ pub fn commerce_business_repository_sql_catalogs() -> Vec<CommerceBusinessReposi
                 read("payment.list_route_rules", "commerce_payment_route_rule"),
                 write("payment.upsert_route_rule", "commerce_payment_route_rule"),
                 read(
+                    "payment.list_provider_capabilities",
+                    "commerce_payment_provider_capability",
+                ),
+                write(
+                    "payment.upsert_provider_capability",
+                    "commerce_payment_provider_capability",
+                ),
+                write(
+                    "payment.record_operation_attempt",
+                    "commerce_payment_operation_attempt",
+                ),
+                write(
+                    "payment.record_route_decision",
+                    "commerce_payment_route_decision",
+                ),
+                write("payment.record_capture", "commerce_payment_capture"),
+                write(
+                    "payment.record_webhook_delivery",
+                    "commerce_payment_webhook_delivery",
+                ),
+                read("payment.list_statements", "commerce_payment_statement"),
+                write(
+                    "payment.record_statement_item",
+                    "commerce_payment_statement_item",
+                ),
+                read(
+                    "payment.list_reconciliation_runs",
+                    "commerce_payment_reconciliation_run",
+                ),
+                write(
+                    "payment.create_reconciliation_run",
+                    "commerce_payment_reconciliation_run",
+                ),
+                write(
+                    "payment.finish_reconciliation_run",
+                    "commerce_payment_reconciliation_run",
+                ),
+                write(
+                    "payment.record_reconciliation_item",
+                    "commerce_payment_reconciliation_item",
+                ),
+                write("payment.record_fee", "commerce_payment_fee"),
+                read("payment.list_disputes", "commerce_payment_dispute"),
+                write(
+                    "payment.record_dispute_event",
+                    "commerce_payment_dispute_event",
+                ),
+                read(
                     "payment.find_webhook_event",
                     "commerce_payment_webhook_event",
                 ),
@@ -2338,6 +2785,9 @@ pub fn commerce_business_repository_sql_catalogs() -> Vec<CommerceBusinessReposi
                 ),
                 write("payment.create_refund", "commerce_refund"),
                 write("payment.update_refund_status", "commerce_refund"),
+                write("payment.record_refund_item", "commerce_refund_item"),
+                write("payment.record_refund_attempt", "commerce_refund_attempt"),
+                write("payment.record_refund_event", "commerce_refund_event"),
             ],
         ),
         business_catalog(
@@ -2399,11 +2849,13 @@ pub fn commerce_storage_capability_manifest() -> CommerceStorageCapabilityManife
 impl CommerceSqlConflictClassifier {
     pub fn matches_constraint(&self, constraint: &str) -> bool {
         let normalized = constraint.to_ascii_lowercase();
-        normalized.contains(self.table)
-            && self
-                .unique_key
-                .iter()
-                .all(|column| normalized.contains(column))
+        let normalized_constraint_name = self.constraint_name.to_ascii_lowercase();
+        (!normalized_constraint_name.is_empty() && normalized.contains(&normalized_constraint_name))
+            || normalized.contains(self.table)
+                && self
+                    .unique_key
+                    .iter()
+                    .all(|column| normalized.contains(column))
     }
 }
 
@@ -2438,6 +2890,16 @@ fn business_catalog(
     tables: Vec<&'static str>,
     operations: Vec<CommerceBusinessRepositorySqlOperation>,
 ) -> CommerceBusinessRepositorySqlCatalog {
+    business_catalog_with_conflicts(domain, repository_name, tables, operations, Vec::new())
+}
+
+fn business_catalog_with_conflicts(
+    domain: &'static str,
+    repository_name: &'static str,
+    tables: Vec<&'static str>,
+    operations: Vec<CommerceBusinessRepositorySqlOperation>,
+    conflict_classifiers: Vec<CommerceSqlConflictClassifier>,
+) -> CommerceBusinessRepositorySqlCatalog {
     CommerceBusinessRepositorySqlCatalog {
         domain,
         repository_name,
@@ -2445,6 +2907,7 @@ fn business_catalog(
         tenant_scope_field: "tenant_id",
         requires_transaction: true,
         operations,
+        conflict_classifiers,
     }
 }
 

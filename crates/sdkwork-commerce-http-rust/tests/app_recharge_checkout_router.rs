@@ -22,7 +22,7 @@ async fn seed_recharge_data(pool: &SqlitePool) {
     for statement in [
         r#"
         INSERT INTO commerce_product_spu
-            (id, tenant_id, organization_id, spu_no, title, product_type, sales_status, visible_surfaces, created_at, updated_at)
+            (id, tenant_id, organization_id, spu_no, title, product_type, status, visible_surfaces, created_at, updated_at)
         VALUES
             ('product-owner', 'tenant-1', 'org-1', 'points-recharge-owner', 'Points recharge', 'points_recharge', 'active', '["app"]', '2026-05-20 00:00:00', '2026-05-20 00:00:00'),
             ('product-tenant-20', 'tenant-1', NULL, 'points-recharge-tenant', 'Tenant points recharge', 'points_recharge', 'active', '["app"]', '2026-05-20 00:00:00', '2026-05-20 00:00:00'),
@@ -30,7 +30,7 @@ async fn seed_recharge_data(pool: &SqlitePool) {
         "#,
         r#"
         INSERT INTO commerce_product_sku
-            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, currency_code, delivery_mode, inventory_tracking, sales_status, created_at, updated_at)
+            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, currency_code, fulfillment_type, inventory_tracking, status, created_at, updated_at)
         VALUES
             ('sku-owner-10', 'tenant-1', 'org-1', 'product-owner', 'starter', 'Starter Pack', 'Starter Pack', '10.00', 'CNY', 'points_credit', 'untracked', 'active', '2026-05-20 00:00:00', '2026-05-20 00:00:00'),
             ('sku-tenant-20', 'tenant-1', NULL, 'product-tenant-20', 'tenant-pack', 'Tenant Pack', 'Tenant Pack', '20.00', 'CNY', 'points_credit', 'untracked', 'active', '2026-05-20 00:00:00', '2026-05-20 00:00:00'),
@@ -46,9 +46,9 @@ async fn seed_recharge_data(pool: &SqlitePool) {
         "#,
         r#"
         INSERT INTO commerce_payment_method
-            (id, tenant_id, organization_id, method_key, display_name, provider, status, sort_weight, request_no, idempotency_key, created_at, updated_at)
+            (id, tenant_id, organization_id, method_key, display_name, provider_code, status, sort_order, request_no, idempotency_key, created_at, updated_at)
         VALUES
-            ('method-wechat', 'tenant-1', 'org-1', 'wechat', 'WeChat Pay', 'wechat', 'active', 1, 'seed-method-wechat', 'seed-method-wechat', '2026-05-20 00:00:00', '2026-05-20 00:00:00')
+            ('method-wechat-pay', 'tenant-1', 'org-1', 'wechat_pay', 'WeChat Pay', 'wechat_pay', 'active', 1, 'seed-method-wechat-pay', 'seed-method-wechat-pay', '2026-05-20 00:00:00', '2026-05-20 00:00:00')
         "#,
         r#"
         INSERT INTO commerce_exchange_rule
@@ -230,7 +230,7 @@ async fn app_recharge_router_creates_current_tenant_order_from_default_seed_pack
     assert_eq!("CNY", payload["data"]["currencyCode"]);
     assert_eq!(50, payload["data"]["points"]);
     assert_eq!("wechat_pay", payload["data"]["providerCode"]);
-    assert_eq!("wechat", payload["data"]["paymentMethod"]);
+    assert_eq!("wechat_pay", payload["data"]["paymentMethod"]);
     assert_eq!("wechat_native", payload["data"]["paymentProduct"]);
     assert_eq!("pending", payload["data"]["status"]);
     assert_eq!("scan_qr", payload["data"]["nextAction"]);
@@ -316,7 +316,7 @@ async fn app_recharge_router_creates_recharge_order_and_checkout_reads_status() 
     assert_eq!("CNY", payload["data"]["currencyCode"]);
     assert_eq!(125, payload["data"]["points"]);
     assert_eq!("wechat_pay", payload["data"]["providerCode"]);
-    assert_eq!("wechat", payload["data"]["paymentMethod"]);
+    assert_eq!("wechat_pay", payload["data"]["paymentMethod"]);
     assert_eq!("wechat_native", payload["data"]["paymentProduct"]);
     assert_eq!("pending", payload["data"]["status"]);
     assert_eq!("scan_qr", payload["data"]["nextAction"]);
@@ -352,7 +352,7 @@ async fn app_recharge_router_creates_recharge_order_and_checkout_reads_status() 
     assert_eq!("CNY", payload["data"]["currencyCode"]);
     assert_eq!(125, payload["data"]["points"]);
     assert_eq!("wechat_pay", payload["data"]["providerCode"]);
-    assert_eq!("wechat", payload["data"]["paymentMethod"]);
+    assert_eq!("wechat_pay", payload["data"]["paymentMethod"]);
     assert_eq!("wechat_native", payload["data"]["paymentProduct"]);
     assert_eq!("pending", payload["data"]["status"]);
     assert_eq!("pending", payload["data"]["paymentStatus"]);
@@ -465,6 +465,19 @@ async fn app_recharge_router_reuses_pending_unpaid_order_for_same_user_package_a
     .await
     .expect("recharge payment intent count");
     assert_eq!(1, payment_intent_count);
+    let payment_intent_fact: (String, String) = sqlx::query_as(
+        r#"
+        SELECT payment_method, provider_code
+        FROM commerce_payment_intent
+        WHERE tenant_id = 'tenant-1'
+          AND owner_user_id = 'user-1'
+        "#,
+    )
+    .fetch_one(&inspect_pool)
+    .await
+    .expect("recharge payment intent method and provider");
+    assert_eq!("wechat_pay", payment_intent_fact.0);
+    assert_eq!("wechat_pay", payment_intent_fact.1);
 
     let payment_attempt_count: i64 = sqlx::query_scalar(
         r#"
@@ -478,11 +491,23 @@ async fn app_recharge_router_reuses_pending_unpaid_order_for_same_user_package_a
     .await
     .expect("recharge payment attempt count");
     assert_eq!(1, payment_attempt_count);
+    let payment_attempt_fact: (String, String) = sqlx::query_as(
+        r#"
+        SELECT payment_method, provider_code
+        FROM commerce_payment_attempt
+        WHERE tenant_id = 'tenant-1'
+          AND owner_user_id = 'user-1'
+        "#,
+    )
+    .fetch_one(&inspect_pool)
+    .await
+    .expect("recharge payment attempt method and provider");
+    assert_eq!("wechat_pay", payment_attempt_fact.0);
+    assert_eq!("wechat_pay", payment_attempt_fact.1);
 }
 
 #[tokio::test]
-async fn app_recharge_router_reuses_original_package_order_after_switching_packages_with_fallback_method(
-) {
+async fn app_recharge_router_fails_closed_when_default_payment_method_is_unavailable() {
     let pool = migrated_pool().await;
     seed_recharge_data(&pool).await;
     sqlx::query(
@@ -491,119 +516,45 @@ async fn app_recharge_router_reuses_original_package_order_after_switching_packa
         SET status = 'inactive'
         WHERE tenant_id = 'tenant-1'
           AND organization_id = 'org-1'
-          AND method_key = 'wechat'
+          AND method_key = 'wechat_pay'
         "#,
     )
     .execute(&pool)
     .await
-    .expect("deactivate preferred method");
+    .expect("deactivate default method");
     sqlx::query(
         r#"
         INSERT INTO commerce_payment_method
-            (id, tenant_id, organization_id, method_key, display_name, provider, status, sort_weight, request_no, idempotency_key, created_at, updated_at)
+            (id, tenant_id, organization_id, method_key, display_name, provider_code, status, sort_order, request_no, idempotency_key, created_at, updated_at)
         VALUES
             ('method-alipay', 'tenant-1', 'org-1', 'alipay', 'Alipay', 'alipay', 'active', 2, 'seed-method-alipay', 'seed-method-alipay', '2026-05-20 00:00:00', '2026-05-20 00:00:00')
         "#,
     )
     .execute(&pool)
     .await
-    .expect("insert fallback method");
-    let inspect_pool = pool.clone();
+    .expect("insert selected method");
     let app = app_recharge_checkout_router_with_sqlite_pool(pool);
 
-    let package_a_first = app
-        .clone()
+    let response = app
         .oneshot(subject_request_with_idempotency(
             "POST",
             "/app/v3/api/recharges/orders",
-            "recharge-idem-switch-a-1",
-            "recharge-request-switch-a-1",
+            "recharge-idem-method-unavailable",
+            "recharge-request-method-unavailable",
             Body::from(
-                r#"{"clientRequestNo":"console-recharge-switch-a-1","amount":"10.00","currencyCode":"CNY","packageId":"pack-owner-10","source":"console-recharge"}"#,
+                r#"{"clientRequestNo":"console-recharge-method-unavailable","amount":"10.00","currencyCode":"CNY","packageId":"pack-owner-10","source":"console-recharge"}"#,
             ),
         ))
         .await
-        .expect("package a first response");
+        .expect("method unavailable response");
 
-    assert_eq!(StatusCode::OK, package_a_first.status());
-    let package_a_first_payload = response_json(package_a_first).await;
-    assert_eq!("2000", package_a_first_payload["code"]);
-    assert_eq!("alipay", package_a_first_payload["data"]["paymentMethod"]);
-    let package_a_order_no = package_a_first_payload["data"]["orderNo"]
-        .as_str()
-        .expect("package a order no")
-        .to_owned();
-
-    let package_b_response = app
-        .clone()
-        .oneshot(subject_request_with_idempotency(
-            "POST",
-            "/app/v3/api/recharges/orders",
-            "recharge-idem-switch-b-1",
-            "recharge-request-switch-b-1",
-            Body::from(
-                r#"{"clientRequestNo":"console-recharge-switch-b-1","amount":"20.00","currencyCode":"CNY","packageId":"pack-tenant-20","source":"console-recharge"}"#,
-            ),
-        ))
-        .await
-        .expect("package b response");
-
-    assert_eq!(StatusCode::OK, package_b_response.status());
-    let package_b_payload = response_json(package_b_response).await;
-    assert_eq!("2000", package_b_payload["code"]);
-    assert_eq!("alipay", package_b_payload["data"]["paymentMethod"]);
-    assert_ne!(package_a_order_no, package_b_payload["data"]["orderNo"]);
-
-    let package_a_second = app
-        .oneshot(subject_request_with_idempotency(
-            "POST",
-            "/app/v3/api/recharges/orders",
-            "recharge-idem-switch-a-2",
-            "recharge-request-switch-a-2",
-            Body::from(
-                r#"{"clientRequestNo":"console-recharge-switch-a-2","amount":"10.00","currencyCode":"CNY","packageId":"pack-owner-10","source":"console-recharge"}"#,
-            ),
-        ))
-        .await
-        .expect("package a second response");
-
-    assert_eq!(StatusCode::OK, package_a_second.status());
-    let package_a_second_payload = response_json(package_a_second).await;
-    assert_eq!("2000", package_a_second_payload["code"]);
-    assert_eq!("alipay", package_a_second_payload["data"]["paymentMethod"]);
+    assert_eq!(StatusCode::CONFLICT, response.status());
+    let payload = response_json(response).await;
+    assert_eq!("4090", payload["code"]);
     assert_eq!(
-        package_a_order_no,
-        package_a_second_payload["data"]["orderNo"]
+        "recharge payment method is unavailable",
+        payload["msg"].as_str().unwrap_or_default()
     );
-
-    let order_count: i64 = sqlx::query_scalar(
-        r#"
-        SELECT COUNT(*)
-        FROM commerce_order
-        WHERE tenant_id = 'tenant-1'
-          AND owner_user_id = 'user-1'
-          AND subject = 'points_recharge'
-        "#,
-    )
-    .fetch_one(&inspect_pool)
-    .await
-    .expect("recharge order count after switch");
-    assert_eq!(2, order_count);
-
-    let package_a_order_count: i64 = sqlx::query_scalar(
-        r#"
-        SELECT COUNT(*)
-        FROM commerce_payment_attempt
-        WHERE tenant_id = 'tenant-1'
-          AND owner_user_id = 'user-1'
-          AND amount = '10.00'
-          AND currency_code = 'CNY'
-        "#,
-    )
-    .fetch_one(&inspect_pool)
-    .await
-    .expect("package a payment attempt count");
-    assert_eq!(1, package_a_order_count);
 }
 
 #[tokio::test]
@@ -761,8 +712,9 @@ async fn app_recharge_router_does_not_use_frontend_request_id_as_business_reques
     .expect("order number");
     let frontend_request_id_order_no =
         expected_recharge_order_no("123e4567-e89b-12d3-a456-426614174000");
-    let server_owned_order_no =
-        expected_recharge_order_no("points-recharge-user-1-10.00-wechat-recharge-idem-header-only");
+    let server_owned_order_no = expected_recharge_order_no(
+        "points-recharge-user-1-10.00-wechat_pay-recharge-idem-header-only",
+    );
     assert_ne!(frontend_request_id_order_no, order_no);
     assert_eq!(server_owned_order_no, order_no);
 }
@@ -791,7 +743,7 @@ async fn app_recharge_router_accepts_standard_top_level_payload() {
     assert_eq!("10.00", payload["data"]["amount"]);
     assert_eq!("CNY", payload["data"]["currencyCode"]);
     assert_eq!(125, payload["data"]["points"]);
-    assert_eq!("wechat", payload["data"]["paymentMethod"]);
+    assert_eq!("wechat_pay", payload["data"]["paymentMethod"]);
 }
 
 #[tokio::test]
@@ -846,7 +798,8 @@ async fn app_recharge_router_allows_public_recharge_reads_but_still_requires_aut
 }
 
 fn expected_recharge_order_no(request_no: &str) -> String {
-    let seed = format!("tenant-1|org-1|user-1|10.00|wechat|{request_no}|recharge-idem-header-only");
+    let seed =
+        format!("tenant-1|org-1|user-1|10.00|wechat_pay|{request_no}|recharge-idem-header-only");
     format!("RC{}", stable_hex_token(&seed))
 }
 

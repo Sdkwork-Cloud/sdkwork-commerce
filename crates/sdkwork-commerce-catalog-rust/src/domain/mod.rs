@@ -10,7 +10,7 @@ pub enum ProductType {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum SalesStatus {
+pub enum ProductStatus {
     Draft,
     Active,
     Inactive,
@@ -18,7 +18,7 @@ pub enum SalesStatus {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum DeliveryMode {
+pub enum FulfillmentType {
     PhysicalShipment,
     VirtualDelivery,
     MembershipActivation,
@@ -40,7 +40,7 @@ pub struct ProductSpuDraft {
     pub title: String,
     pub product_type: ProductType,
     pub category_id: Option<String>,
-    pub sales_status: SalesStatus,
+    pub status: ProductStatus,
     pub visible_surfaces: Vec<CommerceSurfaceProfile>,
 }
 
@@ -54,7 +54,7 @@ pub struct ProductSkuDraft {
     pub price_amount: CommerceMoney,
     pub original_price_amount: Option<CommerceMoney>,
     pub currency_code: String,
-    pub delivery_mode: DeliveryMode,
+    pub fulfillment_type: FulfillmentType,
     pub inventory_tracking: InventoryTrackingMode,
 }
 
@@ -63,9 +63,9 @@ pub struct ProductCategoryDraft {
     pub tenant_id: String,
     pub organization_id: String,
     pub category_no: String,
-    pub parent_category_id: Option<String>,
+    pub parent_id: Option<String>,
     pub name: String,
-    pub sort_weight: i64,
+    pub sort_order: i64,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -111,7 +111,7 @@ impl ProductType {
     }
 }
 
-impl SalesStatus {
+impl ProductStatus {
     pub fn as_storage_str(&self) -> &'static str {
         match self {
             Self::Draft => "draft",
@@ -122,7 +122,7 @@ impl SalesStatus {
     }
 }
 
-impl DeliveryMode {
+impl FulfillmentType {
     pub fn as_storage_str(&self) -> &'static str {
         match self {
             Self::PhysicalShipment => "physical_shipment",
@@ -152,7 +152,7 @@ impl ProductSpuDraft {
         title: &str,
         product_type: ProductType,
         category_id: Option<&str>,
-        sales_status: SalesStatus,
+        status: ProductStatus,
         visible_surfaces: Vec<CommerceSurfaceProfile>,
     ) -> Result<Self, CommerceServiceError> {
         if visible_surfaces.is_empty() {
@@ -168,7 +168,7 @@ impl ProductSpuDraft {
             title: required_text("title", title)?,
             product_type,
             category_id: optional_text(category_id),
-            sales_status,
+            status,
             visible_surfaces,
         })
     }
@@ -185,7 +185,7 @@ impl ProductSkuDraft {
         price_amount: CommerceMoney,
         original_price_amount: Option<CommerceMoney>,
         currency_code: &str,
-        delivery_mode: DeliveryMode,
+        fulfillment_type: FulfillmentType,
         inventory_tracking: InventoryTrackingMode,
     ) -> Result<Self, CommerceServiceError> {
         Ok(Self {
@@ -197,7 +197,7 @@ impl ProductSkuDraft {
             price_amount,
             original_price_amount,
             currency_code: required_text("currency_code", currency_code)?,
-            delivery_mode,
+            fulfillment_type,
             inventory_tracking,
         })
     }
@@ -208,17 +208,17 @@ impl ProductCategoryDraft {
         tenant_id: &str,
         organization_id: &str,
         category_no: &str,
-        parent_category_id: Option<&str>,
+        parent_id: Option<&str>,
         name: &str,
-        sort_weight: i64,
+        sort_order: i64,
     ) -> Result<Self, CommerceServiceError> {
         Ok(Self {
             tenant_id: required_text("tenant_id", tenant_id)?,
             organization_id: required_text("organization_id", organization_id)?,
             category_no: required_text("category_no", category_no)?,
-            parent_category_id: optional_text(parent_category_id),
+            parent_id: optional_text(parent_id),
             name: required_text("name", name)?,
-            sort_weight,
+            sort_order,
         })
     }
 }

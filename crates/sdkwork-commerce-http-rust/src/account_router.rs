@@ -507,6 +507,7 @@ async fn fetch_token_balance(
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn parse_optional_asset_type(
     value: Option<&str>,
 ) -> Result<Option<CommerceAccountAssetType>, Response> {
@@ -516,6 +517,7 @@ fn parse_optional_asset_type(
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn parse_asset_type(value: &str) -> Result<CommerceAccountAssetType, Response> {
     match value.to_ascii_lowercase().as_str() {
         "cash" => Ok(CommerceAccountAssetType::Cash),

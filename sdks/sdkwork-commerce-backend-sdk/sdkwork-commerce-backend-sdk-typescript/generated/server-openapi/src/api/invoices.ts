@@ -4,6 +4,64 @@ import type { HttpClient } from '../http/client';
 import type { CommerceApiResult, CommerceOperationCommand } from '../types';
 
 
+export class InvoicesVoidsApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Invoices voids create. */
+  async create(invoiceId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/invoices/${serializePathParameter(invoiceId, { name: 'invoiceId', style: 'simple', explode: false })}/voids`), body, undefined, undefined, 'application/json');
+  }
+}
+
+export class InvoicesIssuancesApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Invoices issuances create. */
+  async create(invoiceId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/invoices/${serializePathParameter(invoiceId, { name: 'invoiceId', style: 'simple', explode: false })}/issuances`), body, undefined, undefined, 'application/json');
+  }
+}
+
+export interface InvoicesManagementListParams {
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export class InvoicesManagementApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Invoices management list. */
+  async list(params?: InvoicesManagementListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/invoices`), query));
+  }
+
+/** Invoices management retrieve. */
+  async retrieve(invoiceId: string): Promise<CommerceApiResult> {
+    return this.client.get<CommerceApiResult>(backendApiPath(`/invoices/${serializePathParameter(invoiceId, { name: 'invoiceId', style: 'simple', explode: false })}`));
+  }
+}
+
 export interface InvoicesTitlesListParams {
   userId?: string;
   status?: string;
@@ -31,68 +89,21 @@ export class InvoicesTitlesApi {
   }
 }
 
-export class InvoicesVoidsApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Invoices voids create. */
-  async create(invoiceId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/invoices/${serializePathParameter(invoiceId, { name: 'invoiceId', style: 'simple', explode: false })}/voids`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export class InvoicesIssuanceApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Invoices issuance create. */
-  async create(invoiceId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/invoices/${serializePathParameter(invoiceId, { name: 'invoiceId', style: 'simple', explode: false })}/issuance`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export interface InvoicesListParams {
-  status?: string;
-  page?: number;
-  pageSize?: number;
-}
-
 export class InvoicesApi {
   private client: HttpClient;
-  public readonly issuance: InvoicesIssuanceApi;
-  public readonly voids: InvoicesVoidsApi;
   public readonly titles: InvoicesTitlesApi;
+  public readonly management: InvoicesManagementApi;
+  public readonly issuances: InvoicesIssuancesApi;
+  public readonly voids: InvoicesVoidsApi;
 
   constructor(client: HttpClient) {
     this.client = client;
-    this.issuance = new InvoicesIssuanceApi(client);
-    this.voids = new InvoicesVoidsApi(client);
     this.titles = new InvoicesTitlesApi(client);
+    this.management = new InvoicesManagementApi(client);
+    this.issuances = new InvoicesIssuancesApi(client);
+    this.voids = new InvoicesVoidsApi(client);
   }
 
-
-/** Invoices list. */
-  async list(params?: InvoicesListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/invoices`), query));
-  }
-
-/** Invoices retrieve. */
-  async retrieve(invoiceId: string): Promise<CommerceApiResult> {
-    return this.client.get<CommerceApiResult>(backendApiPath(`/invoices/${serializePathParameter(invoiceId, { name: 'invoiceId', style: 'simple', explode: false })}`));
-  }
 }
 
 export function createInvoicesApi(client: HttpClient): InvoicesApi {

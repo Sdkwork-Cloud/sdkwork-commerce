@@ -29,7 +29,7 @@ const REQUEST_NO_HEADER: &str = "Sdkwork-Request-No";
 const MAX_CHECKOUT_ORDER_NO_LEN: usize = 128;
 const MAX_RECHARGE_CENTS: i64 = 1_000_000;
 const PAYMENT_EXPIRE_SECONDS: i64 = 1_800;
-const DEFAULT_RECHARGE_PAYMENT_METHOD: &str = "wechat";
+const DEFAULT_RECHARGE_PAYMENT_METHOD: &str = "wechat_pay";
 
 pub type CommerceRechargeCheckoutFuture<'a, T> =
     Pin<Box<dyn Future<Output = Result<T, CommerceServiceError>> + Send + 'a>>;
@@ -69,6 +69,18 @@ struct SubmitRechargeRequest {
     currency_code: Option<String>,
     package_id: Option<String>,
     source: Option<String>,
+}
+
+struct CreateRechargeCommandInput<'a> {
+    subject: &'a AppRuntimeSubject,
+    amount: CommerceMoney,
+    currency_code: &'a str,
+    method: &'a str,
+    request_no: &'a str,
+    idempotency_key: &'a str,
+    package_id: Option<&'a str>,
+    client_request_no: Option<&'a str>,
+    source: Option<&'a str>,
 }
 
 impl SubmitRechargeRequest {
@@ -366,17 +378,17 @@ async fn submit_recharge(
     let request_no = optional_text_header(&headers, REQUEST_NO_HEADER).unwrap_or_else(|| {
         fallback_request_no(&subject, amount.as_str(), &method, &idempotency_key)
     });
-    let command = match build_create_recharge_command(
-        &subject,
+    let command = match build_create_recharge_command(CreateRechargeCommandInput {
+        subject: &subject,
         amount,
-        &currency_code,
-        &method,
-        &request_no,
-        &idempotency_key,
-        request.package_id(),
-        request.client_request_no(),
-        request.source(),
-    ) {
+        currency_code: &currency_code,
+        method: &method,
+        request_no: &request_no,
+        idempotency_key: &idempotency_key,
+        package_id: request.package_id(),
+        client_request_no: request.client_request_no(),
+        source: request.source(),
+    }) {
         Ok(command) => command,
         Err(error) => return commerce_error_response(error),
     };
@@ -428,6 +440,7 @@ async fn fetch_checkout_status(
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn required_text_header(headers: &HeaderMap, name: &'static str) -> Result<String, Response> {
     let value = headers
         .get(name)
@@ -498,40 +511,32 @@ fn validate_checkout_order_no(order_no: String) -> Result<String, String> {
 }
 
 fn build_create_recharge_command(
-    subject: &AppRuntimeSubject,
-    amount: CommerceMoney,
-    currency_code: &str,
-    method: &str,
-    request_no: &str,
-    idempotency_key: &str,
-    package_id: Option<&str>,
-    client_request_no: Option<&str>,
-    source: Option<&str>,
+    input: CreateRechargeCommandInput<'_>,
 ) -> Result<CreatePointsRechargeOrderCommand, CommerceServiceError> {
     let now = current_unix_timestamp();
     let requested_at = format_unix_timestamp(now);
     let expire_at = format_unix_timestamp(now + PAYMENT_EXPIRE_SECONDS);
     let seed = format!(
         "{}|{}|{}|{}|{}|{}|{}",
-        subject.tenant_id,
-        subject.organization_id.as_deref().unwrap_or(""),
-        subject.user_id,
-        amount.as_str(),
-        method,
-        request_no,
-        idempotency_key,
+        input.subject.tenant_id,
+        input.subject.organization_id.as_deref().unwrap_or(""),
+        input.subject.user_id,
+        input.amount.as_str(),
+        input.method,
+        input.request_no,
+        input.idempotency_key,
     );
     let token = stable_hex_token(&seed);
     let order_no = format!("RC{}", token);
     let out_trade_no = format!("RECHARGE{}", token);
 
     CreatePointsRechargeOrderCommand::new(
-        &subject.tenant_id,
-        subject.organization_id.as_deref(),
-        &subject.user_id,
-        amount,
-        currency_code,
-        method,
+        &input.subject.tenant_id,
+        input.subject.organization_id.as_deref(),
+        &input.subject.user_id,
+        input.amount,
+        input.currency_code,
+        input.method,
         &format!("order-{token}"),
         &format!("order-item-{token}"),
         &format!("payment-intent-{token}"),
@@ -540,10 +545,10 @@ fn build_create_recharge_command(
         &out_trade_no,
         &requested_at,
         &expire_at,
-        idempotency_key,
-        package_id,
-        client_request_no,
-        source,
+        input.idempotency_key,
+        input.package_id,
+        input.client_request_no,
+        input.source,
     )
 }
 

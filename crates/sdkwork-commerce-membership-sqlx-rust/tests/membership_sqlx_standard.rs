@@ -51,10 +51,10 @@ fn commerce_membership_sqlx_exposes_standard_store_names_without_legacy_membersh
         concat!("\"advanced\"", " =>"),
         concat!("\"premium\"", " =>"),
         concat!("\"ultimate\"", " =>"),
-        concat!("| \"basic\""),
-        concat!("| \"advanced\""),
-        concat!("| \"premium\""),
-        concat!("| \"ultimate\""),
+        "| \"basic\"",
+        "| \"advanced\"",
+        "| \"premium\"",
+        "| \"ultimate\"",
         concat!("level", "_id"),
         concat!("AS group", "_id"),
         concat!("\"group", "_id\""),
@@ -123,6 +123,58 @@ fn commerce_membership_routers_follow_api_spec_without_compat_query_aliases() {
     assert!(
         backend_router_source.contains("/backend/v3/api/memberships/members/{membershipId}/status")
     );
+}
+
+#[test]
+fn commerce_membership_purchase_uses_canonical_payment_method_keys_without_compat_aliases() {
+    let checked_sources = [
+        (
+            "membership sqlite repository",
+            include_str!("../src/sqlite.rs").replace("\r\n", "\n"),
+        ),
+        (
+            "membership postgres repository",
+            include_str!("../src/postgres.rs").replace("\r\n", "\n"),
+        ),
+        (
+            "membership shared helpers",
+            include_str!("../src/shared.rs").replace("\r\n", "\n"),
+        ),
+    ];
+
+    for (label, source) in &checked_sources {
+        assert!(
+            !source.contains("method_alias"),
+            "{label} must query commerce_payment_method.method_key by canonical key only",
+        );
+        assert!(
+            !source.contains("wechatpay"),
+            "{label} must not keep legacy compact wechatpay aliases",
+        );
+        assert!(
+            !source.contains("\"wechat_pay\" => \"wechat\""),
+            "{label} must preserve the canonical wechat_pay method key",
+        );
+        assert!(
+            !source.contains("LOWER(provider)"),
+            "{label} must not treat provider_code as a payment method alias",
+        );
+        assert!(
+            !source.contains("_ => \"wechat_pay\""),
+            "{label} must not default unknown payment methods to wechat_pay",
+        );
+    }
+
+    for (label, source) in checked_sources.iter().take(2) {
+        assert!(
+            source.contains("SELECT\n    method_key,\n    provider_code"),
+            "{label} must load provider_code from commerce_payment_method",
+        );
+        assert!(
+            !source.contains("payment_provider_code(&method_key)"),
+            "{label} must not derive provider_code from method_key",
+        );
+    }
 }
 
 #[tokio::test]
@@ -343,6 +395,29 @@ async fn sqlite_seed_installs_active_payment_center_defaults_and_preserves_admin
     .await
     .expect("load card route rule status");
     assert_eq!("inactive", card_rule_status);
+}
+
+#[tokio::test]
+async fn sqlite_payment_center_seed_populates_legacy_provider_column_when_present() {
+    let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+    install_schema_with_legacy_payment_method_provider(&pool).await;
+
+    upsert_sqlite_payment_center_seed(&pool)
+        .await
+        .expect("seed payment center with legacy provider column");
+
+    let provider_mismatch_count: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(1)
+        FROM commerce_payment_method
+        WHERE provider <> provider_code
+           OR provider = ''
+        "#,
+    )
+    .fetch_one(&pool)
+    .await
+    .expect("count legacy provider mismatches");
+    assert_eq!(0, provider_mismatch_count);
 }
 
 #[tokio::test]
@@ -663,10 +738,10 @@ async fn sqlite_purchase_creates_order_payment_membership_and_entitlements() {
         .expect("submit membership purchase");
 
     assert_eq!("MEMBERSHIP20260519001", outcome.order_id);
-    assert_eq!(true, outcome.success);
+    assert!(outcome.success);
     assert_eq!("MEMBERSHIP20260519001", outcome.request_no);
     assert_eq!("wechat_pay", outcome.provider_code);
-    assert_eq!("wechat", outcome.payment_method);
+    assert_eq!("wechat_pay", outcome.payment_method);
     assert_eq!("wechat_native", outcome.payment_product);
     assert_eq!("payment-membership-301", outcome.payment_id);
     assert_eq!(
@@ -717,6 +792,15 @@ async fn sqlite_purchase_creates_order_payment_membership_and_entitlements() {
     .await
     .expect("payment row");
     assert_eq!("pending", payment_status);
+
+    let payment_fact: (String, String) = sqlx::query_as(
+        "SELECT payment_method, provider_code FROM commerce_payment_intent WHERE id = 'payment-membership-301'",
+    )
+    .fetch_one(&pool)
+    .await
+    .expect("payment fact method and provider");
+    assert_eq!("wechat_pay", payment_fact.0);
+    assert_eq!("wechat_pay", payment_fact.1);
 
     let entitlement_count: i64 = sqlx::query_scalar(
         "SELECT COUNT(1) FROM entitlement_grant WHERE source_type = 'membership_subscription' AND source_id = 'membership-301'",
@@ -1466,6 +1550,14 @@ async fn install_schema(pool: &SqlitePool) {
     }
 }
 
+async fn install_schema_with_legacy_payment_method_provider(pool: &SqlitePool) {
+    for statement in sqlite_schema_statements_with_legacy_payment_method_provider() {
+        pool.execute(statement.as_str())
+            .await
+            .unwrap_or_else(|error| panic!("failed legacy schema statement: {statement}\n{error}"));
+    }
+}
+
 fn sqlite_schema_statements() -> Vec<String> {
     commerce_initial_migration_sql()
         .split(';')
@@ -1478,6 +1570,22 @@ fn sqlite_schema_statements() -> Vec<String> {
                 .replace("BIGINT", "INTEGER")
                 .replace("BOOLEAN", "INTEGER")
                 .replace("VARCHAR", "TEXT")
+        })
+        .collect()
+}
+
+fn sqlite_schema_statements_with_legacy_payment_method_provider() -> Vec<String> {
+    sqlite_schema_statements()
+        .into_iter()
+        .map(|statement| {
+            if statement.contains("CREATE TABLE IF NOT EXISTS commerce_payment_method") {
+                statement.replace(
+                    "provider_code TEXT NOT NULL,",
+                    "provider TEXT NOT NULL,\n  provider_code TEXT NOT NULL,",
+                )
+            } else {
+                statement
+            }
         })
         .collect()
 }

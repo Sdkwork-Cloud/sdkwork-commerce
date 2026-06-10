@@ -6,8 +6,8 @@ use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 use crate::read_model::is_missing_sqlite_read_model;
 use crate::shared::{
     benefits_for_plan, build_package_group_from_packages, decimal_string,
-    map_membership_package_record, method_alias, normalize_payment_method, parse_points_amount,
-    payment_product_for_scan_qr, payment_provider_code, plan_code_from_rank, plan_rank_from_code,
+    map_membership_package_record, normalize_payment_method, parse_points_amount,
+    payment_product_for_scan_qr, plan_code_from_rank, plan_rank_from_code,
     privilege_usage_from_benefits, ParsedMembershipPackage, StoredMembershipPlan,
     POINTS_ASSET_TYPE, POINTS_CURRENCY_CODE,
 };
@@ -163,13 +163,13 @@ LIMIT ?5 OFFSET ?6
 const LOAD_PAYMENT_METHOD: &str = r#"
 SELECT
     method_key,
-    provider
+    provider_code
 FROM commerce_payment_method
 WHERE (tenant_id = CAST(?1 AS TEXT) OR tenant_id = '0')
   AND (organization_id = CAST(?2 AS TEXT) OR organization_id = '0')
   AND status = 'active'
-  AND (LOWER(method_key) = ?3 OR LOWER(method_key) = ?4 OR LOWER(provider) = ?3 OR LOWER(provider) = ?4)
-ORDER BY tenant_id DESC, organization_id DESC, sort_weight ASC, id ASC
+  AND LOWER(method_key) = ?3
+ORDER BY tenant_id DESC, organization_id DESC, sort_order ASC, id ASC
 LIMIT 1
 "#;
 
@@ -846,7 +846,7 @@ async fn create_admin_membership_package(
     sqlx::query(
         r#"
         INSERT INTO commerce_product_sku
-            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, original_price_amount, currency_code, delivery_mode, inventory_tracking, sales_status, spec_json, created_at, updated_at)
+            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, original_price_amount, currency_code, fulfillment_type, inventory_tracking, status, spec_json, created_at, updated_at)
         VALUES
             (?1, '0', '0', 'seed-product-membership', ?2, ?3, ?3, ?4, NULL, ?5, 'membership_activation', 'untracked', ?6, '{}', ?7, ?7)
         ON CONFLICT(id) DO UPDATE SET
@@ -855,7 +855,7 @@ async fn create_admin_membership_package(
             title = excluded.title,
             price_amount = excluded.price_amount,
             currency_code = excluded.currency_code,
-            sales_status = excluded.sales_status,
+            status = excluded.status,
             updated_at = excluded.updated_at
         "#,
     )
@@ -925,7 +925,7 @@ async fn update_admin_membership_package(
     sqlx::query(
         r#"
         INSERT INTO commerce_product_sku
-            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, original_price_amount, currency_code, delivery_mode, inventory_tracking, sales_status, spec_json, created_at, updated_at)
+            (id, tenant_id, organization_id, spu_id, sku_no, name, title, price_amount, original_price_amount, currency_code, fulfillment_type, inventory_tracking, status, spec_json, created_at, updated_at)
         VALUES
             (?1, '0', '0', 'seed-product-membership', ?2, ?3, ?3, ?4, NULL, ?5, 'membership_activation', 'untracked', ?6, '{}', ?7, ?7)
         ON CONFLICT(id) DO UPDATE SET
@@ -934,7 +934,7 @@ async fn update_admin_membership_package(
             title = excluded.title,
             price_amount = excluded.price_amount,
             currency_code = excluded.currency_code,
-            sales_status = excluded.sales_status,
+            status = excluded.status,
             updated_at = excluded.updated_at
         "#,
     )
@@ -1986,9 +1986,9 @@ async fn submit_purchase(
         success: true,
         request_no: command.order_no.clone(),
         order_id: command.order_no.clone(),
-        provider_code: payment_provider_code(&method.method_key).to_owned(),
+        provider_code: method.provider_code.clone(),
         payment_method: method.method_key.clone(),
-        payment_product: payment_product_for_scan_qr(&method.method_key).to_owned(),
+        payment_product: method.payment_product.clone(),
         next_action: "scan_qr".to_owned(),
         payment_id: command.payment_uuid.clone(),
         cashier_url: membership_payment_qr_code_payload(&command.payment_uuid, &command.order_no),
@@ -2031,27 +2031,31 @@ async fn load_package_for_purchase(
 #[derive(Debug, Clone)]
 struct MembershipPaymentMethod {
     method_key: String,
+    provider_code: String,
+    payment_product: String,
 }
+
+const MEMBERSHIP_PAYMENT_METHOD: &str = "wechat_pay";
 
 async fn load_payment_method(
     tx: &mut Transaction<'_, Sqlite>,
     command: &SubmitMembershipPurchaseCommand,
 ) -> AppMembershipResult<MembershipPaymentMethod> {
-    let method = "wechat".to_owned();
-    let alias = method_alias(&method);
     let row = sqlx::query(LOAD_PAYMENT_METHOD)
         .bind(command.subject.tenant_id)
         .bind(command.subject.organization_id)
-        .bind(&method)
-        .bind(alias)
+        .bind(MEMBERSHIP_PAYMENT_METHOD)
         .fetch_optional(&mut **tx)
         .await
         .map_err(|error| store_error("failed to load membership payment method", error))?
         .ok_or_else(|| {
             CommerceServiceError::conflict("membership payment method is unavailable")
         })?;
+    let method_key = normalize_payment_method(&string_cell(&row, "method_key"));
     Ok(MembershipPaymentMethod {
-        method_key: normalize_payment_method(&string_cell(&row, "method_key")),
+        provider_code: normalize_payment_method(&string_cell(&row, "provider_code")),
+        payment_product: payment_product_for_scan_qr(&method_key)?.to_owned(),
+        method_key,
     })
 }
 
@@ -2184,9 +2188,9 @@ async fn insert_payment(
     sqlx::query(
         r#"
         INSERT INTO commerce_payment_intent
-            (id, tenant_id, organization_id, owner_user_id, order_id, provider, amount, currency_code, status, request_no, idempotency_key, created_at, updated_at)
+            (id, tenant_id, organization_id, owner_user_id, order_id, payment_method, provider_code, amount, currency_code, status, request_no, idempotency_key, created_at, updated_at)
         VALUES
-            (?, CAST(? AS TEXT), CAST(? AS TEXT), CAST(? AS TEXT), ?, ?, ?, 'CNY', ?, ?, ?, ?, ?)
+            (?, CAST(? AS TEXT), CAST(? AS TEXT), CAST(? AS TEXT), ?, ?, ?, ?, 'CNY', ?, ?, ?, ?, ?)
         "#,
     )
     .bind(&command.payment_uuid)
@@ -2195,6 +2199,7 @@ async fn insert_payment(
     .bind(command.subject.user_id)
     .bind(&command.order_uuid)
     .bind(&method.method_key)
+    .bind(&method.provider_code)
     .bind(&package.item.price)
     .bind(CommercePaymentStatus::Pending.as_str())
     .bind(&command.order_no)
@@ -2207,9 +2212,9 @@ async fn insert_payment(
     sqlx::query(
         r#"
         INSERT INTO commerce_payment_attempt
-            (id, tenant_id, organization_id, owner_user_id, payment_intent_id, order_id, provider, out_trade_no, amount, currency_code, status, callback_payload, created_at, paid_at, updated_at)
+            (id, tenant_id, organization_id, owner_user_id, payment_intent_id, order_id, payment_method, provider_code, out_trade_no, amount, currency_code, status, callback_payload, created_at, paid_at, updated_at)
         VALUES
-            (?, CAST(? AS TEXT), CAST(? AS TEXT), CAST(? AS TEXT), ?, ?, ?, ?, ?, 'CNY', ?, ?, ?, NULL, ?)
+            (?, CAST(? AS TEXT), CAST(? AS TEXT), CAST(? AS TEXT), ?, ?, ?, ?, ?, ?, 'CNY', ?, ?, ?, NULL, ?)
         "#,
     )
     .bind(&command.attempt_uuid)
@@ -2219,6 +2224,7 @@ async fn insert_payment(
     .bind(&command.payment_uuid)
     .bind(&command.order_uuid)
     .bind(&method.method_key)
+    .bind(&method.provider_code)
     .bind(&command.out_trade_no)
     .bind(&package.item.price)
     .bind(CommercePaymentStatus::Pending.as_str())

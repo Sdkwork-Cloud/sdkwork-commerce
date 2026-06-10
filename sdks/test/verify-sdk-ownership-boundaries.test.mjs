@@ -89,6 +89,28 @@ test("commerce SDK family assemblies declare owner-only authority metadata", () 
       manifest.sdkDependencies ?? [],
       `${family.root} component spec and manifest sdkDependencies must match`,
     );
+    assert(
+      Array.isArray(assembly.dependencyApiExports),
+      `${family.root} assembly must explicitly declare dependencyApiExports`,
+    );
+    assert(
+      Array.isArray(manifest.dependencyApiExports),
+      `${family.root} manifest must explicitly declare dependencyApiExports`,
+    );
+    assert(
+      Array.isArray(componentSpec.contracts?.dependencyApiExports),
+      `${family.root} component spec must explicitly declare dependencyApiExports`,
+    );
+    assert.deepEqual(
+      assembly.dependencyApiExports,
+      manifest.dependencyApiExports,
+      `${family.root} assembly and manifest dependencyApiExports must match`,
+    );
+    assert.deepEqual(
+      componentSpec.contracts.dependencyApiExports,
+      manifest.dependencyApiExports,
+      `${family.root} component spec and manifest dependencyApiExports must match`,
+    );
 
     if (family.dependencyWorkspace) {
       assert.deepEqual(

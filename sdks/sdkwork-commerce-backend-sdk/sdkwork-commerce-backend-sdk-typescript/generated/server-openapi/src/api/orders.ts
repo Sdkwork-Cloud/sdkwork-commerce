@@ -29,11 +29,44 @@ export class OrdersCancellationsApi {
   }
 }
 
-export interface OrdersManagementListParams {
+export interface OrdersEventsManagementListParams {
   page?: number;
   pageSize?: number;
-  cursor?: string;
-  sort?: string;
+}
+
+export class OrdersEventsManagementApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Orders events management list. */
+  async list(orderId: string, params?: OrdersEventsManagementListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/orders/${serializePathParameter(orderId, { name: 'orderId', style: 'simple', explode: false })}/events`), query));
+  }
+}
+
+export class OrdersEventsApi {
+  private client: HttpClient;
+  public readonly management: OrdersEventsManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new OrdersEventsManagementApi(client);
+  }
+
+}
+
+export interface OrdersManagementListParams {
+  status?: string;
+  page?: number;
+  pageSize?: number;
   q?: string;
 }
 
@@ -48,78 +81,6 @@ export class OrdersManagementApi {
 /** Orders management list. */
   async list(params?: OrdersManagementListParams): Promise<CommerceApiResult> {
     const query = buildQueryString([
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
-      { name: 'sort', value: params?.sort, style: 'form', explode: true, allowReserved: false },
-      { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/orders/management`), query));
-  }
-
-/** Orders management retrieve. */
-  async retrieve(orderId: string): Promise<CommerceApiResult> {
-    return this.client.get<CommerceApiResult>(backendApiPath(`/orders/management/${serializePathParameter(orderId, { name: 'orderId', style: 'simple', explode: false })}`));
-  }
-
-/** Orders management cancel. */
-  async cancel(orderId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/orders/management/${serializePathParameter(orderId, { name: 'orderId', style: 'simple', explode: false })}/cancel`), body, undefined, undefined, 'application/json');
-  }
-
-/** Orders management close. */
-  async close(orderId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/orders/management/${serializePathParameter(orderId, { name: 'orderId', style: 'simple', explode: false })}/close`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export interface OrdersEventsListParams {
-  page?: number;
-  pageSize?: number;
-}
-
-export class OrdersEventsApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Orders events list. */
-  async list(orderId: string, params?: OrdersEventsListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/orders/${serializePathParameter(orderId, { name: 'orderId', style: 'simple', explode: false })}/events`), query));
-  }
-}
-
-export interface OrdersListParams {
-  status?: string;
-  page?: number;
-  pageSize?: number;
-  q?: string;
-}
-
-export class OrdersApi {
-  private client: HttpClient;
-  public readonly events: OrdersEventsApi;
-  public readonly management: OrdersManagementApi;
-  public readonly cancellations: OrdersCancellationsApi;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-    this.events = new OrdersEventsApi(client);
-    this.management = new OrdersManagementApi(client);
-    this.cancellations = new OrdersCancellationsApi(client);
-  }
-
-
-/** Orders list. */
-  async list(params?: OrdersListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
       { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
@@ -128,10 +89,35 @@ export class OrdersApi {
     return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/orders`), query));
   }
 
-/** Orders retrieve. */
+/** Orders management retrieve. */
   async retrieve(orderId: string): Promise<CommerceApiResult> {
     return this.client.get<CommerceApiResult>(backendApiPath(`/orders/${serializePathParameter(orderId, { name: 'orderId', style: 'simple', explode: false })}`));
   }
+
+/** Orders management cancel. */
+  async cancel(orderId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/orders/${serializePathParameter(orderId, { name: 'orderId', style: 'simple', explode: false })}/cancel`), body, undefined, undefined, 'application/json');
+  }
+
+/** Orders management close. */
+  async close(orderId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/orders/${serializePathParameter(orderId, { name: 'orderId', style: 'simple', explode: false })}/close`), body, undefined, undefined, 'application/json');
+  }
+}
+
+export class OrdersApi {
+  private client: HttpClient;
+  public readonly management: OrdersManagementApi;
+  public readonly events: OrdersEventsApi;
+  public readonly cancellations: OrdersCancellationsApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new OrdersManagementApi(client);
+    this.events = new OrdersEventsApi(client);
+    this.cancellations = new OrdersCancellationsApi(client);
+  }
+
 }
 
 export function createOrdersApi(client: HttpClient): OrdersApi {

@@ -4,89 +4,15 @@ import type { HttpClient } from '../http/client';
 import type { CommerceApiResult, CommerceOperationCommand } from '../types';
 
 
-export interface MembershipsPlansListParams {
-  status?: string;
-}
-
-export class MembershipsPlansApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Memberships plans list. */
-  async list(params?: MembershipsPlansListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/memberships/plans`), query));
-  }
-
-/** Memberships plans create. */
-  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/memberships/plans`), body, undefined, undefined, 'application/json');
-  }
-
-/** Memberships plans delete. */
-  async delete(planId: string): Promise<CommerceApiResult> {
-    return this.client.delete<CommerceApiResult>(backendApiPath(`/memberships/plans/${serializePathParameter(planId, { name: 'planId', style: 'simple', explode: false })}`));
-  }
-
-/** Memberships plans update. */
-  async update(planId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.patch<CommerceApiResult>(backendApiPath(`/memberships/plans/${serializePathParameter(planId, { name: 'planId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export interface MembershipsPackagesListParams {
+export interface MembershipsEntitlementsListParams {
+  membershipId?: string;
   planId?: string;
   status?: string;
-}
-
-export class MembershipsPackagesApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Memberships packages list. */
-  async list(params?: MembershipsPackagesListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'plan_id', value: params?.planId, style: 'form', explode: true, allowReserved: false },
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/memberships/packages`), query));
-  }
-
-/** Memberships packages create. */
-  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/memberships/packages`), body, undefined, undefined, 'application/json');
-  }
-
-/** Memberships packages delete. */
-  async delete(packageId: string): Promise<CommerceApiResult> {
-    return this.client.delete<CommerceApiResult>(backendApiPath(`/memberships/packages/${serializePathParameter(packageId, { name: 'packageId', style: 'simple', explode: false })}`));
-  }
-
-/** Memberships packages update. */
-  async update(packageId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.patch<CommerceApiResult>(backendApiPath(`/memberships/packages/${serializePathParameter(packageId, { name: 'packageId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export interface MembershipsPackageGroupsListParams {
   page?: number;
   pageSize?: number;
-  cursor?: string;
-  sort?: string;
-  q?: string;
 }
 
-export class MembershipsPackageGroupsApi {
+export class MembershipsEntitlementsApi {
   private client: HttpClient;
 
   constructor(client: HttpClient) {
@@ -94,31 +20,16 @@ export class MembershipsPackageGroupsApi {
   }
 
 
-/** Memberships package Groups list. */
-  async list(params?: MembershipsPackageGroupsListParams): Promise<CommerceApiResult> {
+/** Memberships entitlements list. */
+  async list(params?: MembershipsEntitlementsListParams): Promise<CommerceApiResult> {
     const query = buildQueryString([
+      { name: 'membership_id', value: params?.membershipId, style: 'form', explode: true, allowReserved: false },
+      { name: 'plan_id', value: params?.planId, style: 'form', explode: true, allowReserved: false },
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
-      { name: 'sort', value: params?.sort, style: 'form', explode: true, allowReserved: false },
-      { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
     ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/memberships/package_groups`), query));
-  }
-
-/** Memberships package Groups create. */
-  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/memberships/package_groups`), body, undefined, undefined, 'application/json');
-  }
-
-/** Memberships package Groups delete. */
-  async delete(packageGroupId: string): Promise<CommerceApiResult> {
-    return this.client.delete<CommerceApiResult>(backendApiPath(`/memberships/package_groups/${serializePathParameter(packageGroupId, { name: 'packageGroupId', style: 'simple', explode: false })}`));
-  }
-
-/** Memberships package Groups update. */
-  async update(packageGroupId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.patch<CommerceApiResult>(backendApiPath(`/memberships/package_groups/${serializePathParameter(packageGroupId, { name: 'packageGroupId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/memberships/entitlements`), query));
   }
 }
 
@@ -156,15 +67,11 @@ export class MembershipsMembersApi {
   }
 }
 
-export interface MembershipsEntitlementsListParams {
-  membershipId?: string;
-  planId?: string;
+export interface MembershipsPackageGroupsManagementListParams {
   status?: string;
-  page?: number;
-  pageSize?: number;
 }
 
-export class MembershipsEntitlementsApi {
+export class MembershipsPackageGroupsManagementApi {
   private client: HttpClient;
 
   constructor(client: HttpClient) {
@@ -172,44 +79,147 @@ export class MembershipsEntitlementsApi {
   }
 
 
-/** Memberships entitlements list. */
-  async list(params?: MembershipsEntitlementsListParams): Promise<CommerceApiResult> {
+/** Memberships package Groups management list. */
+  async list(params?: MembershipsPackageGroupsManagementListParams): Promise<CommerceApiResult> {
     const query = buildQueryString([
-      { name: 'membership_id', value: params?.membershipId, style: 'form', explode: true, allowReserved: false },
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/memberships/package_groups`), query));
+  }
+}
+
+export class MembershipsPackageGroupsApi {
+  private client: HttpClient;
+  public readonly management: MembershipsPackageGroupsManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new MembershipsPackageGroupsManagementApi(client);
+  }
+
+
+/** Memberships package Groups create. */
+  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/memberships/package_groups`), body, undefined, undefined, 'application/json');
+  }
+
+/** Memberships package Groups update. */
+  async update(packageGroupId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.patch<CommerceApiResult>(backendApiPath(`/memberships/package_groups/${serializePathParameter(packageGroupId, { name: 'packageGroupId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
+  }
+
+/** Memberships package Groups delete. */
+  async delete(packageGroupId: string): Promise<CommerceApiResult> {
+    return this.client.delete<CommerceApiResult>(backendApiPath(`/memberships/package_groups/${serializePathParameter(packageGroupId, { name: 'packageGroupId', style: 'simple', explode: false })}`));
+  }
+}
+
+export interface MembershipsPackagesManagementListParams {
+  planId?: string;
+  status?: string;
+}
+
+export class MembershipsPackagesManagementApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Memberships packages management list. */
+  async list(params?: MembershipsPackagesManagementListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
       { name: 'plan_id', value: params?.planId, style: 'form', explode: true, allowReserved: false },
       { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
     ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/memberships/entitlements`), query));
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/memberships/packages`), query));
+  }
+}
+
+export class MembershipsPackagesApi {
+  private client: HttpClient;
+  public readonly management: MembershipsPackagesManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new MembershipsPackagesManagementApi(client);
   }
 
-/** Memberships entitlements revoke. */
-  async revoke(entitlementId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/memberships/entitlements/${serializePathParameter(entitlementId, { name: 'entitlementId', style: 'simple', explode: false })}/revoke`), body, undefined, undefined, 'application/json');
+
+/** Memberships packages create. */
+  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/memberships/packages`), body, undefined, undefined, 'application/json');
   }
 
-/** Memberships entitlements grant. */
-  async grant(body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/memberships/entitlements/grants`), body, undefined, undefined, 'application/json');
+/** Memberships packages update. */
+  async update(packageId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.patch<CommerceApiResult>(backendApiPath(`/memberships/packages/${serializePathParameter(packageId, { name: 'packageId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
+  }
+
+/** Memberships packages delete. */
+  async delete(packageId: string): Promise<CommerceApiResult> {
+    return this.client.delete<CommerceApiResult>(backendApiPath(`/memberships/packages/${serializePathParameter(packageId, { name: 'packageId', style: 'simple', explode: false })}`));
+  }
+}
+
+export interface MembershipsPlansManagementListParams {
+  status?: string;
+}
+
+export class MembershipsPlansManagementApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Memberships plans management list. */
+  async list(params?: MembershipsPlansManagementListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/memberships/plans`), query));
+  }
+}
+
+export class MembershipsPlansApi {
+  private client: HttpClient;
+  public readonly management: MembershipsPlansManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new MembershipsPlansManagementApi(client);
+  }
+
+
+/** Memberships plans create. */
+  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/memberships/plans`), body, undefined, undefined, 'application/json');
+  }
+
+/** Memberships plans update. */
+  async update(planId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.patch<CommerceApiResult>(backendApiPath(`/memberships/plans/${serializePathParameter(planId, { name: 'planId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
   }
 }
 
 export class MembershipsApi {
   private client: HttpClient;
-  public readonly entitlements: MembershipsEntitlementsApi;
-  public readonly members: MembershipsMembersApi;
-  public readonly packageGroups: MembershipsPackageGroupsApi;
-  public readonly packages: MembershipsPackagesApi;
   public readonly plans: MembershipsPlansApi;
+  public readonly packages: MembershipsPackagesApi;
+  public readonly packageGroups: MembershipsPackageGroupsApi;
+  public readonly members: MembershipsMembersApi;
+  public readonly entitlements: MembershipsEntitlementsApi;
 
   constructor(client: HttpClient) {
     this.client = client;
-    this.entitlements = new MembershipsEntitlementsApi(client);
-    this.members = new MembershipsMembersApi(client);
-    this.packageGroups = new MembershipsPackageGroupsApi(client);
-    this.packages = new MembershipsPackagesApi(client);
     this.plans = new MembershipsPlansApi(client);
+    this.packages = new MembershipsPackagesApi(client);
+    this.packageGroups = new MembershipsPackageGroupsApi(client);
+    this.members = new MembershipsMembersApi(client);
+    this.entitlements = new MembershipsEntitlementsApi(client);
   }
 
 }

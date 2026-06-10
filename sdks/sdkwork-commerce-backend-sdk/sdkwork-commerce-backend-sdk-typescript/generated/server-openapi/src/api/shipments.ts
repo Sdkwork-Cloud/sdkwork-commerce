@@ -18,6 +18,20 @@ export class ShipmentsTrackingEventsApi {
   }
 }
 
+export class ShipmentsManagementApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Shipments management retrieve. */
+  async retrieve(shipmentId: string): Promise<CommerceApiResult> {
+    return this.client.get<CommerceApiResult>(backendApiPath(`/shipments/${serializePathParameter(shipmentId, { name: 'shipmentId', style: 'simple', explode: false })}`));
+  }
+}
+
 export interface ShipmentsListParams {
   status?: string;
   page?: number;
@@ -26,10 +40,12 @@ export interface ShipmentsListParams {
 
 export class ShipmentsApi {
   private client: HttpClient;
+  public readonly management: ShipmentsManagementApi;
   public readonly trackingEvents: ShipmentsTrackingEventsApi;
 
   constructor(client: HttpClient) {
     this.client = client;
+    this.management = new ShipmentsManagementApi(client);
     this.trackingEvents = new ShipmentsTrackingEventsApi(client);
   }
 
@@ -42,11 +58,6 @@ export class ShipmentsApi {
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
     ]);
     return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/shipments`), query));
-  }
-
-/** Shipments retrieve. */
-  async retrieve(shipmentId: string): Promise<CommerceApiResult> {
-    return this.client.get<CommerceApiResult>(backendApiPath(`/shipments/${serializePathParameter(shipmentId, { name: 'shipmentId', style: 'simple', explode: false })}`));
   }
 }
 

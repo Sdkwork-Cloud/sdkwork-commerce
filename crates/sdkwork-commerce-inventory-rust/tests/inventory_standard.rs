@@ -159,17 +159,20 @@ fn inventory_service_contract_exposes_domain_operations() {
     for query in [
         "inventory.stocks.list",
         "inventory.reservations.list",
-        "inventory.ledgerEntries.list",
+        "inventory.movements.list",
     ] {
         assert!(
             contract.read_queries.contains(&query),
             "inventory contract must expose read query {query}",
         );
     }
-    for command in ["inventory.stocks.update"] {
-        assert!(
-            contract.write_commands.contains(&command),
-            "inventory contract must expose write command {command}",
-        );
-    }
+    assert!(!contract
+        .read_queries
+        .contains(&"inventory.ledgerEntries.list"));
+    assert!(!contract.read_queries.contains(&"inventory.ledger.list"));
+    let command = "inventory.stocks.update";
+    assert!(
+        contract.write_commands.contains(&command),
+        "inventory contract must expose write command {command}",
+    );
 }

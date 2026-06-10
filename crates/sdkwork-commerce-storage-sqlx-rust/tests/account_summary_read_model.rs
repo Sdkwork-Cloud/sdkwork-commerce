@@ -35,7 +35,7 @@ async fn sqlite_account_summary_reads_safe_profile_balance_and_invoice_from_comm
     assert_eq!("SDKWork Research Ltd", summary.invoice_settings.org_full);
     assert_eq!("TAX-91310000", summary.invoice_settings.tax_id);
     assert_eq!("NORMAL", summary.invoice_settings.invoice_type);
-    assert_eq!(true, summary.security.mfa_enabled);
+    assert!(summary.security.mfa_enabled);
     assert_eq!(2, summary.security.ip_whitelist_count);
     assert_eq!(1, summary.login_logs.len());
     assert_eq!("success", summary.login_logs[0].status);
@@ -58,7 +58,7 @@ async fn sqlite_account_summary_returns_default_safe_shape_when_optional_tables_
     assert_eq!(0.0, summary.monthly_consumption);
     assert!(summary.consumption_by_service.is_empty());
     assert!(summary.login_logs.is_empty());
-    assert_eq!(false, summary.security.mfa_enabled);
+    assert!(!summary.security.mfa_enabled);
 }
 
 async fn create_optional_account_summary_tables(pool: &SqlitePool) {

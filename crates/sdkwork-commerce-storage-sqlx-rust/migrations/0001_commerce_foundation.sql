@@ -14,6 +14,394 @@ CREATE TABLE IF NOT EXISTS commerce_idempotency_key (
   UNIQUE (tenant_id, scope, idempotency_key)
 );
 
+CREATE TABLE IF NOT EXISTS commerce_shop (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_no TEXT NOT NULL,
+  shop_name TEXT NOT NULL,
+  shop_type TEXT NOT NULL,
+  business_model TEXT NOT NULL,
+  storefront_status TEXT NOT NULL,
+  operation_status TEXT NOT NULL,
+  review_status TEXT NOT NULL,
+  data_scope TEXT NOT NULL DEFAULT 'organization',
+  verification_snapshot_json TEXT,
+  contact_snapshot_json TEXT,
+  logo_media_resource_id TEXT,
+  cover_media_resource_id TEXT,
+  default_currency_code TEXT NOT NULL,
+  default_locale TEXT,
+  timezone TEXT,
+  operation_config_json TEXT NOT NULL DEFAULT '{}',
+  version INTEGER NOT NULL DEFAULT 0,
+  submitted_at TEXT,
+  approved_at TEXT,
+  rejected_at TEXT,
+  suspended_at TEXT,
+  closed_at TEXT,
+  deleted_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, shop_no)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_application (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  application_no TEXT NOT NULL,
+  application_type TEXT NOT NULL,
+  review_status TEXT NOT NULL,
+  legal_entity_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  contact_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  qualification_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  submitted_by TEXT NOT NULL,
+  submitted_at TEXT NOT NULL,
+  reviewed_by TEXT,
+  reviewed_at TEXT,
+  review_comment TEXT,
+  idempotency_key TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, application_no),
+  UNIQUE (tenant_id, shop_id, idempotency_key)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_verification (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  verification_type TEXT NOT NULL,
+  verification_status TEXT NOT NULL,
+  legal_entity_name TEXT,
+  credential_no_hash TEXT,
+  credential_media_resource_id TEXT,
+  verification_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  expires_at TEXT,
+  reviewed_by TEXT,
+  reviewed_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, shop_id, verification_type)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_status_event (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  event_no TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  from_status TEXT,
+  to_status TEXT NOT NULL,
+  reason_code TEXT,
+  reason_detail TEXT,
+  actor_type TEXT NOT NULL,
+  actor_id TEXT,
+  idempotency_key TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  UNIQUE (tenant_id, event_no),
+  UNIQUE (tenant_id, shop_id, idempotency_key)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_channel (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  channel_code TEXT NOT NULL,
+  storefront_status TEXT NOT NULL,
+  domain_name TEXT,
+  path_prefix TEXT,
+  theme_code TEXT,
+  channel_config_json TEXT NOT NULL DEFAULT '{}',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, shop_id, channel_code)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_fulfillment_profile (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  fulfillment_mode TEXT NOT NULL,
+  shipping_origin_region_code TEXT,
+  service_level_code TEXT,
+  after_sales_policy_json TEXT NOT NULL DEFAULT '{}',
+  service_config_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, shop_id)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_settlement_profile (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  settlement_status TEXT NOT NULL,
+  settlement_cycle TEXT NOT NULL,
+  settlement_currency_code TEXT NOT NULL,
+  account_ref TEXT,
+  risk_hold_days INTEGER NOT NULL DEFAULT 0,
+  settlement_config_json TEXT NOT NULL DEFAULT '{}',
+  reviewed_by TEXT,
+  reviewed_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, shop_id)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_metric_snapshot (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  snapshot_date TEXT NOT NULL,
+  gross_sales_amount TEXT NOT NULL DEFAULT '0',
+  currency_code TEXT NOT NULL,
+  paid_order_count INTEGER NOT NULL DEFAULT 0,
+  refund_order_count INTEGER NOT NULL DEFAULT 0,
+  fulfillment_pending_count INTEGER NOT NULL DEFAULT 0,
+  settlement_pending_amount TEXT NOT NULL DEFAULT '0',
+  created_at TEXT NOT NULL,
+  UNIQUE (tenant_id, shop_id, snapshot_date)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_business_hour (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  schedule_type TEXT NOT NULL,
+  timezone TEXT NOT NULL,
+  weekly_schedule_json TEXT NOT NULL DEFAULT '{}',
+  holiday_schedule_json TEXT NOT NULL DEFAULT '{}',
+  effective_from TEXT,
+  effective_to TEXT,
+  status TEXT NOT NULL,
+  version INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, shop_id, schedule_type)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_service_area (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  area_type TEXT NOT NULL,
+  country_code TEXT NOT NULL,
+  region_code TEXT,
+  city_code TEXT,
+  area_key TEXT NOT NULL,
+  postal_code_pattern TEXT,
+  delivery_radius_meters INTEGER,
+  service_status TEXT NOT NULL,
+  service_config_json TEXT NOT NULL DEFAULT '{}',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  CHECK (delivery_radius_meters IS NULL OR delivery_radius_meters >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_policy (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  policy_type TEXT NOT NULL,
+  policy_status TEXT NOT NULL,
+  policy_version INTEGER NOT NULL DEFAULT 1,
+  policy_json TEXT NOT NULL DEFAULT '{}',
+  published_at TEXT,
+  reviewed_by TEXT,
+  reviewed_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, shop_id, policy_type, policy_version)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_deposit_account (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  deposit_status TEXT NOT NULL,
+  currency_code TEXT NOT NULL,
+  required_amount TEXT NOT NULL DEFAULT '0',
+  paid_amount TEXT NOT NULL DEFAULT '0',
+  frozen_amount TEXT NOT NULL DEFAULT '0',
+  account_ref TEXT,
+  due_at TEXT,
+  reviewed_by TEXT,
+  reviewed_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, shop_id, currency_code)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_risk_signal (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  signal_no TEXT NOT NULL,
+  signal_type TEXT NOT NULL,
+  risk_level TEXT NOT NULL,
+  signal_status TEXT NOT NULL,
+  source_type TEXT,
+  source_id TEXT,
+  risk_score INTEGER NOT NULL DEFAULT 0,
+  payload_json TEXT NOT NULL DEFAULT '{}',
+  detected_at TEXT NOT NULL,
+  resolved_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, signal_no)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_category_binding (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  shop_category_code TEXT NOT NULL,
+  platform_category_code TEXT,
+  platform_category_name TEXT,
+  category_path TEXT,
+  category_level INTEGER NOT NULL DEFAULT 0,
+  category_status TEXT NOT NULL,
+  qualification_required INTEGER NOT NULL DEFAULT 0,
+  qualification_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  review_status TEXT NOT NULL,
+  reviewed_by TEXT,
+  reviewed_at TEXT,
+  effective_from TEXT,
+  effective_to TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  CHECK (qualification_required IN (0, 1)),
+  CONSTRAINT uk_commerce_shop_category_binding_scope UNIQUE (tenant_id, shop_id, shop_category_code)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_brand_authorization (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  brand_code TEXT NOT NULL,
+  brand_name TEXT NOT NULL,
+  authorization_type TEXT NOT NULL,
+  authorization_status TEXT NOT NULL,
+  brand_owner_name TEXT,
+  trademark_no_hash TEXT,
+  trademark_media_resource_id TEXT,
+  authorization_media_resource_id TEXT,
+  authorization_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  valid_from TEXT,
+  valid_to TEXT,
+  reviewed_by TEXT,
+  reviewed_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  CONSTRAINT uk_commerce_shop_brand_authorization_scope UNIQUE (tenant_id, shop_id, brand_code)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_qualification (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  qualification_type TEXT NOT NULL,
+  qualification_status TEXT NOT NULL,
+  subject_type TEXT NOT NULL,
+  subject_id TEXT NOT NULL DEFAULT '',
+  credential_name TEXT,
+  credential_no_hash TEXT,
+  credential_media_resource_id TEXT,
+  qualification_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  issued_at TEXT,
+  expires_at TEXT,
+  reviewed_by TEXT,
+  reviewed_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  CONSTRAINT uk_commerce_shop_qualification_scope UNIQUE (tenant_id, shop_id, qualification_type, subject_type, subject_id)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_customer_service (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  service_channel TEXT NOT NULL,
+  service_status TEXT NOT NULL,
+  contact_ref TEXT NOT NULL,
+  contact_label TEXT,
+  service_window_json TEXT NOT NULL DEFAULT '{}',
+  service_config_json TEXT NOT NULL DEFAULT '{}',
+  is_default INTEGER NOT NULL DEFAULT 0,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  CHECK (is_default IN (0, 1)),
+  CONSTRAINT uk_commerce_shop_customer_service_scope UNIQUE (tenant_id, shop_id, service_channel, contact_ref)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_return_address (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  address_usage TEXT NOT NULL,
+  address_key TEXT NOT NULL,
+  receiver_name TEXT NOT NULL,
+  phone_hash TEXT,
+  country_code TEXT NOT NULL,
+  region_code TEXT,
+  city_code TEXT,
+  district_code TEXT,
+  address_line1 TEXT NOT NULL,
+  postal_code TEXT,
+  is_default INTEGER NOT NULL DEFAULT 0,
+  address_status TEXT NOT NULL,
+  address_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  CHECK (is_default IN (0, 1)),
+  CONSTRAINT uk_commerce_shop_return_address_scope UNIQUE (tenant_id, shop_id, address_usage, address_key)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_shop_shipping_template (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  shop_id TEXT NOT NULL,
+  template_code TEXT NOT NULL,
+  template_name TEXT NOT NULL,
+  template_status TEXT NOT NULL,
+  pricing_mode TEXT NOT NULL,
+  delivery_method TEXT NOT NULL,
+  base_quantity INTEGER NOT NULL DEFAULT 1,
+  base_fee_amount TEXT NOT NULL DEFAULT '0',
+  currency_code TEXT NOT NULL,
+  is_default INTEGER NOT NULL DEFAULT 0,
+  region_rule_json TEXT NOT NULL DEFAULT '[]',
+  free_shipping_rule_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  CHECK (base_quantity > 0),
+  CHECK (is_default IN (0, 1)),
+  CONSTRAINT uk_commerce_shop_shipping_template_scope UNIQUE (tenant_id, shop_id, template_code)
+);
+
 CREATE TABLE IF NOT EXISTS commerce_account (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
@@ -509,9 +897,11 @@ CREATE TABLE IF NOT EXISTS commerce_product_category (
   tenant_id TEXT NOT NULL,
   organization_id TEXT,
   category_no TEXT NOT NULL,
-  parent_category_id TEXT,
+  parent_id TEXT,
+  path TEXT NOT NULL,
+  level_no INTEGER NOT NULL DEFAULT 0,
   name TEXT NOT NULL,
-  sort_weight INTEGER NOT NULL DEFAULT 0,
+  sort_order INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
@@ -525,8 +915,9 @@ CREATE TABLE IF NOT EXISTS commerce_product_attribute (
   attribute_no TEXT NOT NULL,
   name TEXT NOT NULL,
   value_type TEXT NOT NULL,
+  scope TEXT NOT NULL,
   status TEXT NOT NULL,
-  sort_weight INTEGER NOT NULL DEFAULT 0,
+  sort_order INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   UNIQUE (tenant_id, attribute_no)
@@ -535,14 +926,15 @@ CREATE TABLE IF NOT EXISTS commerce_product_attribute (
 CREATE TABLE IF NOT EXISTS commerce_product_attribute_value (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
+  organization_id TEXT,
   attribute_id TEXT NOT NULL,
-  value_no TEXT NOT NULL,
+  value_code TEXT NOT NULL,
   display_value TEXT NOT NULL,
-  sort_weight INTEGER NOT NULL DEFAULT 0,
+  sort_order INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  UNIQUE (tenant_id, attribute_id, value_no)
+  UNIQUE (tenant_id, attribute_id, value_code)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_product_spu (
@@ -555,7 +947,8 @@ CREATE TABLE IF NOT EXISTS commerce_product_spu (
   description TEXT,
   product_type TEXT NOT NULL,
   category_id TEXT,
-  sales_status TEXT NOT NULL,
+  status TEXT NOT NULL,
+  published_at TEXT,
   visible_surfaces TEXT NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
@@ -587,23 +980,68 @@ CREATE TABLE IF NOT EXISTS commerce_product_sku (
   price_amount TEXT NOT NULL,
   original_price_amount TEXT,
   currency_code TEXT NOT NULL,
-  delivery_mode TEXT NOT NULL,
+  fulfillment_type TEXT NOT NULL,
   inventory_tracking TEXT NOT NULL,
-  sales_status TEXT NOT NULL,
+  status TEXT NOT NULL,
+  published_at TEXT,
   spec_json TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   UNIQUE (tenant_id, sku_no)
 );
 
-CREATE TABLE IF NOT EXISTS commerce_product_sku_attribute_value (
+CREATE TABLE IF NOT EXISTS commerce_product_sku_attribute (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
+  organization_id TEXT,
   sku_id TEXT NOT NULL,
   attribute_id TEXT NOT NULL,
   attribute_value_id TEXT NOT NULL,
+  custom_value TEXT,
   created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
   UNIQUE (tenant_id, sku_id, attribute_id)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_product_media (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT,
+  owner_type TEXT NOT NULL,
+  owner_id TEXT NOT NULL,
+  media_type TEXT NOT NULL,
+  url TEXT NOT NULL,
+  status TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS commerce_price_list (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT,
+  price_list_no TEXT NOT NULL,
+  currency_code TEXT NOT NULL,
+  market_code TEXT,
+  status TEXT NOT NULL,
+  starts_at TEXT,
+  ends_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, price_list_no)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_price_list_item (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT,
+  price_list_id TEXT NOT NULL,
+  sku_id TEXT NOT NULL,
+  price_amount TEXT NOT NULL,
+  currency_code TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id, price_list_id, sku_id)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_recharge_package (
@@ -773,7 +1211,8 @@ CREATE TABLE IF NOT EXISTS commerce_payment_intent (
   organization_id TEXT,
   owner_user_id TEXT NOT NULL,
   order_id TEXT NOT NULL,
-  provider TEXT NOT NULL,
+  payment_method TEXT NOT NULL,
+  provider_code TEXT NOT NULL,
   amount TEXT NOT NULL,
   currency_code TEXT NOT NULL,
   status TEXT NOT NULL,
@@ -790,7 +1229,8 @@ CREATE TABLE IF NOT EXISTS commerce_payment_attempt (
   owner_user_id TEXT NOT NULL,
   payment_intent_id TEXT NOT NULL,
   order_id TEXT NOT NULL,
-  provider TEXT NOT NULL,
+  payment_method TEXT NOT NULL,
+  provider_code TEXT NOT NULL,
   out_trade_no TEXT NOT NULL,
   amount TEXT NOT NULL,
   currency_code TEXT NOT NULL,
@@ -799,14 +1239,14 @@ CREATE TABLE IF NOT EXISTS commerce_payment_attempt (
   created_at TEXT NOT NULL,
   paid_at TEXT,
   updated_at TEXT NOT NULL,
-  UNIQUE (tenant_id, provider, out_trade_no)
+  UNIQUE (tenant_id, provider_code, out_trade_no)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_payment_webhook_event (
   id TEXT PRIMARY KEY,
   tenant_id TEXT NOT NULL,
   organization_id TEXT,
-  provider TEXT NOT NULL,
+  provider_code TEXT NOT NULL,
   event_id TEXT NOT NULL,
   nonce TEXT NOT NULL,
   signature TEXT,
@@ -821,8 +1261,8 @@ CREATE TABLE IF NOT EXISTS commerce_payment_webhook_event (
   created_at TEXT NOT NULL,
   processed_at TEXT,
   updated_at TEXT NOT NULL,
-  UNIQUE (tenant_id, provider, event_id),
-  UNIQUE (tenant_id, provider, nonce)
+  UNIQUE (tenant_id, provider_code, event_id),
+  UNIQUE (tenant_id, provider_code, nonce)
 );
 
 CREATE TABLE IF NOT EXISTS commerce_payment_method (
@@ -831,9 +1271,9 @@ CREATE TABLE IF NOT EXISTS commerce_payment_method (
   organization_id TEXT,
   method_key TEXT NOT NULL,
   display_name TEXT NOT NULL,
-  provider TEXT NOT NULL,
+  provider_code TEXT NOT NULL,
   status TEXT NOT NULL,
-  sort_weight INTEGER NOT NULL DEFAULT 0,
+  sort_order INTEGER NOT NULL DEFAULT 0,
   request_no TEXT NOT NULL,
   idempotency_key TEXT NOT NULL,
   created_at TEXT NOT NULL,
@@ -925,7 +1365,7 @@ CREATE TABLE IF NOT EXISTS commerce_payment_provider_capability (
   provider_code TEXT NOT NULL,
   provider_account_id TEXT,
   capability_code TEXT NOT NULL,
-  method_code TEXT,
+  payment_method TEXT,
   scene_code TEXT,
   country_code TEXT,
   currency_code TEXT,
@@ -979,7 +1419,7 @@ CREATE TABLE IF NOT EXISTS commerce_payment_route_decision (
   channel_id TEXT NOT NULL,
   provider_code TEXT NOT NULL,
   provider_account_id TEXT,
-  method_code TEXT NOT NULL,
+  payment_method TEXT NOT NULL,
   scene_code TEXT NOT NULL,
   country_code TEXT,
   currency_code TEXT NOT NULL,
@@ -1095,6 +1535,31 @@ CREATE TABLE IF NOT EXISTS commerce_payment_statement_item (
   raw_row_digest TEXT NOT NULL,
   metadata_json TEXT,
   created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS commerce_payment_reconciliation_run (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  organization_id TEXT,
+  run_no TEXT NOT NULL,
+  provider_code TEXT NOT NULL,
+  provider_account_id TEXT,
+  statement_id TEXT,
+  reconciliation_type TEXT NOT NULL,
+  period_start TEXT NOT NULL,
+  period_end TEXT NOT NULL,
+  status TEXT NOT NULL,
+  matched_count INTEGER NOT NULL DEFAULT 0,
+  mismatched_count INTEGER NOT NULL DEFAULT 0,
+  unmatched_count INTEGER NOT NULL DEFAULT 0,
+  total_difference_amount TEXT NOT NULL DEFAULT '0',
+  currency_code TEXT NOT NULL,
+  request_no TEXT NOT NULL,
+  idempotency_key TEXT NOT NULL,
+  started_at TEXT,
+  finished_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS commerce_payment_reconciliation_item (
@@ -1344,14 +1809,92 @@ CREATE INDEX IF NOT EXISTS idx_entitlement_account_subject_status
 CREATE INDEX IF NOT EXISTS idx_entitlement_ledger_entry_account_occurred_at
   ON entitlement_ledger_entry (tenant_id, account_id, occurred_at);
 
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_organization
+  ON commerce_shop (tenant_id, organization_id, operation_status);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_status
+  ON commerce_shop (tenant_id, operation_status, storefront_status, updated_at);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_review_status
+  ON commerce_shop (tenant_id, organization_id, review_status, updated_at);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_application_review
+  ON commerce_shop_application (tenant_id, shop_id, review_status, submitted_at);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_verification_status
+  ON commerce_shop_verification (tenant_id, shop_id, verification_status, verification_type);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_status_event_shop_created
+  ON commerce_shop_status_event (tenant_id, shop_id, created_at);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_channel_shop_code
+  ON commerce_shop_channel (tenant_id, shop_id, channel_code);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_fulfillment_profile_shop
+  ON commerce_shop_fulfillment_profile (tenant_id, shop_id);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_settlement_profile_status
+  ON commerce_shop_settlement_profile (tenant_id, settlement_status, reviewed_at);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_metric_snapshot_shop_date
+  ON commerce_shop_metric_snapshot (tenant_id, shop_id, snapshot_date);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_business_hour_shop
+  ON commerce_shop_business_hour (tenant_id, shop_id, status, effective_from);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_shop_service_area_scope
+  ON commerce_shop_service_area (tenant_id, shop_id, area_type, country_code, area_key);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_service_area_region
+  ON commerce_shop_service_area (tenant_id, region_code, city_code, service_status);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_policy_type_status
+  ON commerce_shop_policy (tenant_id, shop_id, policy_type, policy_status);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_deposit_account_status
+  ON commerce_shop_deposit_account (tenant_id, deposit_status, due_at);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_risk_signal_status
+  ON commerce_shop_risk_signal (tenant_id, shop_id, signal_status, risk_level, detected_at);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_category_binding_status
+  ON commerce_shop_category_binding (tenant_id, shop_id, category_status, review_status);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_brand_authorization_status
+  ON commerce_shop_brand_authorization (tenant_id, shop_id, authorization_status, brand_code);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_qualification_status
+  ON commerce_shop_qualification (tenant_id, shop_id, qualification_status, qualification_type);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_customer_service_status
+  ON commerce_shop_customer_service (tenant_id, shop_id, service_channel, is_default, service_status);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_shop_customer_service_single_default
+  ON commerce_shop_customer_service (tenant_id, shop_id, service_channel)
+  WHERE is_default = 1;
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_return_address_default
+  ON commerce_shop_return_address (tenant_id, shop_id, address_usage, is_default, address_status);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_shop_return_address_single_default
+  ON commerce_shop_return_address (tenant_id, shop_id, address_usage)
+  WHERE is_default = 1;
+
+CREATE INDEX IF NOT EXISTS idx_commerce_shop_shipping_template_status
+  ON commerce_shop_shipping_template (tenant_id, shop_id, delivery_method, is_default, template_status);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_shop_shipping_template_single_default
+  ON commerce_shop_shipping_template (tenant_id, shop_id, delivery_method)
+  WHERE is_default = 1;
+
 CREATE INDEX IF NOT EXISTS idx_commerce_product_category_parent_status
-  ON commerce_product_category (tenant_id, organization_id, parent_category_id, status);
+  ON commerce_product_category (tenant_id, organization_id, parent_id, status);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_product_attribute_status
   ON commerce_product_attribute (tenant_id, organization_id, status);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_product_spu_category_status
-  ON commerce_product_spu (tenant_id, organization_id, category_id, sales_status);
+  ON commerce_product_spu (tenant_id, organization_id, category_id, status);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_product_spu_category_category
   ON commerce_product_spu_category (tenant_id, organization_id, category_id, status);
@@ -1360,13 +1903,22 @@ CREATE INDEX IF NOT EXISTS idx_commerce_product_spu_category_spu
   ON commerce_product_spu_category (tenant_id, organization_id, spu_id, primary_flag, sort_order);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_product_spu_type_status
-  ON commerce_product_spu (tenant_id, organization_id, product_type, sales_status);
+  ON commerce_product_spu (tenant_id, organization_id, product_type, status);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_product_sku_spu_status
-  ON commerce_product_sku (tenant_id, spu_id, sales_status);
+  ON commerce_product_sku (tenant_id, spu_id, status);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_product_sku_price_status
-  ON commerce_product_sku (tenant_id, organization_id, price_amount, currency_code, sales_status);
+  ON commerce_product_sku (tenant_id, organization_id, price_amount, currency_code, status);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_product_media_owner
+  ON commerce_product_media (tenant_id, organization_id, owner_type, owner_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_price_list_market_status
+  ON commerce_price_list (tenant_id, organization_id, market_code, currency_code, status);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_price_list_item_sku
+  ON commerce_price_list_item (tenant_id, sku_id, currency_code);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_recharge_package_amount_status
   ON commerce_recharge_package (tenant_id, organization_id, price_amount, currency_code, status);
@@ -1401,20 +1953,20 @@ CREATE INDEX IF NOT EXISTS idx_commerce_order_no
 CREATE INDEX IF NOT EXISTS idx_commerce_payment_intent_order
   ON commerce_payment_intent (tenant_id, order_id);
 
-CREATE INDEX IF NOT EXISTS idx_commerce_payment_attempt_provider_trade_no
-  ON commerce_payment_attempt (tenant_id, provider, out_trade_no);
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_attempt_provider_code_trade_no
+  ON commerce_payment_attempt (tenant_id, provider_code, out_trade_no);
 
-CREATE INDEX IF NOT EXISTS idx_commerce_payment_webhook_event_provider_event
-  ON commerce_payment_webhook_event (tenant_id, provider, event_id);
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_webhook_event_provider_code_event
+  ON commerce_payment_webhook_event (tenant_id, provider_code, event_id);
 
-CREATE INDEX IF NOT EXISTS idx_commerce_payment_webhook_event_provider_nonce
-  ON commerce_payment_webhook_event (tenant_id, provider, nonce);
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_webhook_event_provider_code_nonce
+  ON commerce_payment_webhook_event (tenant_id, provider_code, nonce);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_payment_webhook_event_status_processed_at
   ON commerce_payment_webhook_event (tenant_id, status, processed_at);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_payment_method_status
-  ON commerce_payment_method (tenant_id, organization_id, status, sort_weight);
+  ON commerce_payment_method (tenant_id, organization_id, status, sort_order);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_payment_provider_status
   ON commerce_payment_provider (tenant_id, organization_id, status, sort_order);
@@ -1428,94 +1980,106 @@ CREATE INDEX IF NOT EXISTS idx_commerce_payment_channel_route
 CREATE INDEX IF NOT EXISTS idx_commerce_payment_route_rule_match
   ON commerce_payment_route_rule (tenant_id, organization_id, status, purchase_type, country_code, currency_code, client_platform, priority);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_capability_scope
-  ON commerce_payment_provider_capability (tenant_id, provider_account_id, capability_code, method_code, scene_code, country_code, currency_code);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_provider_capability_scope
+  ON commerce_payment_provider_capability (tenant_id, provider_account_id, capability_code, payment_method, scene_code, country_code, currency_code);
 
-CREATE INDEX IF NOT EXISTS idx_pay_capability_lookup
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_provider_capability_lookup
   ON commerce_payment_provider_capability (tenant_id, organization_id, provider_code, capability_code, status);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_op_attempt_no
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_operation_attempt_no
   ON commerce_payment_operation_attempt (tenant_id, operation_no);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_op_attempt_idem
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_operation_attempt_idempotency
   ON commerce_payment_operation_attempt (tenant_id, provider_code, operation_code, idempotency_key);
 
-CREATE INDEX IF NOT EXISTS idx_pay_op_attempt_resource
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_operation_attempt_resource
   ON commerce_payment_operation_attempt (tenant_id, sdkwork_resource_type, sdkwork_resource_id, created_at);
 
-CREATE INDEX IF NOT EXISTS idx_pay_op_attempt_native_req
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_operation_attempt_native_request
   ON commerce_payment_operation_attempt (tenant_id, provider_code, native_request_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_route_decision_attempt
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_route_decision_attempt
   ON commerce_payment_route_decision (tenant_id, payment_attempt_id);
 
-CREATE INDEX IF NOT EXISTS idx_pay_route_decision_intent
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_route_decision_intent
   ON commerce_payment_route_decision (tenant_id, payment_intent_id, created_at);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_capture_no
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_capture_no
   ON commerce_payment_capture (tenant_id, capture_no);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_capture_native
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_capture_native
   ON commerce_payment_capture (tenant_id, provider_code, native_capture_id);
 
-CREATE INDEX IF NOT EXISTS idx_pay_capture_attempt_status
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_capture_attempt_status
   ON commerce_payment_capture (tenant_id, payment_attempt_id, status);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_webhook_delivery_event
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_webhook_delivery_event
   ON commerce_payment_webhook_delivery (tenant_id, provider_code, event_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_webhook_delivery_nonce
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_webhook_delivery_nonce
   ON commerce_payment_webhook_delivery (tenant_id, provider_code, nonce);
 
-CREATE INDEX IF NOT EXISTS idx_pay_webhook_delivery_status
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_webhook_delivery_status
   ON commerce_payment_webhook_delivery (tenant_id, provider_code, delivery_status, received_at);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_statement_no
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_statement_no
   ON commerce_payment_statement (tenant_id, statement_no);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_statement_scope
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_statement_scope
   ON commerce_payment_statement (tenant_id, provider_code, provider_account_id, statement_type, period_start, period_end);
 
-CREATE INDEX IF NOT EXISTS idx_pay_statement_period
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_statement_period
   ON commerce_payment_statement (tenant_id, provider_code, period_start, period_end);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_statement_item_row
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_statement_item_row
   ON commerce_payment_statement_item (tenant_id, statement_id, row_no);
 
-CREATE INDEX IF NOT EXISTS idx_pay_statement_item_trade
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_statement_item_trade
   ON commerce_payment_statement_item (tenant_id, provider_code, native_trade_id);
 
-CREATE INDEX IF NOT EXISTS idx_pay_statement_item_out_trade
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_statement_item_out_trade
   ON commerce_payment_statement_item (tenant_id, sdkwork_out_trade_no);
 
-CREATE INDEX IF NOT EXISTS idx_pay_recon_item_run_status
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_reconciliation_run_no
+  ON commerce_payment_reconciliation_run (tenant_id, run_no);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_reconciliation_run_idempotency
+  ON commerce_payment_reconciliation_run (tenant_id, provider_code, reconciliation_type, idempotency_key);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_reconciliation_run_status
+  ON commerce_payment_reconciliation_run (tenant_id, provider_code, status, created_at);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_reconciliation_run_period
+  ON commerce_payment_reconciliation_run (tenant_id, provider_code, period_start, period_end);
+
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_reconciliation_item_run_status
   ON commerce_payment_reconciliation_item (tenant_id, reconciliation_run_id, match_status);
 
-CREATE INDEX IF NOT EXISTS idx_pay_recon_item_resolution
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_reconciliation_item_resolution
   ON commerce_payment_reconciliation_item (tenant_id, difference_type, resolution_status);
 
-CREATE INDEX IF NOT EXISTS idx_pay_recon_item_payment
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_reconciliation_item_payment
   ON commerce_payment_reconciliation_item (tenant_id, payment_attempt_id);
 
-CREATE INDEX IF NOT EXISTS idx_pay_fee_payment
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_fee_payment
   ON commerce_payment_fee (tenant_id, payment_attempt_id);
 
-CREATE INDEX IF NOT EXISTS idx_pay_fee_refund
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_fee_refund
   ON commerce_payment_fee (tenant_id, refund_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_dispute_no
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_dispute_no
   ON commerce_payment_dispute (tenant_id, dispute_no);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_dispute_native
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_dispute_native
   ON commerce_payment_dispute (tenant_id, provider_code, native_dispute_id);
 
-CREATE INDEX IF NOT EXISTS idx_pay_dispute_payment_status
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_dispute_payment_status
   ON commerce_payment_dispute (tenant_id, payment_attempt_id, status);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_pay_dispute_event_no
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_payment_dispute_event_no
   ON commerce_payment_dispute_event (tenant_id, event_no);
 
-CREATE INDEX IF NOT EXISTS idx_pay_dispute_event_created
+CREATE INDEX IF NOT EXISTS idx_commerce_payment_dispute_event_created
   ON commerce_payment_dispute_event (tenant_id, dispute_id, created_at);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_refund_payment
@@ -1524,16 +2088,16 @@ CREATE INDEX IF NOT EXISTS idx_commerce_refund_payment
 CREATE INDEX IF NOT EXISTS idx_commerce_refund_item_refund
   ON commerce_refund_item (tenant_id, refund_id, order_item_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_refund_attempt_out_no
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_refund_attempt_out_no
   ON commerce_refund_attempt (tenant_id, provider_code, out_refund_no);
 
-CREATE INDEX IF NOT EXISTS idx_refund_attempt_status
+CREATE INDEX IF NOT EXISTS idx_commerce_refund_attempt_status
   ON commerce_refund_attempt (tenant_id, refund_id, status);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uk_refund_event_no
+CREATE UNIQUE INDEX IF NOT EXISTS uk_commerce_refund_event_no
   ON commerce_refund_event (tenant_id, event_no);
 
-CREATE INDEX IF NOT EXISTS idx_refund_event_created
+CREATE INDEX IF NOT EXISTS idx_commerce_refund_event_created
   ON commerce_refund_event (tenant_id, refund_id, created_at);
 
 CREATE INDEX IF NOT EXISTS idx_commerce_exchange_rule_pair_status

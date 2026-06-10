@@ -404,7 +404,7 @@ export function createSdkworkMembershipAdminService(
       return runMembershipAdminOperation(
         async () => extractRecords(
           unwrapAdminResponse<RemotePageEnvelope<SdkworkMembershipAdminLevel> | SdkworkMembershipAdminLevel[]>(
-            await getCommerceService().admin.memberships.plans.list(params),
+            await getCommerceService().admin.memberships.plans.management.list(params),
             copy,
             copy.service.levelsLoadFailed,
           ),
@@ -432,7 +432,7 @@ export function createSdkworkMembershipAdminService(
       return runMembershipAdminOperation(
         async () => extractRecords(
           unwrapAdminResponse<RemotePageEnvelope<SdkworkMembershipAdminPackageGroup> | SdkworkMembershipAdminPackageGroup[]>(
-            await getCommerceService().admin.memberships.packageGroups.list(params),
+            await getCommerceService().admin.memberships.packageGroups.management.list(params),
             copy,
             copy.service.packageGroupsLoadFailed,
           ),
@@ -446,7 +446,7 @@ export function createSdkworkMembershipAdminService(
       return runMembershipAdminOperation(
         async () => extractRecords(
           unwrapAdminResponse<RemotePageEnvelope<SdkworkMembershipAdminPackage> | SdkworkMembershipAdminPackage[]>(
-            await getCommerceService().admin.memberships.packages.list(params),
+            await getCommerceService().admin.memberships.packages.management.list(params),
             copy,
             copy.service.packagesLoadFailed,
           ),

@@ -28,7 +28,7 @@ async fn sqlite_payment_record_store_lists_owner_records_from_standard_payment_s
     assert_eq!(records.len(), 1);
     assert_eq!("payment-attempt-1", records[0].id);
     assert_eq!("TRADE-1", records[0].order_no);
-    assert_eq!("wechat", records[0].method);
+    assert_eq!("wechat_pay", records[0].method);
     assert_eq!("29.90", records[0].amount.as_str());
     assert_eq!("2026-05-20 10:03:00", records[0].date);
     assert_eq!("success", records[0].status);
@@ -58,7 +58,7 @@ async fn sqlite_payment_record_store_retrieves_owner_record_from_standard_paymen
 
     assert_eq!("payment-attempt-1", record.id);
     assert_eq!("TRADE-1", record.order_no);
-    assert_eq!("wechat", record.method);
+    assert_eq!("wechat_pay", record.method);
     assert_eq!("29.90", record.amount.as_str());
     assert_eq!("2026-05-20 10:03:00", record.date);
     assert_eq!("success", record.status);
@@ -82,11 +82,11 @@ async fn seed_payment_records(pool: &sqlx::SqlitePool) {
     sqlx::query(
         r#"
         INSERT INTO commerce_payment_intent
-            (id, tenant_id, organization_id, owner_user_id, order_id, provider, amount, currency_code, status, request_no, idempotency_key, created_at, updated_at)
+            (id, tenant_id, organization_id, owner_user_id, order_id, payment_method, provider_code, amount, currency_code, status, request_no, idempotency_key, created_at, updated_at)
         VALUES
-            ('payment-intent-1', 'tenant-1', 'org-1', 'user-1', 'order-1', 'wechat', '29.90', 'CNY', 'succeeded', 'req-pay-1', 'idem-pay-1', '2026-05-20 10:01:00', '2026-05-20 10:03:00'),
-            ('payment-intent-other-user', 'tenant-1', 'org-1', 'user-2', 'order-other-user', 'wechat', '39.90', 'CNY', 'succeeded', 'req-pay-2', 'idem-pay-2', '2026-05-20 11:01:00', '2026-05-20 11:03:00'),
-            ('payment-intent-other-org', 'tenant-1', 'org-2', 'user-1', 'order-other-org', 'wechat', '49.90', 'CNY', 'succeeded', 'req-pay-3', 'idem-pay-3', '2026-05-20 12:01:00', '2026-05-20 12:03:00')
+            ('payment-intent-1', 'tenant-1', 'org-1', 'user-1', 'order-1', 'wechat_pay', 'wechat_pay', '29.90', 'CNY', 'succeeded', 'req-pay-1', 'idem-pay-1', '2026-05-20 10:01:00', '2026-05-20 10:03:00'),
+            ('payment-intent-other-user', 'tenant-1', 'org-1', 'user-2', 'order-other-user', 'wechat_pay', 'wechat_pay', '39.90', 'CNY', 'succeeded', 'req-pay-2', 'idem-pay-2', '2026-05-20 11:01:00', '2026-05-20 11:03:00'),
+            ('payment-intent-other-org', 'tenant-1', 'org-2', 'user-1', 'order-other-org', 'wechat_pay', 'wechat_pay', '49.90', 'CNY', 'succeeded', 'req-pay-3', 'idem-pay-3', '2026-05-20 12:01:00', '2026-05-20 12:03:00')
         "#,
     )
     .execute(pool)
@@ -96,11 +96,11 @@ async fn seed_payment_records(pool: &sqlx::SqlitePool) {
     sqlx::query(
         r#"
         INSERT INTO commerce_payment_attempt
-            (id, tenant_id, organization_id, owner_user_id, payment_intent_id, order_id, provider, out_trade_no, amount, currency_code, status, callback_payload, created_at, paid_at, updated_at)
+            (id, tenant_id, organization_id, owner_user_id, payment_intent_id, order_id, payment_method, provider_code, out_trade_no, amount, currency_code, status, callback_payload, created_at, paid_at, updated_at)
         VALUES
-            ('payment-attempt-1', 'tenant-1', 'org-1', 'user-1', 'payment-intent-1', 'order-1', 'wechat', 'TRADE-1', '29.90', 'CNY', 'succeeded', NULL, '2026-05-20 10:02:00', '2026-05-20 10:03:00', '2026-05-20 10:03:00'),
-            ('payment-attempt-other-user', 'tenant-1', 'org-1', 'user-2', 'payment-intent-other-user', 'order-other-user', 'wechat', 'TRADE-OTHER-USER', '39.90', 'CNY', 'succeeded', NULL, '2026-05-20 11:02:00', '2026-05-20 11:03:00', '2026-05-20 11:03:00'),
-            ('payment-attempt-other-org', 'tenant-1', 'org-2', 'user-1', 'payment-intent-other-org', 'order-other-org', 'wechat', 'TRADE-OTHER-ORG', '49.90', 'CNY', 'succeeded', NULL, '2026-05-20 12:02:00', '2026-05-20 12:03:00', '2026-05-20 12:03:00')
+            ('payment-attempt-1', 'tenant-1', 'org-1', 'user-1', 'payment-intent-1', 'order-1', 'wechat_pay', 'wechat_pay', 'TRADE-1', '29.90', 'CNY', 'succeeded', NULL, '2026-05-20 10:02:00', '2026-05-20 10:03:00', '2026-05-20 10:03:00'),
+            ('payment-attempt-other-user', 'tenant-1', 'org-1', 'user-2', 'payment-intent-other-user', 'order-other-user', 'wechat_pay', 'wechat_pay', 'TRADE-OTHER-USER', '39.90', 'CNY', 'succeeded', NULL, '2026-05-20 11:02:00', '2026-05-20 11:03:00', '2026-05-20 11:03:00'),
+            ('payment-attempt-other-org', 'tenant-1', 'org-2', 'user-1', 'payment-intent-other-org', 'order-other-org', 'wechat_pay', 'wechat_pay', 'TRADE-OTHER-ORG', '49.90', 'CNY', 'succeeded', NULL, '2026-05-20 12:02:00', '2026-05-20 12:03:00', '2026-05-20 12:03:00')
         "#,
     )
     .execute(pool)

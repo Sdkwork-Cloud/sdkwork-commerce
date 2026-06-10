@@ -81,7 +81,8 @@ pub struct PaymentIntentDraft {
     pub amount: CommerceMoney,
     pub idempotency_key: String,
     pub order_id: String,
-    pub provider: String,
+    pub payment_method: String,
+    pub provider_code: String,
     pub tenant_id: String,
 }
 
@@ -217,15 +218,21 @@ impl PaymentIntentDraft {
     pub fn new(
         tenant_id: &str,
         order_id: &str,
-        provider: &str,
+        payment_method: &str,
+        provider_code: &str,
         amount: CommerceMoney,
         idempotency_key: &str,
     ) -> Result<Self, CommerceServiceError> {
         crate::validation::require_non_empty("tenant_id", tenant_id)?;
         crate::validation::require_non_empty("order_id", order_id)?;
-        if provider.trim().is_empty() {
+        if payment_method.trim().is_empty() {
             return Err(CommerceServiceError::provider_unavailable(
-                "payment provider is required",
+                "payment method is required",
+            ));
+        }
+        if provider_code.trim().is_empty() {
+            return Err(CommerceServiceError::provider_unavailable(
+                "payment provider code is required",
             ));
         }
         crate::validation::require_non_empty("idempotency_key", idempotency_key)?;
@@ -234,7 +241,8 @@ impl PaymentIntentDraft {
             amount,
             idempotency_key: idempotency_key.to_string(),
             order_id: order_id.to_string(),
-            provider: provider.to_string(),
+            payment_method: payment_method.trim().to_ascii_lowercase(),
+            provider_code: provider_code.trim().to_ascii_lowercase(),
             tenant_id: tenant_id.to_string(),
         })
     }

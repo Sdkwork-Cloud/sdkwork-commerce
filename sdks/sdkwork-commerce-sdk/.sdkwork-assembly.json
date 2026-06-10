@@ -20,5 +20,6 @@
     ],
     "manualTransports": []
   },
-  "sdkDependencies": []
+  "sdkDependencies": [],
+  "dependencyApiExports": []
 }

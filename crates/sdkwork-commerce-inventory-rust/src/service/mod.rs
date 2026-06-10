@@ -8,7 +8,7 @@ pub fn inventory_service_contract() -> CommerceServiceContract {
         vec![
             "inventory.stocks.list",
             "inventory.reservations.list",
-            "inventory.ledgerEntries.list",
+            "inventory.movements.list",
         ],
         vec![
             crate::ports::INVENTORY_REPOSITORY_PORT,

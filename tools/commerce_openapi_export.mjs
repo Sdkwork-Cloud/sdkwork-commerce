@@ -37,6 +37,8 @@ const defaultBackendOpenapiPath = path.join(
   generatedOpenapiDir,
   "commerce-backend-api.openapi.json",
 );
+const BODYLESS_METHODS = new Set(["GET", "DELETE", "HEAD"]);
+const SHOP_SCHEMAS = createShopSchemas();
 
 function fail(message) {
   process.stderr.write(`[commerce_openapi_export] ${message}\n`);
@@ -66,6 +68,1103 @@ function readJson(filePath) {
 
 function cloneJson(value) {
   return JSON.parse(JSON.stringify(value));
+}
+
+function createShopSchemas() {
+  const stringSchema = { type: "string" };
+  const booleanSchema = { type: "boolean" };
+  const integerSchema = { type: "integer" };
+  const nonNegativeIntegerSchema = { type: "integer", minimum: 0 };
+  const jsonObjectSchema = { type: "object", additionalProperties: true };
+  const pageInfoSchema = objectSchema(
+    {
+      page: { type: "integer", minimum: 1 },
+      pageSize: { type: "integer", minimum: 1, maximum: 200 },
+      total: { type: "integer", minimum: 0 },
+    },
+    ["page", "pageSize", "total"],
+  );
+
+  const shopSummary = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopNo: stringSchema,
+      shopName: stringSchema,
+      shopType: stringSchema,
+      businessModel: stringSchema,
+      storefrontStatus: stringSchema,
+      operationStatus: stringSchema,
+      reviewStatus: stringSchema,
+      dataScope: stringSchema,
+      logoMediaResourceId: stringSchema,
+      coverMediaResourceId: stringSchema,
+      defaultCurrencyCode: stringSchema,
+      defaultLocale: stringSchema,
+      timezone: stringSchema,
+      version: integerSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopNo",
+      "shopName",
+      "shopType",
+      "businessModel",
+      "storefrontStatus",
+      "operationStatus",
+      "reviewStatus",
+      "dataScope",
+      "defaultCurrencyCode",
+      "version",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopDetail = objectSchema(
+    {
+      ...shopSummary.properties,
+      verificationSnapshot: jsonObjectSchema,
+      contactSnapshot: jsonObjectSchema,
+      operationConfig: jsonObjectSchema,
+      submittedAt: stringSchema,
+      approvedAt: stringSchema,
+      rejectedAt: stringSchema,
+      suspendedAt: stringSchema,
+      closedAt: stringSchema,
+      deletedAt: stringSchema,
+    },
+    [...shopSummary.required, "verificationSnapshot", "contactSnapshot", "operationConfig"],
+  );
+  const shopApplication = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      applicationNo: stringSchema,
+      applicationType: stringSchema,
+      reviewStatus: stringSchema,
+      legalEntitySnapshot: jsonObjectSchema,
+      contactSnapshot: jsonObjectSchema,
+      qualificationSnapshot: jsonObjectSchema,
+      submittedBy: stringSchema,
+      submittedAt: stringSchema,
+      reviewedBy: stringSchema,
+      reviewedAt: stringSchema,
+      reviewComment: stringSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "applicationNo",
+      "applicationType",
+      "reviewStatus",
+      "legalEntitySnapshot",
+      "contactSnapshot",
+      "qualificationSnapshot",
+      "submittedBy",
+      "submittedAt",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopVerification = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      verificationType: stringSchema,
+      verificationStatus: stringSchema,
+      legalEntityName: stringSchema,
+      credentialNoHash: stringSchema,
+      credentialMediaResourceId: stringSchema,
+      verificationSnapshot: jsonObjectSchema,
+      expiresAt: stringSchema,
+      reviewedBy: stringSchema,
+      reviewedAt: stringSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "verificationType",
+      "verificationStatus",
+      "verificationSnapshot",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopStatusEvent = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      eventNo: stringSchema,
+      eventType: stringSchema,
+      fromStatus: stringSchema,
+      toStatus: stringSchema,
+      reasonCode: stringSchema,
+      reasonDetail: stringSchema,
+      actorType: stringSchema,
+      actorId: stringSchema,
+      createdAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "eventNo",
+      "eventType",
+      "toStatus",
+      "actorType",
+      "createdAt",
+    ],
+  );
+  const shopChannel = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      channelCode: stringSchema,
+      storefrontStatus: stringSchema,
+      domainName: stringSchema,
+      pathPrefix: stringSchema,
+      themeCode: stringSchema,
+      channelConfig: jsonObjectSchema,
+      sortOrder: integerSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "channelCode",
+      "storefrontStatus",
+      "channelConfig",
+      "sortOrder",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopFulfillmentProfile = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      fulfillmentMode: stringSchema,
+      shippingOriginRegionCode: stringSchema,
+      serviceLevelCode: stringSchema,
+      afterSalesPolicy: jsonObjectSchema,
+      serviceConfig: jsonObjectSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "fulfillmentMode",
+      "afterSalesPolicy",
+      "serviceConfig",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopSettlementProfile = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      settlementStatus: stringSchema,
+      settlementCycle: stringSchema,
+      settlementCurrencyCode: stringSchema,
+      accountRef: stringSchema,
+      riskHoldDays: integerSchema,
+      settlementConfig: jsonObjectSchema,
+      reviewedBy: stringSchema,
+      reviewedAt: stringSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "settlementStatus",
+      "settlementCycle",
+      "settlementCurrencyCode",
+      "riskHoldDays",
+      "settlementConfig",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopMetricSnapshot = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      snapshotDate: stringSchema,
+      grossSalesAmount: stringSchema,
+      currencyCode: stringSchema,
+      paidOrderCount: integerSchema,
+      refundOrderCount: integerSchema,
+      fulfillmentPendingCount: integerSchema,
+      settlementPendingAmount: stringSchema,
+      createdAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "snapshotDate",
+      "grossSalesAmount",
+      "currencyCode",
+      "paidOrderCount",
+      "refundOrderCount",
+      "fulfillmentPendingCount",
+      "settlementPendingAmount",
+      "createdAt",
+    ],
+  );
+  const shopBusinessHour = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      scheduleType: stringSchema,
+      timezone: stringSchema,
+      weeklySchedule: jsonObjectSchema,
+      holidaySchedule: jsonObjectSchema,
+      effectiveFrom: stringSchema,
+      effectiveTo: stringSchema,
+      status: stringSchema,
+      version: integerSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "scheduleType",
+      "timezone",
+      "weeklySchedule",
+      "holidaySchedule",
+      "status",
+      "version",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopServiceArea = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      areaType: stringSchema,
+      countryCode: stringSchema,
+      regionCode: stringSchema,
+      cityCode: stringSchema,
+      postalCodePattern: stringSchema,
+      deliveryRadiusMeters: nonNegativeIntegerSchema,
+      serviceStatus: stringSchema,
+      serviceConfig: jsonObjectSchema,
+      sortOrder: integerSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "areaType",
+      "countryCode",
+      "serviceStatus",
+      "serviceConfig",
+      "sortOrder",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopPolicy = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      policyType: stringSchema,
+      policyStatus: stringSchema,
+      policyVersion: integerSchema,
+      policy: jsonObjectSchema,
+      publishedAt: stringSchema,
+      reviewedBy: stringSchema,
+      reviewedAt: stringSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "policyType",
+      "policyStatus",
+      "policyVersion",
+      "policy",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopDepositAccount = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      depositStatus: stringSchema,
+      currencyCode: stringSchema,
+      requiredAmount: stringSchema,
+      paidAmount: stringSchema,
+      frozenAmount: stringSchema,
+      accountRef: stringSchema,
+      dueAt: stringSchema,
+      reviewedBy: stringSchema,
+      reviewedAt: stringSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "depositStatus",
+      "currencyCode",
+      "requiredAmount",
+      "paidAmount",
+      "frozenAmount",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopRiskSignal = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      signalNo: stringSchema,
+      signalType: stringSchema,
+      riskLevel: stringSchema,
+      signalStatus: stringSchema,
+      sourceType: stringSchema,
+      sourceId: stringSchema,
+      riskScore: integerSchema,
+      payload: jsonObjectSchema,
+      detectedAt: stringSchema,
+      resolvedAt: stringSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "signalNo",
+      "signalType",
+      "riskLevel",
+      "signalStatus",
+      "riskScore",
+      "payload",
+      "detectedAt",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopCategoryBinding = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      shopCategoryCode: stringSchema,
+      platformCategoryCode: stringSchema,
+      platformCategoryName: stringSchema,
+      categoryPath: stringSchema,
+      categoryLevel: nonNegativeIntegerSchema,
+      categoryStatus: stringSchema,
+      qualificationRequired: booleanSchema,
+      qualificationSnapshot: jsonObjectSchema,
+      reviewStatus: stringSchema,
+      reviewedBy: stringSchema,
+      reviewedAt: stringSchema,
+      effectiveFrom: stringSchema,
+      effectiveTo: stringSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "shopCategoryCode",
+      "categoryLevel",
+      "categoryStatus",
+      "qualificationRequired",
+      "qualificationSnapshot",
+      "reviewStatus",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopBrandAuthorization = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      brandCode: stringSchema,
+      brandName: stringSchema,
+      authorizationType: stringSchema,
+      authorizationStatus: stringSchema,
+      brandOwnerName: stringSchema,
+      trademarkHash: stringSchema,
+      trademarkMediaResourceId: stringSchema,
+      authorizationMediaResourceId: stringSchema,
+      authorizationSnapshot: jsonObjectSchema,
+      validFrom: stringSchema,
+      validTo: stringSchema,
+      reviewedBy: stringSchema,
+      reviewedAt: stringSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "brandCode",
+      "brandName",
+      "authorizationType",
+      "authorizationStatus",
+      "authorizationSnapshot",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopQualification = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      qualificationType: stringSchema,
+      qualificationStatus: stringSchema,
+      subjectType: stringSchema,
+      subjectId: stringSchema,
+      credentialName: stringSchema,
+      credentialHash: stringSchema,
+      credentialMediaResourceId: stringSchema,
+      qualificationSnapshot: jsonObjectSchema,
+      issuedAt: stringSchema,
+      expiresAt: stringSchema,
+      reviewedBy: stringSchema,
+      reviewedAt: stringSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "qualificationType",
+      "qualificationStatus",
+      "subjectType",
+      "subjectId",
+      "qualificationSnapshot",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopCustomerService = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      serviceChannel: stringSchema,
+      serviceStatus: stringSchema,
+      contactRef: stringSchema,
+      contactLabel: stringSchema,
+      serviceWindow: jsonObjectSchema,
+      serviceConfig: jsonObjectSchema,
+      isDefault: booleanSchema,
+      sortOrder: integerSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "serviceChannel",
+      "serviceStatus",
+      "contactRef",
+      "serviceWindow",
+      "serviceConfig",
+      "isDefault",
+      "sortOrder",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopReturnAddress = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      addressUsage: stringSchema,
+      addressKey: stringSchema,
+      receiverName: stringSchema,
+      phoneHash: stringSchema,
+      countryCode: stringSchema,
+      regionCode: stringSchema,
+      cityCode: stringSchema,
+      districtCode: stringSchema,
+      addressLine1: stringSchema,
+      postalCode: stringSchema,
+      isDefault: booleanSchema,
+      addressStatus: stringSchema,
+      addressSnapshot: jsonObjectSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "addressUsage",
+      "addressKey",
+      "receiverName",
+      "countryCode",
+      "addressLine1",
+      "isDefault",
+      "addressStatus",
+      "addressSnapshot",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+  const shopShippingTemplate = objectSchema(
+    {
+      id: stringSchema,
+      tenantId: stringSchema,
+      organizationId: stringSchema,
+      shopId: stringSchema,
+      templateCode: stringSchema,
+      templateName: stringSchema,
+      templateStatus: stringSchema,
+      pricingMode: stringSchema,
+      deliveryMethod: stringSchema,
+      baseQuantity: { type: "integer", minimum: 1 },
+      baseFeeAmount: stringSchema,
+      currencyCode: stringSchema,
+      isDefault: booleanSchema,
+      regionRule: { type: "array", items: jsonObjectSchema },
+      freeShippingRule: jsonObjectSchema,
+      createdAt: stringSchema,
+      updatedAt: stringSchema,
+    },
+    [
+      "id",
+      "tenantId",
+      "organizationId",
+      "shopId",
+      "templateCode",
+      "templateName",
+      "templateStatus",
+      "pricingMode",
+      "deliveryMethod",
+      "baseQuantity",
+      "baseFeeAmount",
+      "currencyCode",
+      "isDefault",
+      "regionRule",
+      "freeShippingRule",
+      "createdAt",
+      "updatedAt",
+    ],
+  );
+
+  return {
+    ShopSummary: shopSummary,
+    ShopDetail: shopDetail,
+    ShopApplication: shopApplication,
+    ShopVerification: shopVerification,
+    ShopStatusEvent: shopStatusEvent,
+    ShopChannel: shopChannel,
+    ShopFulfillmentProfile: shopFulfillmentProfile,
+    ShopSettlementProfile: shopSettlementProfile,
+    ShopMetricSnapshot: shopMetricSnapshot,
+    ShopBusinessHour: shopBusinessHour,
+    ShopServiceArea: shopServiceArea,
+    ShopPolicy: shopPolicy,
+    ShopDepositAccount: shopDepositAccount,
+    ShopRiskSignal: shopRiskSignal,
+    ShopCategoryBinding: shopCategoryBinding,
+    ShopBrandAuthorization: shopBrandAuthorization,
+    ShopQualification: shopQualification,
+    ShopCustomerService: shopCustomerService,
+    ShopReturnAddress: shopReturnAddress,
+    ShopShippingTemplate: shopShippingTemplate,
+    ShopListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopSummary" }, pageInfoSchema),
+    ),
+    ShopDetailResponse: apiResultSchema({ $ref: "#/components/schemas/ShopDetail" }),
+    CurrentShopResponse: apiResultSchema({ $ref: "#/components/schemas/ShopDetail" }),
+    ShopDashboardResponse: apiResultSchema(
+      objectSchema(
+        {
+          shop: { $ref: "#/components/schemas/ShopSummary" },
+          metrics: { $ref: "#/components/schemas/ShopMetricSnapshot" },
+          pendingApplicationCount: integerSchema,
+          pendingVerificationCount: integerSchema,
+          pendingSettlementAmount: stringSchema,
+          currencyCode: stringSchema,
+        },
+        [
+          "shop",
+          "metrics",
+          "pendingApplicationCount",
+          "pendingVerificationCount",
+          "pendingSettlementAmount",
+          "currencyCode",
+        ],
+      ),
+    ),
+    ShopApplicationListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopApplication" }, pageInfoSchema),
+    ),
+    ShopApplicationResponse: apiResultSchema({ $ref: "#/components/schemas/ShopApplication" }),
+    ShopVerificationListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopVerification" }, pageInfoSchema),
+    ),
+    ShopStatusEventListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopStatusEvent" }, pageInfoSchema),
+    ),
+    ShopChannelListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopChannel" }, pageInfoSchema),
+    ),
+    ShopChannelResponse: apiResultSchema({ $ref: "#/components/schemas/ShopChannel" }),
+    ShopFulfillmentProfileResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopFulfillmentProfile",
+    }),
+    ShopSettlementProfileResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopSettlementProfile",
+    }),
+    ShopBusinessHourResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopBusinessHour",
+    }),
+    ShopServiceAreaListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopServiceArea" }, pageInfoSchema),
+    ),
+    ShopServiceAreaResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopServiceArea",
+    }),
+    ShopPolicyListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopPolicy" }, pageInfoSchema),
+    ),
+    ShopPolicyResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopPolicy",
+    }),
+    ShopDepositAccountResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopDepositAccount",
+    }),
+    ShopRiskSignalListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopRiskSignal" }, pageInfoSchema),
+    ),
+    ShopRiskSignalResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopRiskSignal",
+    }),
+    ShopCategoryBindingListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopCategoryBinding" }, pageInfoSchema),
+    ),
+    ShopCategoryBindingResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopCategoryBinding",
+    }),
+    ShopBrandAuthorizationListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopBrandAuthorization" }, pageInfoSchema),
+    ),
+    ShopBrandAuthorizationResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopBrandAuthorization",
+    }),
+    ShopQualificationListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopQualification" }, pageInfoSchema),
+    ),
+    ShopQualificationResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopQualification",
+    }),
+    ShopCustomerServiceListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopCustomerService" }, pageInfoSchema),
+    ),
+    ShopCustomerServiceResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopCustomerService",
+    }),
+    ShopReturnAddressListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopReturnAddress" }, pageInfoSchema),
+    ),
+    ShopReturnAddressResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopReturnAddress",
+    }),
+    ShopShippingTemplateListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopShippingTemplate" }, pageInfoSchema),
+    ),
+    ShopShippingTemplateResponse: apiResultSchema({
+      $ref: "#/components/schemas/ShopShippingTemplate",
+    }),
+    ShopManagementListResponse: apiResultSchema(
+      pagedListSchema({ $ref: "#/components/schemas/ShopSummary" }, pageInfoSchema),
+    ),
+    ShopManagementDetailResponse: apiResultSchema({ $ref: "#/components/schemas/ShopDetail" }),
+    CreateShopRequest: objectSchema(
+      {
+        organizationId: stringSchema,
+        shopName: stringSchema,
+        shopType: stringSchema,
+        businessModel: stringSchema,
+        defaultCurrencyCode: stringSchema,
+        defaultLocale: stringSchema,
+        timezone: stringSchema,
+        contactSnapshot: jsonObjectSchema,
+        operationConfig: jsonObjectSchema,
+      },
+      ["organizationId", "shopName", "shopType", "businessModel", "defaultCurrencyCode"],
+    ),
+    UpdateShopRequest: objectSchema({
+      shopName: stringSchema,
+      businessModel: stringSchema,
+      storefrontStatus: stringSchema,
+      logoMediaResourceId: stringSchema,
+      coverMediaResourceId: stringSchema,
+      defaultCurrencyCode: stringSchema,
+      defaultLocale: stringSchema,
+      timezone: stringSchema,
+      contactSnapshot: jsonObjectSchema,
+      operationConfig: jsonObjectSchema,
+      version: integerSchema,
+    }),
+    SubmitShopReviewRequest: reasonRequestSchema(),
+    ApproveShopRequest: reasonRequestSchema(),
+    RejectShopRequest: reasonRequestSchema(["reasonCode", "reasonDetail"]),
+    SuspendShopRequest: reasonRequestSchema(["reasonCode", "reasonDetail"]),
+    ResumeShopRequest: reasonRequestSchema(),
+    CloseShopRequest: reasonRequestSchema(["reasonCode", "reasonDetail"]),
+    SubmitShopApplicationRequest: objectSchema(
+      {
+        applicationType: stringSchema,
+        legalEntitySnapshot: jsonObjectSchema,
+        contactSnapshot: jsonObjectSchema,
+        qualificationSnapshot: jsonObjectSchema,
+      },
+      ["applicationType", "legalEntitySnapshot", "contactSnapshot", "qualificationSnapshot"],
+    ),
+    UpdateShopVerificationRequest: objectSchema(
+      {
+        verificationStatus: stringSchema,
+        legalEntityName: stringSchema,
+        credentialNoHash: stringSchema,
+        credentialMediaResourceId: stringSchema,
+        verificationSnapshot: jsonObjectSchema,
+        expiresAt: stringSchema,
+        reviewComment: stringSchema,
+      },
+      ["verificationStatus"],
+    ),
+    CreateShopChannelRequest: shopChannelRequestSchema(["channelCode", "storefrontStatus"]),
+    UpdateShopChannelRequest: shopChannelRequestSchema(),
+    UpdateShopFulfillmentProfileRequest: objectSchema({
+      fulfillmentMode: stringSchema,
+      shippingOriginRegionCode: stringSchema,
+      serviceLevelCode: stringSchema,
+      afterSalesPolicy: jsonObjectSchema,
+      serviceConfig: jsonObjectSchema,
+    }),
+    UpdateShopSettlementProfileRequest: objectSchema({
+      settlementStatus: stringSchema,
+      settlementCycle: stringSchema,
+      settlementCurrencyCode: stringSchema,
+      accountRef: stringSchema,
+      riskHoldDays: integerSchema,
+      settlementConfig: jsonObjectSchema,
+    }),
+    ApproveShopSettlementProfileRequest: reasonRequestSchema(),
+    RejectShopSettlementProfileRequest: reasonRequestSchema(["reasonCode", "reasonDetail"]),
+    UpdateShopBusinessHourRequest: objectSchema({
+      scheduleType: stringSchema,
+      timezone: stringSchema,
+      weeklySchedule: jsonObjectSchema,
+      holidaySchedule: jsonObjectSchema,
+      effectiveFrom: stringSchema,
+      effectiveTo: stringSchema,
+      status: stringSchema,
+      version: integerSchema,
+    }),
+    CreateShopServiceAreaRequest: shopServiceAreaRequestSchema(["areaType", "countryCode", "serviceStatus"]),
+    UpdateShopServiceAreaRequest: shopServiceAreaRequestSchema(),
+    CreateShopPolicyRequest: objectSchema(
+      {
+        policyType: stringSchema,
+        policyStatus: stringSchema,
+        policyVersion: integerSchema,
+        policy: jsonObjectSchema,
+        publishedAt: stringSchema,
+      },
+      ["policyType", "policyStatus", "policy", "policyVersion"],
+    ),
+    UpdateShopPolicyRequest: objectSchema({
+      policyStatus: stringSchema,
+      policyVersion: integerSchema,
+      policy: jsonObjectSchema,
+      publishedAt: stringSchema,
+      reviewComment: stringSchema,
+    }),
+    UpdateShopDepositAccountRequest: objectSchema({
+      depositStatus: stringSchema,
+      currencyCode: stringSchema,
+      requiredAmount: stringSchema,
+      paidAmount: stringSchema,
+      frozenAmount: stringSchema,
+      accountRef: stringSchema,
+      dueAt: stringSchema,
+    }),
+    ReviewShopDepositAccountRequest: reasonRequestSchema(["reviewComment"]),
+    CreateShopRiskSignalRequest: objectSchema(
+      {
+        signalNo: stringSchema,
+        signalType: stringSchema,
+        riskLevel: stringSchema,
+        signalStatus: stringSchema,
+        sourceType: stringSchema,
+        sourceId: stringSchema,
+        riskScore: integerSchema,
+        payload: jsonObjectSchema,
+        detectedAt: stringSchema,
+      },
+      ["signalType", "riskLevel", "signalStatus", "riskScore", "payload"],
+    ),
+    ResolveShopRiskSignalRequest: reasonRequestSchema(["reasonCode", "reasonDetail"]),
+    UpsertShopCategoryBindingRequest: objectSchema(
+      {
+        shopCategoryCode: stringSchema,
+        platformCategoryCode: stringSchema,
+        platformCategoryName: stringSchema,
+        categoryPath: stringSchema,
+        categoryLevel: nonNegativeIntegerSchema,
+        categoryStatus: stringSchema,
+        qualificationRequired: booleanSchema,
+        qualificationSnapshot: jsonObjectSchema,
+        reviewStatus: stringSchema,
+        effectiveFrom: stringSchema,
+        effectiveTo: stringSchema,
+      },
+      ["shopCategoryCode", "categoryStatus", "qualificationRequired", "qualificationSnapshot", "reviewStatus"],
+    ),
+    UpsertShopBrandAuthorizationRequest: objectSchema(
+      {
+        brandCode: stringSchema,
+        brandName: stringSchema,
+        authorizationType: stringSchema,
+        authorizationStatus: stringSchema,
+        brandOwnerName: stringSchema,
+        trademarkHash: stringSchema,
+        trademarkMediaResourceId: stringSchema,
+        authorizationMediaResourceId: stringSchema,
+        authorizationSnapshot: jsonObjectSchema,
+        validFrom: stringSchema,
+        validTo: stringSchema,
+      },
+      ["brandCode", "brandName", "authorizationType", "authorizationStatus", "authorizationSnapshot"],
+    ),
+    UpsertShopQualificationRequest: objectSchema(
+      {
+        qualificationType: stringSchema,
+        qualificationStatus: stringSchema,
+        subjectType: stringSchema,
+        subjectId: stringSchema,
+        credentialName: stringSchema,
+        credentialHash: stringSchema,
+        credentialMediaResourceId: stringSchema,
+        qualificationSnapshot: jsonObjectSchema,
+        issuedAt: stringSchema,
+        expiresAt: stringSchema,
+      },
+      ["qualificationType", "qualificationStatus", "subjectType", "subjectId", "qualificationSnapshot"],
+    ),
+    UpsertShopCustomerServiceRequest: objectSchema(
+      {
+        serviceChannel: stringSchema,
+        serviceStatus: stringSchema,
+        contactRef: stringSchema,
+        contactLabel: stringSchema,
+        serviceWindow: jsonObjectSchema,
+        serviceConfig: jsonObjectSchema,
+        isDefault: booleanSchema,
+        sortOrder: integerSchema,
+      },
+      ["serviceChannel", "serviceStatus", "contactRef", "serviceWindow", "serviceConfig", "isDefault"],
+    ),
+    UpsertShopReturnAddressRequest: objectSchema(
+      {
+        addressUsage: stringSchema,
+        addressKey: stringSchema,
+        receiverName: stringSchema,
+        phoneHash: stringSchema,
+        countryCode: stringSchema,
+        regionCode: stringSchema,
+        cityCode: stringSchema,
+        districtCode: stringSchema,
+        addressLine1: stringSchema,
+        postalCode: stringSchema,
+        isDefault: booleanSchema,
+        addressStatus: stringSchema,
+        addressSnapshot: jsonObjectSchema,
+      },
+      ["addressUsage", "addressKey", "receiverName", "countryCode", "addressLine1", "isDefault", "addressStatus", "addressSnapshot"],
+    ),
+    UpsertShopShippingTemplateRequest: objectSchema(
+      {
+        templateCode: stringSchema,
+        templateName: stringSchema,
+        templateStatus: stringSchema,
+        pricingMode: stringSchema,
+        deliveryMethod: stringSchema,
+        baseQuantity: { type: "integer", minimum: 1 },
+        baseFeeAmount: stringSchema,
+        currencyCode: stringSchema,
+        isDefault: booleanSchema,
+        regionRule: { type: "array", items: jsonObjectSchema },
+        freeShippingRule: jsonObjectSchema,
+      },
+      ["templateCode", "templateName", "templateStatus", "pricingMode", "deliveryMethod", "baseQuantity", "baseFeeAmount", "currencyCode", "isDefault", "regionRule", "freeShippingRule"],
+    ),
+  };
+}
+
+function objectSchema(properties, required = []) {
+  return {
+    type: "object",
+    additionalProperties: false,
+    ...(required.length > 0 ? { required } : {}),
+    properties,
+  };
+}
+
+function apiResultSchema(dataSchema) {
+  return objectSchema(
+    {
+      code: { type: "string" },
+      message: { type: "string" },
+      requestId: {
+        type: "string",
+        format: "uuid",
+        description: "Server-owned request correlation id.",
+      },
+      data: dataSchema,
+    },
+    ["code", "message", "requestId", "data"],
+  );
+}
+
+function pagedListSchema(itemSchema, pageInfoSchema) {
+  return objectSchema(
+    {
+      items: {
+        type: "array",
+        items: itemSchema,
+      },
+      pageInfo: pageInfoSchema,
+    },
+    ["items", "pageInfo"],
+  );
+}
+
+function reasonRequestSchema(required = []) {
+  return objectSchema(
+    {
+      reasonCode: { type: "string" },
+      reasonDetail: { type: "string" },
+      reviewComment: { type: "string" },
+    },
+    required,
+  );
+}
+
+function shopChannelRequestSchema(required = []) {
+  return objectSchema(
+    {
+      channelCode: { type: "string" },
+      storefrontStatus: { type: "string" },
+      domainName: { type: "string" },
+      pathPrefix: { type: "string" },
+      themeCode: { type: "string" },
+      channelConfig: { type: "object", additionalProperties: true },
+      sortOrder: { type: "integer" },
+    },
+    required,
+  );
+}
+
+function shopServiceAreaRequestSchema(required = []) {
+  return objectSchema(
+    {
+      areaType: { type: "string" },
+      countryCode: { type: "string" },
+      regionCode: { type: "string" },
+      cityCode: { type: "string" },
+      postalCodePattern: { type: "string" },
+      deliveryRadiusMeters: { type: "integer", minimum: 0 },
+      serviceStatus: { type: "string" },
+      serviceConfig: { type: "object", additionalProperties: true },
+      sortOrder: { type: "integer" },
+    },
+    required,
+  );
 }
 
 function operationEntries(document) {
@@ -157,10 +1256,11 @@ function normalizeOwnerOnlyDocument(inputDocument, options) {
       description: "Local sdkwork-commerce runtime",
     },
   ];
-  document.paths = document.paths || {};
+  document.paths = {};
   document.components = document.components || {};
   document.components.securitySchemes = document.components.securitySchemes || {};
   document.components.schemas = document.components.schemas || {};
+  Object.assign(document.components.schemas, SHOP_SCHEMAS);
   syncOperationContractsFromContracts(document, options);
   normalizeOperationTags(document);
   normalizeErrorResponseContent(document);
@@ -174,8 +1274,49 @@ function normalizeOwnerOnlyDocument(inputDocument, options) {
     operation["x-sdkwork-api-authority"] = options.authority;
     operation["x-sdkwork-domain"] = "commerce";
   }
+  pruneUnreferencedSchemas(document);
 
   return document;
+}
+
+function pruneUnreferencedSchemas(document) {
+  const schemas = document.components?.schemas || {};
+  const referencedSchemas = collectReferencedSchemas(document);
+  const prunedSchemas = {};
+  for (const schemaName of Object.keys(schemas).sort()) {
+    if (referencedSchemas.has(schemaName)) {
+      prunedSchemas[schemaName] = schemas[schemaName];
+    }
+  }
+  document.components.schemas = prunedSchemas;
+}
+
+function collectReferencedSchemas(document) {
+  const referenced = new Set();
+  const seenRefs = new Set();
+
+  function visit(value) {
+    if (!value || typeof value !== "object") {
+      return;
+    }
+    if (typeof value.$ref === "string") {
+      const prefix = "#/components/schemas/";
+      if (value.$ref.startsWith(prefix)) {
+        const schemaName = value.$ref.slice(prefix.length);
+        if (!seenRefs.has(schemaName)) {
+          seenRefs.add(schemaName);
+          referenced.add(schemaName);
+          visit(document.components?.schemas?.[schemaName]);
+        }
+      }
+    }
+    for (const child of Object.values(value)) {
+      visit(child);
+    }
+  }
+
+  visit(document.paths);
+  return referenced;
 }
 
 function syncOperationContractsFromContracts(document, options) {
@@ -212,35 +1353,8 @@ function collectCommerceOperationContracts(node, surface, entries) {
 }
 
 function createOperationFromContract(contract, options) {
-  const operation = {
-    tags: [contract.tag || "commerce"],
-    summary: `${toTitle(contract.operationId)}.`,
-    operationId: contract.operationId,
-    parameters: createParametersFromContract(contract),
-    responses: createStandardResponses(),
-    security: [
-      {
-        AuthToken: [],
-        AccessToken: [],
-      },
-    ],
-    "x-sdkwork-owner": SDK_OWNER,
-    "x-sdkwork-api-authority": options.authority,
-    "x-sdkwork-domain": "commerce",
-    "x-sdkwork-resource": resourceNameFromOperationId(contract.operationId),
-    "x-sdkwork-request-context": "AppRequestContext",
-    "x-sdkwork-server-request-id": true,
-  };
-  if (!["GET", "DELETE", "HEAD"].includes(contract.method)) {
-    operation.requestBody = {
-      required: contract.method === "POST",
-      content: {
-        "application/json": {
-          schema: { $ref: "#/components/schemas/CommerceOperationCommand" },
-        },
-      },
-    };
-  }
+  const operation = {};
+  syncOperationFromContract(operation, contract, options);
   return operation;
 }
 
@@ -249,19 +1363,60 @@ function syncOperationFromContract(operation, contract, options) {
   operation.summary = `${toTitle(contract.operationId)}.`;
   operation.operationId = contract.operationId;
   operation.parameters = createParametersFromContract(contract);
+  operation.responses = createStandardResponses(contract.responseSchema);
+  operation.security = [
+    {
+      AuthToken: [],
+      AccessToken: [],
+    },
+  ];
   operation["x-sdkwork-owner"] = SDK_OWNER;
   operation["x-sdkwork-api-authority"] = options.authority;
   operation["x-sdkwork-domain"] = "commerce";
   operation["x-sdkwork-resource"] = resourceNameFromOperationId(contract.operationId);
   operation["x-sdkwork-request-context"] = "AppRequestContext";
   operation["x-sdkwork-server-request-id"] = true;
+  if (contract.permission) {
+    operation["x-sdkwork-permission"] = contract.permission;
+  } else {
+    delete operation["x-sdkwork-permission"];
+  }
+  if (contract.auditEvent) {
+    operation["x-sdkwork-audit-event"] = contract.auditEvent;
+  } else {
+    delete operation["x-sdkwork-audit-event"];
+  }
+  if (contract.idempotent === true) {
+    operation["x-sdkwork-idempotent"] = true;
+  } else {
+    delete operation["x-sdkwork-idempotent"];
+  }
+  syncRequestBodyFromContract(operation, contract);
+}
+
+function syncRequestBodyFromContract(operation, contract) {
+  if (BODYLESS_METHODS.has(contract.method)) {
+    delete operation.requestBody;
+    return;
+  }
+
+  const requestSchema = contract.requestSchema || "CommerceOperationCommand";
+  operation.requestBody = {
+    required: contract.bodyRequired ?? (contract.requestSchema ? true : contract.method === "POST"),
+    content: {
+      "application/json": {
+        schema: { $ref: `#/components/schemas/${requestSchema}` },
+      },
+    },
+  };
 }
 
 function createParametersFromContract(contract) {
   const queryParameters = Array.isArray(contract.queryParameters)
     ? contract.queryParameters.map((name) => createQueryParameter(name))
     : [];
-  return [...createPathParameters(contract.path), ...queryParameters];
+  const headerParameters = contract.idempotent ? [createIdempotencyKeyParameter()] : [];
+  return [...createPathParameters(contract.path), ...queryParameters, ...headerParameters];
 }
 
 function createPathParameters(pathTemplate) {
@@ -298,16 +1453,33 @@ function queryParameterSchema(name) {
       default: 20,
     };
   }
+  if (name === "is_default") {
+    return { type: "boolean" };
+  }
   return { type: "string" };
 }
 
-function createStandardResponses() {
+function createIdempotencyKeyParameter() {
+  return {
+    name: "Idempotency-Key",
+    in: "header",
+    required: true,
+    schema: {
+      type: "string",
+      minLength: 8,
+      maxLength: 128,
+    },
+    description: "Client retry key scoped by tenant, principal, method, and path.",
+  };
+}
+
+function createStandardResponses(responseSchema = "CommerceApiResult") {
   return {
     "200": {
       description: "Success",
       content: {
         "application/json": {
-          schema: { $ref: "#/components/schemas/CommerceApiResult" },
+          schema: { $ref: `#/components/schemas/${responseSchema}` },
         },
       },
     },

@@ -20,6 +20,94 @@ export const APP_COMMERCE_METHOD_TREE = {
       summary: { retrieve: true },
     },
   },
+  shops: {
+    list: true,
+    retrieve: true,
+    current: {
+      retrieve: true,
+      dashboard: { retrieve: true },
+      categoryBindings: {
+        list: true,
+        upsert: true,
+      },
+      brandAuthorizations: {
+        list: true,
+        upsert: true,
+      },
+      qualifications: {
+        list: true,
+        upsert: true,
+      },
+      customerServices: {
+        list: true,
+        upsert: true,
+      },
+      returnAddresses: {
+        list: true,
+        upsert: true,
+      },
+      shippingTemplates: {
+        list: true,
+        upsert: true,
+      },
+      applications: {
+        list: true,
+        create: true,
+      },
+      verifications: { list: true },
+      statusEvents: { list: true },
+      channels: {
+        list: true,
+        update: true,
+      },
+      fulfillmentProfile: {
+        retrieve: true,
+        update: true,
+      },
+      settlementProfile: {
+        retrieve: true,
+        update: true,
+      },
+      businessHours: {
+        retrieve: true,
+        update: true,
+      },
+      serviceAreas: {
+        list: true,
+        create: true,
+        update: true,
+      },
+      policies: {
+        list: true,
+        update: true,
+      },
+      depositAccount: {
+        retrieve: true,
+      },
+      riskSignals: {
+        list: true,
+      },
+      products: {
+        list: true,
+        create: true,
+        update: true,
+        publish: true,
+        unpublish: true,
+      },
+      inventory: {
+        stocks: {
+          list: true,
+          adjustments: { create: true },
+        },
+      },
+      orders: {
+        list: true,
+        retrieve: true,
+        fulfillments: { create: true },
+      },
+      settlements: { list: true },
+    },
+  },
   addresses: {
     list: true,
     create: true,
@@ -239,13 +327,92 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
   audit: {
     commerceEvents: { list: true },
   },
+  shops: {
+    management: { list: true, retrieve: true },
+    create: true,
+    update: true,
+    submitReview: true,
+    approve: true,
+    reject: true,
+    suspend: true,
+    resume: true,
+    close: true,
+    categoryBindings: {
+      list: true,
+      upsert: true,
+    },
+    brandAuthorizations: {
+      list: true,
+      upsert: true,
+    },
+    qualifications: {
+      list: true,
+      upsert: true,
+    },
+    customerServices: {
+      list: true,
+      upsert: true,
+    },
+    returnAddresses: {
+      list: true,
+      upsert: true,
+    },
+    shippingTemplates: {
+      list: true,
+      upsert: true,
+    },
+    verifications: {
+      list: true,
+      update: true,
+    },
+    statusEvents: { list: true },
+    channels: {
+      list: true,
+      create: true,
+      update: true,
+    },
+    fulfillmentProfile: {
+      retrieve: true,
+      update: true,
+    },
+    settlementProfile: {
+      retrieve: true,
+      update: true,
+      approve: true,
+      reject: true,
+    },
+    businessHours: {
+      retrieve: true,
+      update: true,
+    },
+    serviceAreas: {
+      list: true,
+      create: true,
+      update: true,
+    },
+    policies: {
+      list: true,
+      create: true,
+      update: true,
+    },
+    depositAccount: {
+      retrieve: true,
+      update: true,
+      review: true,
+    },
+    riskSignals: {
+      list: true,
+      create: true,
+      resolve: true,
+    },
+  },
   catalog: {
     attributes: {
-      list: true,
+      management: { list: true },
       create: true,
     },
     categories: {
-      list: true,
+      management: { list: true },
       create: true,
       update: true,
       delete: true,
@@ -265,7 +432,7 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
       update: true,
     },
     products: {
-      list: true,
+      management: { list: true, retrieve: true },
       create: true,
       update: true,
       delete: true,
@@ -315,9 +482,8 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
     events: { list: true },
   },
   fulfillments: {
-    list: true,
+    management: { list: true, retrieve: true },
     create: true,
-    retrieve: true,
     update: true,
     shipments: {
       create: true,
@@ -336,28 +502,27 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
       update: true,
     },
     reservations: { list: true },
-    ledgerEntries: { list: true },
+    movements: { list: true },
   },
   invoices: {
     titles: { list: true },
-    list: true,
-    retrieve: true,
+    management: { list: true, retrieve: true },
   },
   memberships: {
     plans: {
-      list: true,
+      management: { list: true },
       create: true,
       update: true,
       delete: true,
     },
     packages: {
-      list: true,
+      management: { list: true },
       create: true,
       update: true,
       delete: true,
     },
     packageGroups: {
-      list: true,
+      management: { list: true },
       create: true,
       update: true,
       delete: true,
@@ -371,15 +536,13 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
     },
   },
   orders: {
-    list: true,
-    retrieve: true,
-    events: { list: true },
     management: {
       list: true,
       retrieve: true,
       cancel: true,
       close: true,
     },
+    events: { management: { list: true } },
     cancellations: { list: true },
   },
   payments: {
@@ -391,10 +554,10 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
       delete: true,
       status: { update: true },
     },
-    methods: { list: true },
+    methods: { management: { list: true } },
     channels: { list: true },
     routeRules: { list: true },
-    intents: { list: true },
+    intents: { list: true, management: { retrieve: true } },
     attempts: { list: true },
     webhookEvents: { list: true },
     reconciliationRuns: { list: true },
@@ -404,20 +567,18 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
   },
   recharges: {
     packages: {
-      list: true,
+      management: { list: true },
       create: true,
       update: true,
       delete: true,
     },
     settings: {
-      retrieve: true,
+      management: { retrieve: true },
       update: true,
     },
-    orders: { list: true },
+    orders: { management: { list: true, retrieve: true } },
   },
   refunds: {
-    list: true,
-    retrieve: true,
     approvals: { create: true },
     attempts: {
       list: true,
@@ -430,14 +591,16 @@ export const BACKEND_COMMERCE_METHOD_TREE = {
   },
   shipments: {
     list: true,
-    retrieve: true,
+    management: { retrieve: true },
     trackingEvents: { list: true },
   },
   wallet: {
-    accounts: { list: true },
-    ledgerEntries: { list: true },
-    adjustments: { create: true },
-    exchangeRules: { list: true },
+    accounts: {
+      management: { list: true },
+    },
+    ledgerEntries: { management: { list: true } },
+    adjustments: { management: { create: true } },
+    exchangeRules: { management: { list: true } },
   },
   reports: {
     commerceOverview: { retrieve: true },

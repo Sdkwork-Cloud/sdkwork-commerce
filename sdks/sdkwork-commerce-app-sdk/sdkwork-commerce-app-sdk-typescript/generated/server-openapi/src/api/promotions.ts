@@ -33,11 +33,6 @@ export class PromotionsDiscountApplicationsApi {
     return this.client.post<CommerceApiResult>(appApiPath(`/promotions/discount_applications`), body, undefined, undefined, 'application/json');
   }
 
-/** Promotions discount Applications rollback. */
-  async rollback(applicationId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(appApiPath(`/promotions/discount_applications/${serializePathParameter(applicationId, { name: 'applicationId', style: 'simple', explode: false })}/rollback`), body, undefined, undefined, 'application/json');
-  }
-
 /** Promotions discount Applications settle. */
   async settle(applicationId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
     return this.client.post<CommerceApiResult>(appApiPath(`/promotions/discount_applications/${serializePathParameter(applicationId, { name: 'applicationId', style: 'simple', explode: false })}/settlements`), body, undefined, undefined, 'application/json');
@@ -47,6 +42,43 @@ export class PromotionsDiscountApplicationsApi {
   async release(applicationId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
     return this.client.post<CommerceApiResult>(appApiPath(`/promotions/discount_applications/${serializePathParameter(applicationId, { name: 'applicationId', style: 'simple', explode: false })}/releases`), body, undefined, undefined, 'application/json');
   }
+
+/** Promotions discount Applications rollback. */
+  async rollback(applicationId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(appApiPath(`/promotions/discount_applications/${serializePathParameter(applicationId, { name: 'applicationId', style: 'simple', explode: false })}/rollback`), body, undefined, undefined, 'application/json');
+  }
+}
+
+export class PromotionsCodesRedemptionsApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Promotions codes redemptions create. */
+  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(appApiPath(`/promotions/codes/redemptions`), body, undefined, undefined, 'application/json');
+  }
+}
+
+export class PromotionsCodesApi {
+  private client: HttpClient;
+  public readonly redemptions: PromotionsCodesRedemptionsApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.redemptions = new PromotionsCodesRedemptionsApi(client);
+  }
+
+}
+
+export interface PromotionsOffersListParams {
+  status?: string;
+  page?: number;
+  pageSize?: number;
+  cursor?: string;
 }
 
 export class PromotionsOffersApi {
@@ -56,6 +88,17 @@ export class PromotionsOffersApi {
     this.client = client;
   }
 
+
+/** Promotions offers list. */
+  async list(params?: PromotionsOffersListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(appApiPath(`/promotions/offers`), query));
+  }
 
 /** Promotions offers retrieve. */
   async retrieve(offerId: string): Promise<CommerceApiResult> {
@@ -93,15 +136,47 @@ export class PromotionsUserCouponsWalletApi {
   }
 }
 
+export class PromotionsUserCouponsClaimsApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Promotions user Coupons claims create. */
+  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(appApiPath(`/promotions/user_coupon_claims`), body, undefined, undefined, 'application/json');
+  }
+}
+
+export interface PromotionsUserCouponsListParams {
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}
+
 export class PromotionsUserCouponsApi {
   private client: HttpClient;
+  public readonly claims: PromotionsUserCouponsClaimsApi;
   public readonly wallet: PromotionsUserCouponsWalletApi;
 
   constructor(client: HttpClient) {
     this.client = client;
+    this.claims = new PromotionsUserCouponsClaimsApi(client);
     this.wallet = new PromotionsUserCouponsWalletApi(client);
   }
 
+
+/** Promotions user Coupons list. */
+  async list(params?: PromotionsUserCouponsListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(appApiPath(`/promotions/user_coupons`), query));
+  }
 
 /** Promotions user Coupons retrieve. */
   async retrieve(userCouponId: string): Promise<CommerceApiResult> {
@@ -113,12 +188,14 @@ export class PromotionsApi {
   private client: HttpClient;
   public readonly userCoupons: PromotionsUserCouponsApi;
   public readonly offers: PromotionsOffersApi;
+  public readonly codes: PromotionsCodesApi;
   public readonly discountApplications: PromotionsDiscountApplicationsApi;
 
   constructor(client: HttpClient) {
     this.client = client;
     this.userCoupons = new PromotionsUserCouponsApi(client);
     this.offers = new PromotionsOffersApi(client);
+    this.codes = new PromotionsCodesApi(client);
     this.discountApplications = new PromotionsDiscountApplicationsApi(client);
   }
 

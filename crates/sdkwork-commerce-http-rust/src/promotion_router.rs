@@ -345,6 +345,7 @@ async fn redeem_promotion_code(
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn required_text_header(headers: &HeaderMap, name: &'static str) -> Result<String, Response> {
     let value = headers
         .get(name)

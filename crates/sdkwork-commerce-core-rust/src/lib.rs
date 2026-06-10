@@ -33,6 +33,18 @@ pub struct CommerceRuntimeContext {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CommerceRuntimeContextInput {
+    pub tenant_id: String,
+    pub organization_id: Option<String>,
+    pub user_id: String,
+    pub session_id: String,
+    pub app_id: String,
+    pub deployment_mode: DeploymentMode,
+    pub environment: Environment,
+    pub surface_profile: CommerceSurfaceProfile,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommerceAccountAssetType {
     Cash,
     Points,
@@ -198,25 +210,16 @@ pub enum CommerceStatusMachine {
 }
 
 impl CommerceRuntimeContext {
-    pub fn new(
-        tenant_id: impl Into<String>,
-        organization_id: Option<&str>,
-        user_id: impl Into<String>,
-        session_id: impl Into<String>,
-        app_id: impl Into<String>,
-        deployment_mode: DeploymentMode,
-        environment: Environment,
-        surface_profile: CommerceSurfaceProfile,
-    ) -> Self {
+    pub fn new(input: CommerceRuntimeContextInput) -> Self {
         Self {
-            tenant_id: tenant_id.into(),
-            organization_id: organization_id.map(str::to_string),
-            user_id: user_id.into(),
-            session_id: session_id.into(),
-            app_id: app_id.into(),
-            deployment_mode,
-            environment,
-            surface_profile,
+            tenant_id: input.tenant_id,
+            organization_id: input.organization_id,
+            user_id: input.user_id,
+            session_id: input.session_id,
+            app_id: input.app_id,
+            deployment_mode: input.deployment_mode,
+            environment: input.environment,
+            surface_profile: input.surface_profile,
         }
     }
 }

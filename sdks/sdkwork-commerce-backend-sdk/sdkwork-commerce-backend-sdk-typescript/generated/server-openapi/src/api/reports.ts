@@ -4,6 +4,31 @@ import type { HttpClient } from '../http/client';
 import type { CommerceApiResult } from '../types';
 
 
+export interface ReportsPaymentReconciliationListParams {
+  providerCode?: string;
+  periodStart?: string;
+  periodEnd?: string;
+}
+
+export class ReportsPaymentReconciliationApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Reports payment Reconciliation list. */
+  async list(params?: ReportsPaymentReconciliationListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'provider_code', value: params?.providerCode, style: 'form', explode: true, allowReserved: false },
+      { name: 'period_start', value: params?.periodStart, style: 'form', explode: true, allowReserved: false },
+      { name: 'period_end', value: params?.periodEnd, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/reports/payment_reconciliation`), query));
+  }
+}
+
 export interface ReportsSalesListParams {
   periodStart?: string;
   periodEnd?: string;
@@ -26,31 +51,6 @@ export class ReportsSalesApi {
       { name: 'currency_code', value: params?.currencyCode, style: 'form', explode: true, allowReserved: false },
     ]);
     return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/reports/sales`), query));
-  }
-}
-
-export interface ReportsPaymentReconciliationListParams {
-  provider?: string;
-  periodStart?: string;
-  periodEnd?: string;
-}
-
-export class ReportsPaymentReconciliationApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Reports payment Reconciliation list. */
-  async list(params?: ReportsPaymentReconciliationListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'provider', value: params?.provider, style: 'form', explode: true, allowReserved: false },
-      { name: 'period_start', value: params?.periodStart, style: 'form', explode: true, allowReserved: false },
-      { name: 'period_end', value: params?.periodEnd, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/reports/payment_reconciliation`), query));
   }
 }
 
@@ -80,14 +80,14 @@ export class ReportsCommerceOverviewApi {
 export class ReportsApi {
   private client: HttpClient;
   public readonly commerceOverview: ReportsCommerceOverviewApi;
-  public readonly paymentReconciliation: ReportsPaymentReconciliationApi;
   public readonly sales: ReportsSalesApi;
+  public readonly paymentReconciliation: ReportsPaymentReconciliationApi;
 
   constructor(client: HttpClient) {
     this.client = client;
     this.commerceOverview = new ReportsCommerceOverviewApi(client);
-    this.paymentReconciliation = new ReportsPaymentReconciliationApi(client);
     this.sales = new ReportsSalesApi(client);
+    this.paymentReconciliation = new ReportsPaymentReconciliationApi(client);
   }
 
 }

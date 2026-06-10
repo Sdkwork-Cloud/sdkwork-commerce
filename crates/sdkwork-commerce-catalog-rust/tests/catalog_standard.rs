@@ -1,7 +1,7 @@
 use sdkwork_commerce_catalog::{
     catalog_service_contract, BuyerAddressDraft, CartItemDraft, CatalogPortRequirement,
-    CatalogRepositoryCommand, DeliveryMode, InventoryTrackingMode, ProductAttributeDraft,
-    ProductCategoryDraft, ProductSkuDraft, ProductSpuDraft, ProductType, SalesStatus,
+    CatalogRepositoryCommand, FulfillmentType, InventoryTrackingMode, ProductAttributeDraft,
+    ProductCategoryDraft, ProductSkuDraft, ProductSpuDraft, ProductStatus, ProductType,
 };
 use sdkwork_commerce_core::{CommerceMoney, CommerceSurfaceProfile};
 
@@ -22,6 +22,12 @@ fn catalog_domain_contract_uses_standard_spu_sku_terms_without_legacy_product_ta
         concat!("commerce_", "sku\""),
         concat!("product", "_id"),
         concat!("product", "_no"),
+        "SalesStatus",
+        "DeliveryMode",
+        "sales_status",
+        "delivery_mode",
+        "parent_category_id",
+        "sort_weight",
     ];
 
     let mut violations = Vec::new();
@@ -51,12 +57,13 @@ fn validates_product_spu_for_physical_virtual_membership_and_points_products() {
         "Pro membership",
         ProductType::Membership,
         Some("cat-membership"),
-        SalesStatus::Active,
+        ProductStatus::Active,
         vec![CommerceSurfaceProfile::App, CommerceSurfaceProfile::Console],
     )
     .unwrap();
 
     assert_eq!(spu.spu_no, "spu-membership-pro");
+    assert_eq!(spu.status.as_storage_str(), "active");
     assert_eq!(spu.product_type.as_storage_str(), "membership");
     assert_eq!(ProductType::Physical.as_storage_str(), "physical");
     assert_eq!(ProductType::Virtual.as_storage_str(), "virtual");
@@ -72,14 +79,14 @@ fn validates_product_spu_for_physical_virtual_membership_and_points_products() {
         "No code",
         ProductType::Physical,
         None,
-        SalesStatus::Active,
+        ProductStatus::Active,
         vec![CommerceSurfaceProfile::App],
     )
     .is_err());
 }
 
 #[test]
-fn validates_product_sku_delivery_and_inventory_modes() {
+fn validates_product_sku_fulfillment_and_inventory_modes() {
     let sku = ProductSkuDraft::new(
         "tenant-1",
         "org-1",
@@ -89,23 +96,29 @@ fn validates_product_sku_delivery_and_inventory_modes() {
         CommerceMoney::new("69.90").unwrap(),
         Some(CommerceMoney::new("129.00").unwrap()),
         "CNY",
-        DeliveryMode::MembershipActivation,
+        FulfillmentType::MembershipActivation,
         InventoryTrackingMode::Untracked,
     )
     .unwrap();
 
     assert_eq!(sku.spu_id, "spu-membership-pro");
-    assert_eq!(sku.delivery_mode.as_storage_str(), "membership_activation");
+    assert_eq!(
+        sku.fulfillment_type.as_storage_str(),
+        "membership_activation"
+    );
     assert_eq!(sku.inventory_tracking.as_storage_str(), "untracked");
     assert_eq!(
-        DeliveryMode::PhysicalShipment.as_storage_str(),
+        FulfillmentType::PhysicalShipment.as_storage_str(),
         "physical_shipment"
     );
     assert_eq!(
-        DeliveryMode::VirtualDelivery.as_storage_str(),
+        FulfillmentType::VirtualDelivery.as_storage_str(),
         "virtual_delivery"
     );
-    assert_eq!(DeliveryMode::PointsCredit.as_storage_str(), "points_credit");
+    assert_eq!(
+        FulfillmentType::PointsCredit.as_storage_str(),
+        "points_credit"
+    );
     assert_eq!(InventoryTrackingMode::Tracked.as_storage_str(), "tracked");
     assert!(ProductSkuDraft::new(
         "tenant-1",
@@ -116,7 +129,7 @@ fn validates_product_sku_delivery_and_inventory_modes() {
         CommerceMoney::new("1.00").unwrap(),
         None,
         "",
-        DeliveryMode::PhysicalShipment,
+        FulfillmentType::PhysicalShipment,
         InventoryTrackingMode::Tracked,
     )
     .is_err());
@@ -158,6 +171,8 @@ fn validates_categories_attributes_cart_items_and_buyer_addresses() {
     .unwrap();
 
     assert_eq!(category.category_no, "cat-membership");
+    assert_eq!(category.parent_id, None);
+    assert_eq!(category.sort_order, 100);
     assert_eq!(attribute.values.len(), 2);
     assert_eq!(cart_item.quantity, 2);
     assert!(address.is_default);

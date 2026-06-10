@@ -27,6 +27,7 @@ runCommerceSdkGenerator(
         },
       },
     ],
+    dependencyApiExports: [],
     sdkRoot: resolveFamilySdkRoot(import.meta.url),
     sdkType: "backend",
     apiPrefix: "/backend/v3/api",

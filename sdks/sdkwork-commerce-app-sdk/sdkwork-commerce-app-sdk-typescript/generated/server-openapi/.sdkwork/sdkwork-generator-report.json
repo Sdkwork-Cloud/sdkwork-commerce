@@ -12,22 +12,30 @@
   "mode": "apply",
   "hasChanges": true,
   "hasDestructiveChanges": false,
-  "changeFingerprint": "b31eaa52083f87b0b10435272b18dae9610590140204f61b82d73ddad57b7b87",
+  "changeFingerprint": "f1ae3ae326b2a25ca902199a142f0b73af5643415204973ebb982f5075c0354a",
   "changeImpact": {
     "schemaVersion": 1,
     "areas": [
-      "api-surface"
+      "api-surface",
+      "models"
     ],
     "details": [
       {
         "area": "api-surface",
         "paths": [
-          "src/api/promotions.ts"
+          "src/api/shops.ts"
+        ]
+      },
+      {
+        "area": "models",
+        "paths": [
+          "src/types/shop-customer-service.ts",
+          "src/types/upsert-shop-customer-service-request.ts"
         ]
       }
     ],
     "requiresVerification": true,
-    "summary": "Detected impact areas: api-surface. Verification is required."
+    "summary": "Detected impact areas: api-surface, models. Verification is required."
   },
   "executionDecision": {
     "schemaVersion": 1,
@@ -48,7 +56,7 @@
         "id": "verify-check",
         "title": "Unified package check",
         "required": true,
-        "rationale": "Validate the generated package with the unified publish helper. Triggered by: api-surface.",
+        "rationale": "Validate the generated package with the unified publish helper. Triggered by: api-surface, models.",
         "workingDirectory": "E:\\sdkwork-space\\sdkwork-commerce\\sdks\\sdkwork-commerce-app-sdk\\sdkwork-commerce-app-sdk-typescript\\generated\\server-openapi",
         "command": "node",
         "args": [
@@ -66,7 +74,7 @@
         "id": "verify-build",
         "title": "Unified package build",
         "required": true,
-        "rationale": "Run the full package build because this language uses a lighter check path than the final build. Triggered by: api-surface.",
+        "rationale": "Run the full package build because this language uses a lighter check path than the final build. Triggered by: api-surface, models.",
         "workingDirectory": "E:\\sdkwork-space\\sdkwork-commerce\\sdks\\sdkwork-commerce-app-sdk\\sdkwork-commerce-app-sdk-typescript\\generated\\server-openapi",
         "command": "node",
         "args": [
@@ -85,13 +93,13 @@
   "verificationPlan": {
     "shouldRun": true,
     "runPhase": "now",
-    "summary": "Detected impact areas: api-surface. Verification is required. Run the required verification commands now against the generated SDK output.",
+    "summary": "Detected impact areas: api-surface, models. Verification is required. Run the required verification commands now against the generated SDK output.",
     "steps": [
       {
         "id": "check",
         "title": "Unified package check",
         "required": true,
-        "rationale": "Validate the generated package with the unified publish helper. Triggered by: api-surface.",
+        "rationale": "Validate the generated package with the unified publish helper. Triggered by: api-surface, models.",
         "workingDirectory": "E:\\sdkwork-space\\sdkwork-commerce\\sdks\\sdkwork-commerce-app-sdk\\sdkwork-commerce-app-sdk-typescript\\generated\\server-openapi",
         "command": "node",
         "args": [
@@ -109,7 +117,7 @@
         "id": "build",
         "title": "Unified package build",
         "required": true,
-        "rationale": "Run the full package build because this language uses a lighter check path than the final build. Triggered by: api-surface.",
+        "rationale": "Run the full package build because this language uses a lighter check path than the final build. Triggered by: api-surface, models.",
         "workingDirectory": "E:\\sdkwork-space\\sdkwork-commerce\\sdks\\sdkwork-commerce-app-sdk\\sdkwork-commerce-app-sdk-typescript\\generated\\server-openapi",
         "command": "node",
         "args": [
@@ -130,6 +138,7 @@
     "version": "0.1.0",
     "language": "typescript",
     "sdkType": "app",
+    "protocol": "http",
     "outputPath": "E:\\sdkwork-space\\sdkwork-commerce\\sdks\\sdkwork-commerce-app-sdk\\sdkwork-commerce-app-sdk-typescript\\generated\\server-openapi",
     "packageName": "sdkwork-commerce-app-sdk-generated-typescript"
   },
@@ -138,24 +147,27 @@
     "localVersions": []
   },
   "stats": {
-    "totalFiles": 31,
-    "models": 4,
-    "apis": 4,
-    "types": 6
+    "totalFiles": 109,
+    "models": 69,
+    "apis": 17,
+    "types": 71
   },
   "warnings": [],
   "syncSummary": {
     "dryRun": false,
-    "writtenFiles": 1,
+    "controlPlaneEnabled": true,
+    "writtenFiles": 3,
     "skippedScaffoldFiles": 2,
-    "skippedUnchangedGeneratedFiles": 28,
+    "skippedUnchangedGeneratedFiles": 104,
     "deletedGeneratedFiles": 0,
     "changeSummaryPath": ".sdkwork/sdkwork-generator-changes.json",
-    "changeFingerprint": "b31eaa52083f87b0b10435272b18dae9610590140204f61b82d73ddad57b7b87",
+    "changeFingerprint": "f1ae3ae326b2a25ca902199a142f0b73af5643415204973ebb982f5075c0354a",
     "changes": {
       "createdGeneratedFiles": [],
       "updatedGeneratedFiles": [
-        "src/api/promotions.ts"
+        "src/api/shops.ts",
+        "src/types/shop-customer-service.ts",
+        "src/types/upsert-shop-customer-service-request.ts"
       ],
       "unchangedGeneratedFiles": [
         "bin/publish-core.mjs",
@@ -168,11 +180,24 @@
         "package.json",
         "README.md",
         "sdkwork-sdk.json",
+        "src/api/accounts.ts",
+        "src/api/addresses.ts",
         "src/api/base.ts",
-        "src/api/commerce.ts",
+        "src/api/billing.ts",
+        "src/api/cart.ts",
+        "src/api/catalog.ts",
+        "src/api/checkout.ts",
+        "src/api/fulfillments.ts",
         "src/api/index.ts",
+        "src/api/invoices.ts",
+        "src/api/memberships.ts",
+        "src/api/orders.ts",
         "src/api/paths.ts",
         "src/api/payments.ts",
+        "src/api/promotions.ts",
+        "src/api/recharges.ts",
+        "src/api/refunds.ts",
+        "src/api/shipments.ts",
         "src/api/wallet.ts",
         "src/auth/index.ts",
         "src/http/client.ts",
@@ -182,9 +207,72 @@
         "src/types/commerce-api-result.ts",
         "src/types/commerce-operation-command.ts",
         "src/types/common.ts",
+        "src/types/create-shop-service-area-request.ts",
+        "src/types/current-shop-response.ts",
         "src/types/field-error.ts",
         "src/types/index.ts",
         "src/types/problem-detail.ts",
+        "src/types/shop-application-list-response.ts",
+        "src/types/shop-application-response.ts",
+        "src/types/shop-application.ts",
+        "src/types/shop-brand-authorization-list-response.ts",
+        "src/types/shop-brand-authorization-response.ts",
+        "src/types/shop-brand-authorization.ts",
+        "src/types/shop-business-hour-response.ts",
+        "src/types/shop-business-hour.ts",
+        "src/types/shop-category-binding-list-response.ts",
+        "src/types/shop-category-binding-response.ts",
+        "src/types/shop-category-binding.ts",
+        "src/types/shop-channel-list-response.ts",
+        "src/types/shop-channel-response.ts",
+        "src/types/shop-channel.ts",
+        "src/types/shop-customer-service-list-response.ts",
+        "src/types/shop-customer-service-response.ts",
+        "src/types/shop-dashboard-response.ts",
+        "src/types/shop-deposit-account-response.ts",
+        "src/types/shop-deposit-account.ts",
+        "src/types/shop-detail-response.ts",
+        "src/types/shop-detail.ts",
+        "src/types/shop-fulfillment-profile-response.ts",
+        "src/types/shop-fulfillment-profile.ts",
+        "src/types/shop-list-response.ts",
+        "src/types/shop-metric-snapshot.ts",
+        "src/types/shop-policy-list-response.ts",
+        "src/types/shop-policy-response.ts",
+        "src/types/shop-policy.ts",
+        "src/types/shop-qualification-list-response.ts",
+        "src/types/shop-qualification-response.ts",
+        "src/types/shop-qualification.ts",
+        "src/types/shop-return-address-list-response.ts",
+        "src/types/shop-return-address-response.ts",
+        "src/types/shop-return-address.ts",
+        "src/types/shop-risk-signal-list-response.ts",
+        "src/types/shop-risk-signal.ts",
+        "src/types/shop-service-area-list-response.ts",
+        "src/types/shop-service-area-response.ts",
+        "src/types/shop-service-area.ts",
+        "src/types/shop-settlement-profile-response.ts",
+        "src/types/shop-settlement-profile.ts",
+        "src/types/shop-shipping-template-list-response.ts",
+        "src/types/shop-shipping-template-response.ts",
+        "src/types/shop-shipping-template.ts",
+        "src/types/shop-status-event-list-response.ts",
+        "src/types/shop-status-event.ts",
+        "src/types/shop-summary.ts",
+        "src/types/shop-verification-list-response.ts",
+        "src/types/shop-verification.ts",
+        "src/types/submit-shop-application-request.ts",
+        "src/types/update-shop-business-hour-request.ts",
+        "src/types/update-shop-channel-request.ts",
+        "src/types/update-shop-fulfillment-profile-request.ts",
+        "src/types/update-shop-policy-request.ts",
+        "src/types/update-shop-service-area-request.ts",
+        "src/types/update-shop-settlement-profile-request.ts",
+        "src/types/upsert-shop-brand-authorization-request.ts",
+        "src/types/upsert-shop-category-binding-request.ts",
+        "src/types/upsert-shop-qualification-request.ts",
+        "src/types/upsert-shop-return-address-request.ts",
+        "src/types/upsert-shop-shipping-template-request.ts",
         "tsconfig.json"
       ],
       "deletedGeneratedFiles": [],
@@ -198,29 +286,37 @@
     "impact": {
       "schemaVersion": 1,
       "areas": [
-        "api-surface"
+        "api-surface",
+        "models"
       ],
       "details": [
         {
           "area": "api-surface",
           "paths": [
-            "src/api/promotions.ts"
+            "src/api/shops.ts"
+          ]
+        },
+        {
+          "area": "models",
+          "paths": [
+            "src/types/shop-customer-service.ts",
+            "src/types/upsert-shop-customer-service-request.ts"
           ]
         }
       ],
       "requiresVerification": true,
-      "summary": "Detected impact areas: api-surface. Verification is required."
+      "summary": "Detected impact areas: api-surface, models. Verification is required."
     },
     "verificationPlan": {
       "shouldRun": true,
       "runPhase": "now",
-      "summary": "Detected impact areas: api-surface. Verification is required. Run the required verification commands now against the generated SDK output.",
+      "summary": "Detected impact areas: api-surface, models. Verification is required. Run the required verification commands now against the generated SDK output.",
       "steps": [
         {
           "id": "check",
           "title": "Unified package check",
           "required": true,
-          "rationale": "Validate the generated package with the unified publish helper. Triggered by: api-surface.",
+          "rationale": "Validate the generated package with the unified publish helper. Triggered by: api-surface, models.",
           "workingDirectory": "E:\\sdkwork-space\\sdkwork-commerce\\sdks\\sdkwork-commerce-app-sdk\\sdkwork-commerce-app-sdk-typescript\\generated\\server-openapi",
           "command": "node",
           "args": [
@@ -238,7 +334,7 @@
           "id": "build",
           "title": "Unified package build",
           "required": true,
-          "rationale": "Run the full package build because this language uses a lighter check path than the final build. Triggered by: api-surface.",
+          "rationale": "Run the full package build because this language uses a lighter check path than the final build. Triggered by: api-surface, models.",
           "workingDirectory": "E:\\sdkwork-space\\sdkwork-commerce\\sdks\\sdkwork-commerce-app-sdk\\sdkwork-commerce-app-sdk-typescript\\generated\\server-openapi",
           "command": "node",
           "args": [

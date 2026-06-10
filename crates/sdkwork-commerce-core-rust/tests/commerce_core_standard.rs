@@ -2,24 +2,24 @@ use sdkwork_commerce_core::{
     assert_status_transition, validate_commerce_context, CapabilityFlag, CommerceAccountAssetType,
     CommerceExchangeStatus, CommerceIdempotencyRecord, CommerceLedgerDirection, CommerceMoney,
     CommercePaymentStatus, CommercePoints, CommerceRechargeStatus, CommerceRequestHash,
-    CommerceRuntimeContext, CommerceServiceContract, CommerceServiceError, CommerceStatusMachine,
-    CommerceSurfaceProfile, DeploymentMode, Environment, IdempotencyDecision,
-    IdempotencyRepositoryCommand, OperationExecutionPolicy, PromotionCouponStatus,
-    TransactionBoundaryKind,
+    CommerceRuntimeContext, CommerceRuntimeContextInput, CommerceServiceContract,
+    CommerceServiceError, CommerceStatusMachine, CommerceSurfaceProfile, DeploymentMode,
+    Environment, IdempotencyDecision, IdempotencyRepositoryCommand, OperationExecutionPolicy,
+    PromotionCouponStatus, TransactionBoundaryKind,
 };
 
 #[test]
 fn validates_commerce_runtime_context_for_private_deployments() {
-    let context = CommerceRuntimeContext::new(
-        "tenant-1",
-        Some("org-1"),
-        "user-1",
-        "session-1",
-        "sdkwork-router",
-        DeploymentMode::Private,
-        Environment::Production,
-        CommerceSurfaceProfile::Console,
-    );
+    let context = CommerceRuntimeContext::new(CommerceRuntimeContextInput {
+        tenant_id: "tenant-1".to_string(),
+        organization_id: Some("org-1".to_string()),
+        user_id: "user-1".to_string(),
+        session_id: "session-1".to_string(),
+        app_id: "sdkwork-router".to_string(),
+        deployment_mode: DeploymentMode::Private,
+        environment: Environment::Production,
+        surface_profile: CommerceSurfaceProfile::Console,
+    });
 
     assert_eq!(context.tenant_id, "tenant-1");
     assert_eq!(context.organization_id.as_deref(), Some("org-1"));
@@ -29,16 +29,16 @@ fn validates_commerce_runtime_context_for_private_deployments() {
 
 #[test]
 fn rejects_contexts_without_required_tenant_or_user_identity() {
-    let context = CommerceRuntimeContext::new(
-        "",
-        None,
-        "",
-        "session-1",
-        "sdkwork-router",
-        DeploymentMode::Local,
-        Environment::Test,
-        CommerceSurfaceProfile::App,
-    );
+    let context = CommerceRuntimeContext::new(CommerceRuntimeContextInput {
+        tenant_id: String::new(),
+        organization_id: None,
+        user_id: String::new(),
+        session_id: "session-1".to_string(),
+        app_id: "sdkwork-router".to_string(),
+        deployment_mode: DeploymentMode::Local,
+        environment: Environment::Test,
+        surface_profile: CommerceSurfaceProfile::App,
+    });
 
     assert_eq!(
         validate_commerce_context(&context),
@@ -212,16 +212,16 @@ fn validates_operation_request_context_before_service_execution() {
         OperationExecutionPolicy::TransactionalWrite,
         "commerce.order.lifecycle",
     );
-    let context = CommerceRuntimeContext::new(
-        "tenant-1",
-        Some("org-1"),
-        "user-1",
-        "session-1",
-        "sdkwork-router",
-        DeploymentMode::Private,
-        Environment::Production,
-        CommerceSurfaceProfile::App,
-    );
+    let context = CommerceRuntimeContext::new(CommerceRuntimeContextInput {
+        tenant_id: "tenant-1".to_string(),
+        organization_id: Some("org-1".to_string()),
+        user_id: "user-1".to_string(),
+        session_id: "session-1".to_string(),
+        app_id: "sdkwork-router".to_string(),
+        deployment_mode: DeploymentMode::Private,
+        environment: Environment::Production,
+        surface_profile: CommerceSurfaceProfile::App,
+    });
     let request = sdkwork_commerce_core::CommerceOperationRequest::new(
         context,
         contract.clone(),

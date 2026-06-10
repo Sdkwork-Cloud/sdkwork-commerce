@@ -117,6 +117,7 @@ describe("SDKWork commerce service", () => {
 
   it("exposes commerce admin services over generated backend SDK clients", async () => {
     const backendClient = createMockClient<CommerceBackendSdkClient>(SDKWORK_COMMERCE_BACKEND_SDK_REQUIRED_METHODS, {
+      "commerce.catalog.products.management.retrieve": { productId: "spu-1" },
       "commerce.catalog.products.create": { productId: "spu-1" },
       "commerce.catalog.products.delete": { deleted: true, productId: "spu-1" },
       "commerce.catalog.skus.delete": { deleted: true, skuId: "sku-1" },
@@ -132,7 +133,7 @@ describe("SDKWork commerce service", () => {
       "commerce.payments.reconciliationRuns.list": [{ runNo: "recon-1" }],
       "commerce.refunds.approvals.create": { refundNo: "refund-1", status: "approved" },
       "commerce.refunds.attempts.create": { refundNo: "refund-1", status: "processing" },
-      "commerce.refunds.retrieve": { refundNo: "refund-1" },
+      "commerce.refunds.management.retrieve": { refundNo: "refund-1" },
       "commerce.fulfillments.create": { fulfillmentNo: "fulfillment-1" },
       "commerce.fulfillments.update": { fulfillmentNo: "fulfillment-1", status: "packed" },
       "commerce.fulfillments.shipments.create": { shipmentNo: "shipment-1" },
@@ -142,7 +143,7 @@ describe("SDKWork commerce service", () => {
       "commerce.entitlements.grants.list": [{ grantId: "grant-1" }],
       "commerce.entitlements.accounts.list": [{ accountId: "entitlement-account-1" }],
       "commerce.entitlements.ledgerEntries.list": [{ ledgerEntryId: "entitlement-ledger-1" }],
-      "commerce.memberships.plans.list": [{ planId: "pro-plan-1" }],
+      "commerce.memberships.plans.management.list": [{ planId: "pro-plan-1" }],
       "commerce.memberships.entitlements.list": [{ membershipEntitlementId: "membership-entitlement-1" }],
       "commerce.promotions.offers.management.list": [{ offerId: "new-user-offer" }],
       "commerce.promotions.couponStocks.list": [{ stockId: "stock-1" }],
@@ -150,7 +151,7 @@ describe("SDKWork commerce service", () => {
       "commerce.promotions.userCoupons.management.list": [{ userCouponId: "coupon-1" }],
       "commerce.promotions.discountApplications.list": [{ applicationId: "application-1" }],
       "commerce.promotions.discountAllocations.list": [{ allocationId: "allocation-1" }],
-      "commerce.wallet.adjustments.create": { adjustmentNo: "wallet-adjust-1" },
+      "commerce.wallet.adjustments.management.create": { adjustmentNo: "wallet-adjust-1" },
       "commerce.commerceReports.paymentReconciliation.retrieve": { diffAmount: "0.00" },
       "commerce.audit.commerceEvents.list": [{ eventId: "event-1" }],
     });
@@ -160,6 +161,9 @@ describe("SDKWork commerce service", () => {
     });
 
     await expect(service.admin.catalog.products.create({ title: "Standard product" })).resolves.toEqual({
+      productId: "spu-1",
+    });
+    await expect(service.admin.catalog.products.management.retrieve("spu-1")).resolves.toEqual({
       productId: "spu-1",
     });
     await expect(service.admin.catalog.products.delete("spu-1")).resolves.toEqual({
@@ -213,7 +217,7 @@ describe("SDKWork commerce service", () => {
       providerCode: "wechat_pay",
       reason: "operator-submit",
     })).resolves.toEqual({ refundNo: "refund-1", status: "processing" });
-    await expect(service.admin.refunds.retrieve("refund-1")).resolves.toEqual({ refundNo: "refund-1" });
+    await expect(service.admin.refunds.management.retrieve("refund-1")).resolves.toEqual({ refundNo: "refund-1" });
     await expect(service.admin.fulfillments.create({ orderId: "order-1" })).resolves.toEqual({
       fulfillmentNo: "fulfillment-1",
     });
@@ -243,7 +247,7 @@ describe("SDKWork commerce service", () => {
     await expect(service.admin.entitlements.ledgerEntries.list({ accountId: "entitlement-account-1" })).resolves.toEqual([
       { ledgerEntryId: "entitlement-ledger-1" },
     ]);
-    await expect(service.admin.memberships.plans.list({ status: "active" })).resolves.toEqual([
+    await expect(service.admin.memberships.plans.management.list({ status: "active" })).resolves.toEqual([
       { planId: "pro-plan-1" },
     ]);
     await expect(service.admin.memberships.entitlements.list({ membershipId: "membership-1" })).resolves.toEqual([
@@ -267,7 +271,7 @@ describe("SDKWork commerce service", () => {
     await expect(service.admin.promotions.discountAllocations.list({ applicationId: "application-1" })).resolves.toEqual([
       { allocationId: "allocation-1" },
     ]);
-    await expect(service.admin.wallet.adjustments.create({ amount: "10.00" })).resolves.toEqual({
+    await expect(service.admin.wallet.adjustments.management.create({ amount: "10.00" })).resolves.toEqual({
       adjustmentNo: "wallet-adjust-1",
     });
     await expect(service.admin.commerceReports.paymentReconciliation.retrieve({ period: "2026-05" })).resolves.toEqual({
@@ -278,6 +282,7 @@ describe("SDKWork commerce service", () => {
     ]);
 
     expect(backendClient.commerce.catalog.products.create).toHaveBeenCalledWith({ title: "Standard product" });
+    expect(backendClient.commerce.catalog.products.management.retrieve).toHaveBeenCalledWith("spu-1");
     expect(backendClient.commerce.catalog.products.delete).toHaveBeenCalledWith("spu-1");
     expect(backendClient.commerce.catalog.skus.delete).toHaveBeenCalledWith("sku-1");
     expect(backendClient.commerce.catalog.categorySeeds.create).toHaveBeenCalledWith({ datasets: ["product"] });
@@ -328,7 +333,7 @@ describe("SDKWork commerce service", () => {
     expect(backendClient.commerce.entitlements.ledgerEntries.list).toHaveBeenCalledWith({
       accountId: "entitlement-account-1",
     });
-    expect(backendClient.commerce.memberships.plans.list).toHaveBeenCalledWith({ status: "active" });
+    expect(backendClient.commerce.memberships.plans.management.list).toHaveBeenCalledWith({ status: "active" });
     expect(backendClient.commerce.memberships.entitlements.list).toHaveBeenCalledWith({
       membershipId: "membership-1",
     });

@@ -4,35 +4,6 @@ import type { HttpClient } from '../http/client';
 import type { CommerceApiResult } from '../types';
 
 
-export interface AuditLogsListParams {
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-  sort?: string;
-  q?: string;
-}
-
-export class AuditLogsApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Audit logs list. */
-  async list(params?: AuditLogsListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
-      { name: 'sort', value: params?.sort, style: 'form', explode: true, allowReserved: false },
-      { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/audit/logs`), query));
-  }
-}
-
 export interface AuditCommerceEventsListParams {
   actorId?: string;
   sourceType?: string;
@@ -63,12 +34,10 @@ export class AuditCommerceEventsApi {
 export class AuditApi {
   private client: HttpClient;
   public readonly commerceEvents: AuditCommerceEventsApi;
-  public readonly logs: AuditLogsApi;
 
   constructor(client: HttpClient) {
     this.client = client;
     this.commerceEvents = new AuditCommerceEventsApi(client);
-    this.logs = new AuditLogsApi(client);
   }
 
 }

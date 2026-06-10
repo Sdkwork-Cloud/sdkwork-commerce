@@ -4,7 +4,15 @@ import type { HttpClient } from '../http/client';
 import type { CommerceApiResult, CommerceOperationCommand } from '../types';
 
 
-export class RechargesSettingsApi {
+export interface RechargesOrdersManagementListParams {
+  userId?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+  cursor?: string;
+}
+
+export class RechargesOrdersManagementApi {
   private client: HttpClient;
 
   constructor(client: HttpClient) {
@@ -12,22 +20,70 @@ export class RechargesSettingsApi {
   }
 
 
-/** Recharges settings retrieve. */
+/** Recharges orders management list. */
+  async list(params?: RechargesOrdersManagementListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'user_id', value: params?.userId, style: 'form', explode: true, allowReserved: false },
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/recharges/orders`), query));
+  }
+
+/** Recharges orders management retrieve. */
+  async retrieve(orderId: string): Promise<CommerceApiResult> {
+    return this.client.get<CommerceApiResult>(backendApiPath(`/recharges/orders/${serializePathParameter(orderId, { name: 'orderId', style: 'simple', explode: false })}`));
+  }
+}
+
+export class RechargesOrdersApi {
+  private client: HttpClient;
+  public readonly management: RechargesOrdersManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new RechargesOrdersManagementApi(client);
+  }
+
+}
+
+export class RechargesSettingsManagementApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Recharges settings management retrieve. */
   async retrieve(): Promise<CommerceApiResult> {
     return this.client.get<CommerceApiResult>(backendApiPath(`/recharges/settings`));
   }
+}
+
+export class RechargesSettingsApi {
+  private client: HttpClient;
+  public readonly management: RechargesSettingsManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new RechargesSettingsManagementApi(client);
+  }
+
 
 /** Recharges settings update. */
-  async update(body: CommerceOperationCommand): Promise<CommerceApiResult> {
+  async update(body?: CommerceOperationCommand): Promise<CommerceApiResult> {
     return this.client.put<CommerceApiResult>(backendApiPath(`/recharges/settings`), body, undefined, undefined, 'application/json');
   }
 }
 
-export interface RechargesPackagesListParams {
+export interface RechargesPackagesManagementListParams {
   status?: string;
 }
 
-export class RechargesPackagesApi {
+export class RechargesPackagesManagementApi {
   private client: HttpClient;
 
   constructor(client: HttpClient) {
@@ -35,13 +91,24 @@ export class RechargesPackagesApi {
   }
 
 
-/** Recharges packages list. */
-  async list(params?: RechargesPackagesListParams): Promise<CommerceApiResult> {
+/** Recharges packages management list. */
+  async list(params?: RechargesPackagesManagementListParams): Promise<CommerceApiResult> {
     const query = buildQueryString([
       { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
     ]);
     return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/recharges/packages`), query));
   }
+}
+
+export class RechargesPackagesApi {
+  private client: HttpClient;
+  public readonly management: RechargesPackagesManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new RechargesPackagesManagementApi(client);
+  }
+
 
 /** Recharges packages create. */
   async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
@@ -59,51 +126,17 @@ export class RechargesPackagesApi {
   }
 }
 
-export interface RechargesOrdersListParams {
-  userId?: string;
-  status?: string;
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-}
-
-export class RechargesOrdersApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Recharges orders list. */
-  async list(params?: RechargesOrdersListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'user_id', value: params?.userId, style: 'form', explode: true, allowReserved: false },
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/recharges/orders`), query));
-  }
-
-/** Recharges orders retrieve. */
-  async retrieve(orderId: string): Promise<CommerceApiResult> {
-    return this.client.get<CommerceApiResult>(backendApiPath(`/recharges/orders/${serializePathParameter(orderId, { name: 'orderId', style: 'simple', explode: false })}`));
-  }
-}
-
 export class RechargesApi {
   private client: HttpClient;
-  public readonly orders: RechargesOrdersApi;
   public readonly packages: RechargesPackagesApi;
   public readonly settings: RechargesSettingsApi;
+  public readonly orders: RechargesOrdersApi;
 
   constructor(client: HttpClient) {
     this.client = client;
-    this.orders = new RechargesOrdersApi(client);
     this.packages = new RechargesPackagesApi(client);
     this.settings = new RechargesSettingsApi(client);
+    this.orders = new RechargesOrdersApi(client);
   }
 
 }

@@ -41,17 +41,77 @@ fn bootstrap_manifest_composes_runtime_storage_http_and_tauri_manifests() {
 fn bootstrap_manifest_is_complete_for_first_slice_host_startup() {
     let manifest = commerce_local_private_bootstrap_manifest();
 
-    assert_eq!(manifest.runtime.service_names.len(), 9);
+    assert_eq!(manifest.runtime.service_names.len(), 10);
+    assert!(manifest.runtime.service_names.contains(&"shop"));
     assert_eq!(
         manifest.runtime.operation_contracts.len(),
         operation_contracts().len()
     );
-    assert_eq!(manifest.storage.tables.len(), 68);
+    assert_eq!(manifest.storage.tables.len(), 91);
+    assert!(manifest.storage.tables.contains(&"commerce_shop"));
+    assert!(manifest
+        .storage
+        .tables
+        .contains(&"commerce_shop_application"));
+    assert!(manifest
+        .storage
+        .tables
+        .contains(&"commerce_shop_settlement_profile"));
+    assert!(manifest
+        .storage
+        .tables
+        .contains(&"commerce_shop_metric_snapshot"));
+    assert!(manifest
+        .storage
+        .tables
+        .contains(&"commerce_shop_business_hour"));
+    assert!(manifest
+        .storage
+        .tables
+        .contains(&"commerce_shop_category_binding"));
+    assert!(manifest
+        .storage
+        .tables
+        .contains(&"commerce_shop_brand_authorization"));
+    assert!(manifest
+        .storage
+        .tables
+        .contains(&"commerce_shop_qualification"));
+    assert!(manifest
+        .storage
+        .tables
+        .contains(&"commerce_shop_customer_service"));
+    assert!(manifest
+        .storage
+        .tables
+        .contains(&"commerce_shop_return_address"));
+    assert!(manifest
+        .storage
+        .tables
+        .contains(&"commerce_shop_shipping_template"));
+    assert!(manifest
+        .storage
+        .tables
+        .contains(&"commerce_shop_service_area"));
+    assert!(manifest.storage.tables.contains(&"commerce_shop_policy"));
+    assert!(manifest
+        .storage
+        .tables
+        .contains(&"commerce_shop_deposit_account"));
+    assert!(manifest
+        .storage
+        .tables
+        .contains(&"commerce_shop_risk_signal"));
     assert!(manifest
         .storage
         .tables
         .contains(&"commerce_product_spu_category"));
-    assert_eq!(manifest.storage.business_repositories.len(), 14);
+    assert_eq!(manifest.storage.business_repositories.len(), 15);
+    assert!(manifest
+        .storage
+        .business_repositories
+        .iter()
+        .any(|repository| repository.repository_name == "shop.repository"));
     assert_eq!(
         manifest.http.execution_metadata.len(),
         manifest.http.app_routes.len()
@@ -98,7 +158,12 @@ fn bootstrap_manifest_validates_cross_layer_contract_alignment() {
 fn bootstrap_manifest_validates_storage_migration_plan_for_host_preflight() {
     let manifest = commerce_local_private_bootstrap_manifest();
 
-    assert_eq!(manifest.storage.migration_plan.len(), 13);
+    assert_eq!(manifest.storage.migration_plan.len(), 14);
+    assert!(manifest
+        .storage
+        .migration_plan
+        .iter()
+        .any(|migration| migration.name == "0014_shop.sql"));
     assert_eq!(manifest.validate(), Ok(()));
 }
 
@@ -142,6 +207,21 @@ fn commerce_experience_seed_manifest_initializes_reusable_membership_and_recharg
     assert_eq!(manifest.payment_provider_account_count, 6);
     assert_eq!(manifest.payment_channel_count, 36);
     assert_eq!(manifest.payment_route_rule_count, 36);
+    assert_eq!(
+        payment_methods
+            .iter()
+            .map(|method| (method.method_key, method.provider_code))
+            .collect::<Vec<_>>(),
+        vec![
+            ("wechat_pay", "wechat_pay"),
+            ("alipay", "alipay"),
+            ("paypal", "paypal"),
+            ("card", "stripe"),
+            ("apple_pay", "apple_pay"),
+            ("google_pay", "google_pay"),
+            ("wallet_balance", "wallet_balance"),
+        ],
+    );
     assert_eq!(
         benefits
             .iter()
@@ -493,14 +573,14 @@ fn bootstrap_preflight_exposes_host_startup_plan_after_validation() {
         preflight.bootstrap_name,
         "sdkwork-commerce-local-private-bootstrap"
     );
-    assert_eq!(preflight.runtime_services, 9);
+    assert_eq!(preflight.runtime_services, 10);
     let manifest = commerce_local_private_bootstrap_manifest();
     assert_eq!(
         preflight.runtime_operations,
         manifest.runtime.operation_contracts.len()
     );
-    assert_eq!(preflight.storage_tables, 68);
-    assert_eq!(preflight.storage_repositories, 15);
+    assert_eq!(preflight.storage_tables, 91);
+    assert_eq!(preflight.storage_repositories, 16);
     assert_eq!(
         preflight.storage_migration_lock_table,
         "commerce_schema_migration_lock"
@@ -523,24 +603,24 @@ fn bootstrap_preflight_exposes_host_startup_plan_after_validation() {
         preflight.operation_output_type,
         "CommerceRuntimeOperationEnvelope"
     );
-    assert_eq!(preflight.storage_pending_migrations, 13);
+    assert_eq!(preflight.storage_pending_migrations, 14);
     assert_eq!(
         preflight.storage_next_migration,
         Some("0001_core_idempotency.sql"),
     );
-    assert_eq!(preflight.storage_migration_execution_steps, 31);
+    assert_eq!(preflight.storage_migration_execution_steps, 33);
     assert_eq!(
         preflight.storage_first_migration_step,
         Some("ensure_lock_table"),
     );
-    assert_eq!(preflight.storage_migration_final_applied_count, 13);
+    assert_eq!(preflight.storage_migration_final_applied_count, 14);
     assert_eq!(preflight.storage_migration_final_pending_count, 0);
     assert!(preflight.storage_schema_is_current_after_migrations);
     assert_eq!(
         preflight.storage_migration_failure_resume_migration,
         Some("0001_core_idempotency.sql"),
     );
-    assert_eq!(preflight.storage_migration_failure_pending_count, 13);
+    assert_eq!(preflight.storage_migration_failure_pending_count, 14);
     assert!(preflight.storage_migration_failure_rollback_required);
     assert!(preflight.storage_migration_failure_lock_release_required);
     assert!(preflight.storage_migration_failure_lock_owner_required);

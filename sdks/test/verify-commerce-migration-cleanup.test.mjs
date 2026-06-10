@@ -17,6 +17,14 @@ const requiredCommerceRustCrates = [
 ];
 
 const requiredCommerceDatabaseTables = [
+  "commerce_shop",
+  "commerce_shop_application",
+  "commerce_shop_verification",
+  "commerce_shop_status_event",
+  "commerce_shop_channel",
+  "commerce_shop_fulfillment_profile",
+  "commerce_shop_settlement_profile",
+  "commerce_shop_metric_snapshot",
   "commerce_product_category",
   "commerce_product_spu",
   "commerce_product_sku",
@@ -37,6 +45,22 @@ const requiredCommerceDatabaseTables = [
 ];
 
 const requiredAppCommerceOperations = [
+  "shops.list",
+  "shops.retrieve",
+  "shops.current.retrieve",
+  "shops.current.applications.list",
+  "shops.current.applications.create",
+  "shops.current.verifications.list",
+  "shops.current.statusEvents.list",
+  "shops.current.channels.list",
+  "shops.current.channels.update",
+  "shops.current.fulfillmentProfile.retrieve",
+  "shops.current.fulfillmentProfile.update",
+  "shops.current.settlementProfile.retrieve",
+  "shops.current.settlementProfile.update",
+  "shops.current.products.create",
+  "shops.current.inventory.stocks.adjustments.create",
+  "shops.current.orders.fulfillments.create",
   "catalog.categories.list",
   "catalog.products.list",
   "catalog.products.retrieve",
@@ -53,7 +77,29 @@ const requiredAppCommerceOperations = [
 ];
 
 const requiredBackendCommerceOperations = [
-  "catalog.products.list",
+  "shops.management.list",
+  "shops.create",
+  "shops.management.retrieve",
+  "shops.update",
+  "shops.submitReview",
+  "shops.approve",
+  "shops.reject",
+  "shops.suspend",
+  "shops.resume",
+  "shops.close",
+  "shops.verifications.list",
+  "shops.verifications.update",
+  "shops.statusEvents.list",
+  "shops.channels.list",
+  "shops.channels.create",
+  "shops.channels.update",
+  "shops.fulfillmentProfile.retrieve",
+  "shops.fulfillmentProfile.update",
+  "shops.settlementProfile.retrieve",
+  "shops.settlementProfile.update",
+  "shops.settlementProfile.approve",
+  "shops.settlementProfile.reject",
+  "catalog.products.management.list",
   "catalog.products.create",
   "catalog.skus.list",
   "catalog.skus.create",
@@ -67,7 +113,7 @@ const requiredBackendCommerceOperations = [
   "payments.channels.list",
   "payments.routeRules.list",
   "payments.reconciliationRuns.list",
-  "payments.webhooks.replay",
+  "payments.webhookEvents.replays.create",
   "refunds.management.list",
   "commerceReports.paymentReconciliation.retrieve",
 ];
@@ -222,6 +268,108 @@ test("commerce owns the migrated product, order, and payment Rust persistence su
     (tableName) => !migrationSource.includes(tableName),
   );
   assert.deepEqual(missingTables, [], "commerce SQL migration must own product, order, and payment tables");
+  assert.match(
+    migrationSource,
+    /CREATE TABLE IF NOT EXISTS commerce_shop\s*\([\s\S]*organization_id TEXT NOT NULL[\s\S]*UNIQUE \(tenant_id, shop_no\)/,
+    "commerce SQL migration must keep commerce_shop linked to appbase IAM organization_id",
+  );
+  assert.equal(
+    /CREATE TABLE IF NOT EXISTS commerce_shop_(staff|member|role|permission|department|position)\b/.test(
+      migrationSource,
+    ),
+    false,
+    "commerce SQL migration must not duplicate appbase IAM staff, member, role, permission, department, or position tables",
+  );
+
+  for (const [tableName, requiredColumns] of Object.entries({
+    commerce_shop: [
+      "version INTEGER NOT NULL DEFAULT 0",
+      "review_status TEXT NOT NULL",
+      "data_scope TEXT NOT NULL",
+      "submitted_at TEXT",
+      "approved_at TEXT",
+      "rejected_at TEXT",
+      "suspended_at TEXT",
+      "closed_at TEXT",
+      "deleted_at TEXT",
+    ],
+    commerce_shop_application: [
+      "application_no TEXT NOT NULL",
+      "application_type TEXT NOT NULL",
+      "review_status TEXT NOT NULL",
+      "submitted_by TEXT NOT NULL",
+      "submitted_at TEXT NOT NULL",
+      "reviewed_by TEXT",
+      "reviewed_at TEXT",
+    ],
+    commerce_shop_verification: [
+      "verification_type TEXT NOT NULL",
+      "verification_status TEXT NOT NULL",
+      "legal_entity_name TEXT",
+      "credential_no_hash TEXT",
+      "expires_at TEXT",
+    ],
+    commerce_shop_status_event: [
+      "event_type TEXT NOT NULL",
+      "from_status TEXT",
+      "to_status TEXT NOT NULL",
+      "actor_id TEXT",
+      "idempotency_key TEXT NOT NULL",
+    ],
+    commerce_shop_channel: [
+      "channel_code TEXT NOT NULL",
+      "storefront_status TEXT NOT NULL",
+      "domain_name TEXT",
+      "path_prefix TEXT",
+      "theme_code TEXT",
+    ],
+    commerce_shop_fulfillment_profile: [
+      "fulfillment_mode TEXT NOT NULL",
+      "shipping_origin_region_code TEXT",
+      "service_level_code TEXT",
+      "after_sales_policy_json TEXT",
+    ],
+    commerce_shop_settlement_profile: [
+      "settlement_status TEXT NOT NULL",
+      "settlement_cycle TEXT NOT NULL",
+      "settlement_currency_code TEXT NOT NULL",
+      "account_ref TEXT",
+      "risk_hold_days INTEGER NOT NULL DEFAULT 0",
+    ],
+    commerce_shop_metric_snapshot: [
+      "snapshot_date TEXT NOT NULL",
+      "gross_sales_amount TEXT NOT NULL DEFAULT '0'",
+      "paid_order_count INTEGER NOT NULL DEFAULT 0",
+      "fulfillment_pending_count INTEGER NOT NULL DEFAULT 0",
+    ],
+  })) {
+    assert.ok(
+      migrationSource.includes(`CREATE TABLE IF NOT EXISTS ${tableName}`),
+      `commerce SQL migration must create ${tableName}`,
+    );
+    for (const column of requiredColumns) {
+      assert.ok(
+        migrationSource.includes(column),
+        `commerce SQL migration ${tableName} must include ${column}`,
+      );
+    }
+  }
+
+  for (const indexName of [
+    "idx_commerce_shop_review_status",
+    "idx_commerce_shop_application_review",
+    "idx_commerce_shop_verification_status",
+    "idx_commerce_shop_status_event_shop_created",
+    "idx_commerce_shop_channel_shop_code",
+    "idx_commerce_shop_fulfillment_profile_shop",
+    "idx_commerce_shop_settlement_profile_status",
+    "idx_commerce_shop_metric_snapshot_shop_date",
+  ]) {
+    assert.ok(
+      migrationSource.includes(`CREATE INDEX IF NOT EXISTS ${indexName}`),
+      `commerce SQL migration must expose shop index ${indexName}`,
+    );
+  }
 });
 
 test("commerce app and backend OpenAPI keep migrated product, order, and payment operations", () => {
@@ -240,4 +388,11 @@ test("commerce app and backend OpenAPI keep migrated product, order, and payment
     [],
     "commerce backend OpenAPI must keep product, inventory, order, payment, refund, and reporting operations",
   );
+  for (const operationId of [...appOperationIds, ...backendOperationIds]) {
+    assert.equal(
+      /(^|\.)shops\.(staff|members|roles|permissions)\./.test(operationId),
+      false,
+      `commerce OpenAPI must not expose shop IAM duplicate operation ${operationId}`,
+    );
+  }
 });

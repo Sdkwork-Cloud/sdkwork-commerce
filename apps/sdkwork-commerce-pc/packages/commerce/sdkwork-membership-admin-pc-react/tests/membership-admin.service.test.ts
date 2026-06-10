@@ -163,27 +163,29 @@ describe("sdkwork-membership-admin-pc-react service", () => {
         },
         memberships: {
           plans: {
-            list: vi.fn().mockResolvedValue({
-              code: "2000",
-              data: {
-                items: [
-                  {
-                    code: "free",
-                    id: "level-free",
-                    name: "Free",
-                    rank: 0,
-                    status: "active",
-                  },
-                  {
-                    code: "pro",
-                    id: "level-pro",
-                    name: "Pro",
-                    rank: 20,
-                    status: "active",
-                  },
-                ],
-              },
-            }),
+            management: {
+              list: vi.fn().mockResolvedValue({
+                code: "2000",
+                data: {
+                  items: [
+                    {
+                      code: "free",
+                      id: "level-free",
+                      name: "Free",
+                      rank: 0,
+                      status: "active",
+                    },
+                    {
+                      code: "pro",
+                      id: "level-pro",
+                      name: "Pro",
+                      rank: 20,
+                      status: "active",
+                    },
+                  ],
+                },
+              }),
+            },
             create: levelCreate,
             update: levelUpdate,
             delete: levelDelete,
@@ -207,42 +209,46 @@ describe("sdkwork-membership-admin-pc-react service", () => {
             update: membershipUpdate,
           },
           packageGroups: {
-            list: vi.fn().mockResolvedValue({
-              code: "2000",
-              data: [
-                {
-                  billingCycle: "monthly",
-                  code: "monthly",
-                  description: "Monthly membership package group",
-                  durationDays: 30,
-                  id: "group-monthly",
-                  name: "Monthly",
-                  sortWeight: 10,
-                  status: "active",
-                },
-              ],
-            }),
+            management: {
+              list: vi.fn().mockResolvedValue({
+                code: "2000",
+                data: [
+                  {
+                    billingCycle: "monthly",
+                    code: "monthly",
+                    description: "Monthly membership package group",
+                    durationDays: 30,
+                    id: "group-monthly",
+                    name: "Monthly",
+                    sortWeight: 10,
+                    status: "active",
+                  },
+                ],
+              }),
+            },
             create: packageGroupCreate,
             update: packageGroupUpdate,
             delete: packageGroupDelete,
           },
           packages: {
-            list: vi.fn().mockResolvedValue({
-              code: "2000",
-              data: [
-                {
-                  code: "pro-annual",
-                  currencyCode: "CNY",
-                  durationDays: 365,
-                  groupId: "group-annual",
-                  id: "package-pro-annual",
-                  levelId: "level-pro",
-                  name: "Pro Annual",
-                  priceAmount: "699.00",
-                  status: "active",
-                },
-              ],
-            }),
+            management: {
+              list: vi.fn().mockResolvedValue({
+                code: "2000",
+                data: [
+                  {
+                    code: "pro-annual",
+                    currencyCode: "CNY",
+                    durationDays: 365,
+                    groupId: "group-annual",
+                    id: "package-pro-annual",
+                    levelId: "level-pro",
+                    name: "Pro Annual",
+                    priceAmount: "699.00",
+                    status: "active",
+                  },
+                ],
+              }),
+            },
             create: packageCreate,
             update: packageUpdate,
             delete: packageDelete,

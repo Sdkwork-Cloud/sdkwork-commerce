@@ -43,6 +43,7 @@ fn exposes_first_slice_capabilities_and_service_names() {
         first_slice_service_names(),
         vec![
             "core",
+            "shop",
             "account",
             "catalog",
             "inventory",
@@ -55,6 +56,27 @@ fn exposes_first_slice_capabilities_and_service_names() {
     );
 
     let manifest = first_slice_capability_manifest();
+    assert!(manifest.contains(&"commerce.shop.profile"));
+    assert!(manifest.contains(&"commerce.shop.selfService"));
+    assert!(manifest.contains(&"commerce.shop.onboarding"));
+    assert!(manifest.contains(&"commerce.shop.verification"));
+    assert!(manifest.contains(&"commerce.shop.channel"));
+    assert!(manifest.contains(&"commerce.shop.fulfillment"));
+    assert!(manifest.contains(&"commerce.shop.businessHours"));
+    assert!(manifest.contains(&"commerce.shop.serviceArea"));
+    assert!(manifest.contains(&"commerce.shop.policy"));
+    assert!(manifest.contains(&"commerce.shop.deposit"));
+    assert!(manifest.contains(&"commerce.shop.risk"));
+    assert!(manifest.contains(&"commerce.shop.categoryBinding"));
+    assert!(manifest.contains(&"commerce.shop.brandAuthorization"));
+    assert!(manifest.contains(&"commerce.shop.qualification"));
+    assert!(manifest.contains(&"commerce.shop.customerService"));
+    assert!(manifest.contains(&"commerce.shop.returnAddress"));
+    assert!(manifest.contains(&"commerce.shop.shippingTemplate"));
+    assert!(manifest.contains(&"commerce.shop.catalog"));
+    assert!(manifest.contains(&"commerce.shop.inventory"));
+    assert!(manifest.contains(&"commerce.shop.order"));
+    assert!(manifest.contains(&"commerce.shop.settlement"));
     assert!(manifest.contains(&"commerce.account.summary"));
     assert!(manifest.contains(&"commerce.catalog.product"));
     assert!(manifest.contains(&"commerce.catalog.priceList"));
@@ -63,7 +85,8 @@ fn exposes_first_slice_capabilities_and_service_names() {
     assert!(manifest.contains(&"commerce.catalog.address"));
     assert!(manifest.contains(&"commerce.inventory.stock"));
     assert!(manifest.contains(&"commerce.inventory.reservation"));
-    assert!(manifest.contains(&"commerce.inventory.ledger"));
+    assert!(manifest.contains(&"commerce.inventory.movement"));
+    assert!(!manifest.contains(&"commerce.inventory.ledger"));
     assert!(manifest.contains(&"commerce.promotion.offer"));
     assert!(manifest.contains(&"commerce.promotion.couponStock"));
     assert!(manifest.contains(&"commerce.promotion.code"));
@@ -122,8 +145,8 @@ fn runtime_capability_manifest_is_complete_for_first_slice_local_private_host() 
     let operation_contract_count = operation_contracts().len();
     let operation_binding_count = operation_service_bindings().len();
 
-    assert_eq!(manifest.service_names.len(), 9);
-    assert_eq!(manifest.service_contracts.len(), 8);
+    assert_eq!(manifest.service_names.len(), 10);
+    assert_eq!(manifest.service_contracts.len(), 9);
     assert_eq!(manifest.operation_contracts.len(), operation_contract_count);
     assert_eq!(
         manifest.operation_service_bindings.len(),
@@ -134,6 +157,200 @@ fn runtime_capability_manifest_is_complete_for_first_slice_local_private_host() 
         .service_contracts
         .iter()
         .all(|contract| contract.requires_idempotency_for_writes));
+    assert!(manifest
+        .operation_contracts
+        .iter()
+        .any(
+            |contract| contract.operation_id == "shops.current.applications.create"
+                && contract.service_name == "commerce.shop"
+        ));
+    assert!(manifest
+        .operation_contracts
+        .iter()
+        .any(
+            |contract| contract.operation_id == "shops.current.channels.update"
+                && contract.service_name == "commerce.shop"
+        ));
+    assert!(manifest
+        .operation_contracts
+        .iter()
+        .any(
+            |contract| contract.operation_id == "shops.settlementProfile.approve"
+                && contract.service_name == "commerce.shop"
+        ));
+    assert!(manifest
+        .operation_contracts
+        .iter()
+        .any(
+            |contract| contract.operation_id == "shops.current.businessHours.update"
+                && contract.service_name == "commerce.shop"
+                && contract.capability_name == "commerce.shop.businessHours"
+                && contract.requires_idempotency()
+                && contract.requires_transaction()
+        ));
+    assert!(manifest
+        .operation_contracts
+        .iter()
+        .any(
+            |contract| contract.operation_id == "shops.serviceAreas.create"
+                && contract.service_name == "commerce.shop"
+                && contract.capability_name == "commerce.shop.serviceArea"
+                && contract.requires_idempotency()
+                && contract.requires_transaction()
+        ));
+    assert!(manifest
+        .operation_contracts
+        .iter()
+        .any(|contract| contract.operation_id == "shops.policies.update"
+            && contract.service_name == "commerce.shop"
+            && contract.capability_name == "commerce.shop.policy"
+            && contract.requires_idempotency()
+            && contract.requires_transaction()));
+    assert!(manifest
+        .operation_contracts
+        .iter()
+        .any(
+            |contract| contract.operation_id == "shops.depositAccount.review"
+                && contract.service_name == "commerce.shop"
+                && contract.capability_name == "commerce.shop.deposit"
+                && contract.requires_idempotency()
+                && contract.requires_transaction()
+        ));
+    assert!(manifest
+        .operation_contracts
+        .iter()
+        .any(
+            |contract| contract.operation_id == "shops.riskSignals.resolve"
+                && contract.service_name == "commerce.shop"
+                && contract.capability_name == "commerce.shop.risk"
+                && contract.requires_idempotency()
+                && contract.requires_transaction()
+        ));
+    for (operation_id, capability_name) in [
+        (
+            "shops.current.categoryBindings.upsert",
+            "commerce.shop.categoryBinding",
+        ),
+        (
+            "shops.current.brandAuthorizations.upsert",
+            "commerce.shop.brandAuthorization",
+        ),
+        (
+            "shops.current.qualifications.upsert",
+            "commerce.shop.qualification",
+        ),
+        (
+            "shops.current.customerServices.upsert",
+            "commerce.shop.customerService",
+        ),
+        (
+            "shops.current.returnAddresses.upsert",
+            "commerce.shop.returnAddress",
+        ),
+        (
+            "shops.current.shippingTemplates.upsert",
+            "commerce.shop.shippingTemplate",
+        ),
+        (
+            "shops.categoryBindings.upsert",
+            "commerce.shop.categoryBinding",
+        ),
+        (
+            "shops.brandAuthorizations.upsert",
+            "commerce.shop.brandAuthorization",
+        ),
+        ("shops.qualifications.upsert", "commerce.shop.qualification"),
+        (
+            "shops.customerServices.upsert",
+            "commerce.shop.customerService",
+        ),
+        (
+            "shops.returnAddresses.upsert",
+            "commerce.shop.returnAddress",
+        ),
+        (
+            "shops.shippingTemplates.upsert",
+            "commerce.shop.shippingTemplate",
+        ),
+    ] {
+        assert!(
+            manifest.operation_contracts.iter().any(|contract| {
+                contract.operation_id == operation_id
+                    && contract.service_name == "commerce.shop"
+                    && contract.capability_name == capability_name
+                    && contract.requires_idempotency()
+                    && contract.requires_transaction()
+            }),
+            "shop configuration write operation must be transactional and idempotent: {operation_id}"
+        );
+    }
+    for (operation_id, capability_name) in [
+        (
+            "shops.current.categoryBindings.list",
+            "commerce.shop.categoryBinding",
+        ),
+        (
+            "shops.current.brandAuthorizations.list",
+            "commerce.shop.brandAuthorization",
+        ),
+        (
+            "shops.current.qualifications.list",
+            "commerce.shop.qualification",
+        ),
+        (
+            "shops.current.customerServices.list",
+            "commerce.shop.customerService",
+        ),
+        (
+            "shops.current.returnAddresses.list",
+            "commerce.shop.returnAddress",
+        ),
+        (
+            "shops.current.shippingTemplates.list",
+            "commerce.shop.shippingTemplate",
+        ),
+        (
+            "shops.categoryBindings.list",
+            "commerce.shop.categoryBinding",
+        ),
+        (
+            "shops.brandAuthorizations.list",
+            "commerce.shop.brandAuthorization",
+        ),
+        ("shops.qualifications.list", "commerce.shop.qualification"),
+        (
+            "shops.customerServices.list",
+            "commerce.shop.customerService",
+        ),
+        ("shops.returnAddresses.list", "commerce.shop.returnAddress"),
+        (
+            "shops.shippingTemplates.list",
+            "commerce.shop.shippingTemplate",
+        ),
+    ] {
+        assert!(
+            manifest.operation_contracts.iter().any(|contract| {
+                contract.operation_id == operation_id
+                    && contract.service_name == "commerce.shop"
+                    && contract.capability_name == capability_name
+                    && !contract.requires_transaction()
+            }),
+            "shop configuration read operation must be read-only: {operation_id}"
+        );
+    }
+    assert!(manifest
+        .operation_contracts
+        .iter()
+        .any(
+            |contract| contract.operation_id == "shops.current.products.create"
+                && contract.service_name == "commerce.shop"
+        ));
+    assert!(manifest
+        .operation_contracts
+        .iter()
+        .any(|contract| contract.operation_id
+            == "shops.current.inventory.stocks.adjustments.create"
+            && contract.service_name == "commerce.shop"));
     assert!(manifest
         .operation_contracts
         .iter()
@@ -217,6 +434,10 @@ fn runtime_capability_manifest_is_complete_for_first_slice_local_private_host() 
         .operation_contracts
         .iter()
         .all(|contract| !contract.operation_id.starts_with("catalog.spu.")));
+    assert!(manifest
+        .operation_contracts
+        .iter()
+        .all(|contract| !contract.operation_id.starts_with("payments.webhooks.")));
 }
 
 #[test]

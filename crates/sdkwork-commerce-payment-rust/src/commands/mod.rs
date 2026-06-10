@@ -27,7 +27,8 @@ pub struct CreatePaymentIntentCommand {
     pub amount: CommerceMoney,
     pub idempotency_key: String,
     pub order_id: String,
-    pub provider: String,
+    pub payment_method: String,
+    pub provider_code: String,
     pub tenant_id: String,
 }
 

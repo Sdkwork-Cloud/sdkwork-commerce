@@ -388,6 +388,7 @@ async fn unavailable_command() -> Response {
         .into_response()
 }
 
+#[allow(clippy::result_large_err)]
 fn resolve_subject(
     runtime_context: Option<Extension<IamAppContext>>,
     required: bool,

@@ -812,6 +812,7 @@ async fn list_entitlements(
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn admin_membership_subject_from_extension(
     runtime_context: Option<Extension<IamAppContext>>,
 ) -> Result<AdminMembershipSubject, Response> {

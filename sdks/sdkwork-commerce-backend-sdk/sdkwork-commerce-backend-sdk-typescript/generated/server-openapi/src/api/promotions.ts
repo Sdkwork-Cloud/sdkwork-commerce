@@ -104,6 +104,62 @@ export class PromotionsCouponLedgerEntriesApi {
   }
 }
 
+export interface PromotionsDiscountAllocationsListParams {
+  applicationId?: string;
+  orderItemId?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export class PromotionsDiscountAllocationsApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Promotions discount Allocations list. */
+  async list(params?: PromotionsDiscountAllocationsListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'application_id', value: params?.applicationId, style: 'form', explode: true, allowReserved: false },
+      { name: 'order_item_id', value: params?.orderItemId, style: 'form', explode: true, allowReserved: false },
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/promotions/discount_allocations`), query));
+  }
+}
+
+export interface PromotionsDiscountApplicationsListParams {
+  orderId?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+  cursor?: string;
+}
+
+export class PromotionsDiscountApplicationsApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Promotions discount Applications list. */
+  async list(params?: PromotionsDiscountApplicationsListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'order_id', value: params?.orderId, style: 'form', explode: true, allowReserved: false },
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/promotions/discount_applications`), query));
+  }
+}
+
 export interface PromotionsUserCouponsManagementListParams {
   userId?: string;
   status?: string;
@@ -142,142 +198,6 @@ export class PromotionsUserCouponsApi {
     this.management = new PromotionsUserCouponsManagementApi(client);
   }
 
-}
-
-export interface PromotionsOffersManagementListParams {
-  status?: string;
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-}
-
-export class PromotionsOffersManagementApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Promotions offers management list. */
-  async list(params?: PromotionsOffersManagementListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/promotions/offers`), query));
-  }
-}
-
-export class PromotionsOffersApi {
-  private client: HttpClient;
-  public readonly management: PromotionsOffersManagementApi;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-    this.management = new PromotionsOffersManagementApi(client);
-  }
-
-
-/** Promotions offers create. */
-  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/promotions/offers`), body, undefined, undefined, 'application/json');
-  }
-
-/** Promotions offers update. */
-  async update(offerId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.patch<CommerceApiResult>(backendApiPath(`/promotions/offers/${serializePathParameter(offerId, { name: 'offerId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export interface PromotionsDiscountApplicationsListParams {
-  orderId?: string;
-  status?: string;
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-}
-
-export class PromotionsDiscountApplicationsApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Promotions discount Applications list. */
-  async list(params?: PromotionsDiscountApplicationsListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'order_id', value: params?.orderId, style: 'form', explode: true, allowReserved: false },
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/promotions/discount_applications`), query));
-  }
-}
-
-export interface PromotionsDiscountAllocationsListParams {
-  applicationId?: string;
-  orderItemId?: string;
-  page?: number;
-  pageSize?: number;
-}
-
-export class PromotionsDiscountAllocationsApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Promotions discount Allocations list. */
-  async list(params?: PromotionsDiscountAllocationsListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'application_id', value: params?.applicationId, style: 'form', explode: true, allowReserved: false },
-      { name: 'order_item_id', value: params?.orderItemId, style: 'form', explode: true, allowReserved: false },
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/promotions/discount_allocations`), query));
-  }
-}
-
-export interface PromotionsCouponStocksListParams {
-  offerId?: string;
-  status?: string;
-  page?: number;
-  pageSize?: number;
-}
-
-export class PromotionsCouponStocksApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Promotions coupon Stocks list. */
-  async list(params?: PromotionsCouponStocksListParams): Promise<CommerceApiResult> {
-    const query = buildQueryString([
-      { name: 'offer_id', value: params?.offerId, style: 'form', explode: true, allowReserved: false },
-      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/promotions/coupon_stocks`), query));
-  }
-
-/** Promotions coupon Stocks create. */
-  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/promotions/coupon_stocks`), body, undefined, undefined, 'application/json');
-  }
 }
 
 export interface PromotionsCodesRedemptionsListParams {
@@ -341,14 +261,94 @@ export class PromotionsCodesApi {
   }
 }
 
+export interface PromotionsCouponStocksListParams {
+  offerId?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export class PromotionsCouponStocksApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Promotions coupon Stocks list. */
+  async list(params?: PromotionsCouponStocksListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'offer_id', value: params?.offerId, style: 'form', explode: true, allowReserved: false },
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/promotions/coupon_stocks`), query));
+  }
+
+/** Promotions coupon Stocks create. */
+  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/promotions/coupon_stocks`), body, undefined, undefined, 'application/json');
+  }
+}
+
+export interface PromotionsOffersManagementListParams {
+  status?: string;
+  page?: number;
+  pageSize?: number;
+  cursor?: string;
+}
+
+export class PromotionsOffersManagementApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** Promotions offers management list. */
+  async list(params?: PromotionsOffersManagementListParams): Promise<CommerceApiResult> {
+    const query = buildQueryString([
+      { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/promotions/offers`), query));
+  }
+}
+
+export class PromotionsOffersApi {
+  private client: HttpClient;
+  public readonly management: PromotionsOffersManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new PromotionsOffersManagementApi(client);
+  }
+
+
+/** Promotions offers create. */
+  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.post<CommerceApiResult>(backendApiPath(`/promotions/offers`), body, undefined, undefined, 'application/json');
+  }
+
+/** Promotions offers update. */
+  async update(offerId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
+    return this.client.patch<CommerceApiResult>(backendApiPath(`/promotions/offers/${serializePathParameter(offerId, { name: 'offerId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
+  }
+}
+
 export class PromotionsApi {
   private client: HttpClient;
-  public readonly codes: PromotionsCodesApi;
-  public readonly couponStocks: PromotionsCouponStocksApi;
-  public readonly discountAllocations: PromotionsDiscountAllocationsApi;
-  public readonly discountApplications: PromotionsDiscountApplicationsApi;
   public readonly offers: PromotionsOffersApi;
+  public readonly couponStocks: PromotionsCouponStocksApi;
+  public readonly codes: PromotionsCodesApi;
   public readonly userCoupons: PromotionsUserCouponsApi;
+  public readonly discountApplications: PromotionsDiscountApplicationsApi;
+  public readonly discountAllocations: PromotionsDiscountAllocationsApi;
   public readonly couponLedgerEntries: PromotionsCouponLedgerEntriesApi;
   public readonly budgetLedgerEntries: PromotionsBudgetLedgerEntriesApi;
   public readonly externalBindings: PromotionsExternalBindingsApi;
@@ -356,12 +356,12 @@ export class PromotionsApi {
 
   constructor(client: HttpClient) {
     this.client = client;
-    this.codes = new PromotionsCodesApi(client);
-    this.couponStocks = new PromotionsCouponStocksApi(client);
-    this.discountAllocations = new PromotionsDiscountAllocationsApi(client);
-    this.discountApplications = new PromotionsDiscountApplicationsApi(client);
     this.offers = new PromotionsOffersApi(client);
+    this.couponStocks = new PromotionsCouponStocksApi(client);
+    this.codes = new PromotionsCodesApi(client);
     this.userCoupons = new PromotionsUserCouponsApi(client);
+    this.discountApplications = new PromotionsDiscountApplicationsApi(client);
+    this.discountAllocations = new PromotionsDiscountAllocationsApi(client);
     this.couponLedgerEntries = new PromotionsCouponLedgerEntriesApi(client);
     this.budgetLedgerEntries = new PromotionsBudgetLedgerEntriesApi(client);
     this.externalBindings = new PromotionsExternalBindingsApi(client);

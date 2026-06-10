@@ -1,7 +1,7 @@
 use sdkwork_commerce_core::{
     CapabilityFlag, CommerceIdempotencyRecord, CommerceRequestHash, CommerceRuntimeContext,
-    CommerceServiceError, CommerceSurfaceProfile, DeploymentMode, Environment,
-    OperationExecutionPolicy,
+    CommerceRuntimeContextInput, CommerceServiceError, CommerceSurfaceProfile, DeploymentMode,
+    Environment, OperationExecutionPolicy,
 };
 use sdkwork_commerce_runtime::{
     execute_runtime_operation, execute_runtime_operation_enveloped, execute_with_idempotency,
@@ -68,6 +68,7 @@ fn runtime_composes_first_slice_service_contracts_in_domain_order() {
             .map(|contract| contract.service_name)
             .collect::<Vec<_>>(),
         vec![
+            "commerce.shop",
             "commerce.account",
             "commerce.catalog",
             "commerce.inventory",
@@ -84,6 +85,48 @@ fn runtime_composes_first_slice_service_contracts_in_domain_order() {
 fn app_operation_ids_are_bound_to_their_runtime_services() {
     let bindings = operation_service_bindings();
 
+    assert_eq!(
+        bindings
+            .iter()
+            .find(|binding| binding.operation_id == "shops.current.applications.create")
+            .map(|binding| binding.service_name),
+        Some("commerce.shop"),
+    );
+    assert_eq!(
+        bindings
+            .iter()
+            .find(|binding| binding.operation_id == "shops.current.channels.update")
+            .map(|binding| binding.service_name),
+        Some("commerce.shop"),
+    );
+    assert_eq!(
+        bindings
+            .iter()
+            .find(|binding| binding.operation_id == "shops.settlementProfile.approve")
+            .map(|binding| binding.service_name),
+        Some("commerce.shop"),
+    );
+    assert_eq!(
+        bindings
+            .iter()
+            .find(|binding| binding.operation_id == "shops.current.retrieve")
+            .map(|binding| binding.service_name),
+        Some("commerce.shop"),
+    );
+    assert_eq!(
+        bindings
+            .iter()
+            .find(|binding| binding.operation_id == "shops.current.products.create")
+            .map(|binding| binding.service_name),
+        Some("commerce.shop"),
+    );
+    assert_eq!(
+        bindings
+            .iter()
+            .find(|binding| binding.operation_id == "shops.current.orders.fulfillments.create")
+            .map(|binding| binding.service_name),
+        Some("commerce.shop"),
+    );
     assert_eq!(
         bindings
             .iter()
@@ -261,6 +304,8 @@ fn runtime_exposes_operation_contracts_for_every_app_operation() {
 fn runtime_marks_write_operations_as_idempotent_transactional_boundaries() {
     let create_order = resolve_operation_contract("checkout.sessions.orders.create").unwrap();
     let create_payment = resolve_operation_contract("payments.intents.create").unwrap();
+    let publish_shop_product =
+        resolve_operation_contract("shops.current.products.publish").unwrap();
     let account_summary = resolve_operation_contract("accounts.current.summary.retrieve").unwrap();
 
     assert_eq!(
@@ -275,6 +320,16 @@ fn runtime_marks_write_operations_as_idempotent_transactional_boundaries() {
     assert!(create_order.requires_transaction());
     assert!(create_payment.requires_idempotency());
     assert!(create_payment.requires_transaction());
+    assert_eq!(
+        publish_shop_product.execution_policy,
+        OperationExecutionPolicy::TransactionalWrite,
+    );
+    assert!(publish_shop_product.requires_idempotency());
+    assert!(publish_shop_product.requires_transaction());
+    assert_eq!(
+        publish_shop_product.capability_name,
+        "commerce.shop.catalog"
+    );
 
     assert_eq!(
         account_summary.execution_policy,
@@ -1127,14 +1182,14 @@ fn service_request(
 }
 
 fn runtime_context() -> CommerceRuntimeContext {
-    CommerceRuntimeContext::new(
-        "tenant-1",
-        Some("org-1"),
-        "user-1",
-        "session-1",
-        "sdkwork-router",
-        DeploymentMode::Private,
-        Environment::Production,
-        CommerceSurfaceProfile::App,
-    )
+    CommerceRuntimeContext::new(CommerceRuntimeContextInput {
+        tenant_id: "tenant-1".to_string(),
+        organization_id: Some("org-1".to_string()),
+        user_id: "user-1".to_string(),
+        session_id: "session-1".to_string(),
+        app_id: "sdkwork-router".to_string(),
+        deployment_mode: DeploymentMode::Private,
+        environment: Environment::Production,
+        surface_profile: CommerceSurfaceProfile::App,
+    })
 }

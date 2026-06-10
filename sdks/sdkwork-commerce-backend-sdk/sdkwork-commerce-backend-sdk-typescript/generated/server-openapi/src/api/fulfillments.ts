@@ -4,59 +4,22 @@ import type { HttpClient } from '../http/client';
 import type { CommerceApiResult, CommerceOperationCommand } from '../types';
 
 
-export class FulfillmentsTrackingEventsApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Fulfillments tracking Events create. */
-  async create(fulfillmentId: string, shipmentId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/fulfillments/${serializePathParameter(fulfillmentId, { name: 'fulfillmentId', style: 'simple', explode: false })}/shipments/${serializePathParameter(shipmentId, { name: 'shipmentId', style: 'simple', explode: false })}/tracking_events`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export class FulfillmentsShipmentsApi {
-  private client: HttpClient;
-
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-
-/** Fulfillments shipments create. */
-  async create(fulfillmentId: string, body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/fulfillments/${serializePathParameter(fulfillmentId, { name: 'fulfillmentId', style: 'simple', explode: false })}/shipments`), body, undefined, undefined, 'application/json');
-  }
-
-/** Fulfillments shipments update. */
-  async update(fulfillmentId: string, shipmentId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.patch<CommerceApiResult>(backendApiPath(`/fulfillments/${serializePathParameter(fulfillmentId, { name: 'fulfillmentId', style: 'simple', explode: false })}/shipments/${serializePathParameter(shipmentId, { name: 'shipmentId', style: 'simple', explode: false })}`), body, undefined, undefined, 'application/json');
-  }
-}
-
-export interface FulfillmentsListParams {
+export interface FulfillmentsManagementListParams {
   status?: string;
   page?: number;
   pageSize?: number;
 }
 
-export class FulfillmentsApi {
+export class FulfillmentsManagementApi {
   private client: HttpClient;
-  public readonly shipments: FulfillmentsShipmentsApi;
-  public readonly trackingEvents: FulfillmentsTrackingEventsApi;
 
   constructor(client: HttpClient) {
     this.client = client;
-    this.shipments = new FulfillmentsShipmentsApi(client);
-    this.trackingEvents = new FulfillmentsTrackingEventsApi(client);
   }
 
 
-/** Fulfillments list. */
-  async list(params?: FulfillmentsListParams): Promise<CommerceApiResult> {
+/** Fulfillments management list. */
+  async list(params?: FulfillmentsManagementListParams): Promise<CommerceApiResult> {
     const query = buildQueryString([
       { name: 'status', value: params?.status, style: 'form', explode: true, allowReserved: false },
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
@@ -65,15 +28,21 @@ export class FulfillmentsApi {
     return this.client.get<CommerceApiResult>(appendQueryString(backendApiPath(`/fulfillments`), query));
   }
 
-/** Fulfillments create. */
-  async create(body: CommerceOperationCommand): Promise<CommerceApiResult> {
-    return this.client.post<CommerceApiResult>(backendApiPath(`/fulfillments`), body, undefined, undefined, 'application/json');
-  }
-
-/** Fulfillments retrieve. */
+/** Fulfillments management retrieve. */
   async retrieve(fulfillmentId: string): Promise<CommerceApiResult> {
     return this.client.get<CommerceApiResult>(backendApiPath(`/fulfillments/${serializePathParameter(fulfillmentId, { name: 'fulfillmentId', style: 'simple', explode: false })}`));
   }
+}
+
+export class FulfillmentsApi {
+  private client: HttpClient;
+  public readonly management: FulfillmentsManagementApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.management = new FulfillmentsManagementApi(client);
+  }
+
 
 /** Fulfillments update. */
   async update(fulfillmentId: string, body?: CommerceOperationCommand): Promise<CommerceApiResult> {

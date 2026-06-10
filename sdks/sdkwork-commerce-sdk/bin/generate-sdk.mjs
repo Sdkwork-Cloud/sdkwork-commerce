@@ -9,6 +9,7 @@ runCommerceSdkGenerator(
     sdkName: "sdkwork-commerce-sdk",
     sdkOwner: "sdkwork-commerce",
     apiAuthority: "sdkwork-commerce.open",
+    dependencyApiExports: [],
     sdkRoot: resolveFamilySdkRoot(import.meta.url),
     sdkType: "custom",
     apiPrefix: "/open/v3/api",
